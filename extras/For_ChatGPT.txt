@@ -22,7 +22,6 @@ Here is the updated Rudrastra B2B Engineering website code:
   --color-success: var(--success);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
-  --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
   /* Uncover: sharp corners everywhere */
   --radius: 0px;
@@ -69,10 +68,10 @@ Here is the updated Rudrastra B2B Engineering website code:
   --card-foreground: #111111;
   
   /* Indian Flag Colors */
-  --primary: #FF9933; /* Saffron */
+  --primary: #F35C27; /* Saffron */
   --primary-foreground: #FFFFFF;
   --success: #138808; /* Green */
-  --accent: #000080;  /* Navy Blue */
+  --accent: #305CDE;  /* Navy Blue */
   --accent-foreground: #FFFFFF;
 
   --muted: #E8E8E8;
@@ -93,15 +92,8 @@ Here is the updated Rudrastra B2B Engineering website code:
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Main Headings use Apple Font */
-  h1, h2 {
-    font-family: var(--font-apple);
-    letter-spacing: -0.015em;
-    font-weight: 600;
-  }
-
-  /* Subheadings use Syne */
-  h3, h4, h5, h6 {
+  /* Headings use Syne */
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
     font-weight: 700;
@@ -114,32 +106,15 @@ Here is the updated Rudrastra B2B Engineering website code:
 }
 
 @layer utilities {
-  .bg-tricolor-gradient {
-    background-image: linear-gradient(to right, #FF9933 0%, #000080 50%, #138808 100%);
-  }
   
-  .text-tricolor-gradient {
-    background-image: linear-gradient(to right, #FF9933 0%, #000080 50%, #138808 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
   
-  .border-tricolor-gradient {
-    position: relative;
-  }
-  .border-tricolor-gradient::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(to right, #FF9933 0%, #000080 50%, #138808 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
+}
+
+/* Ensure the Syne heading font is stretched by 17% in height across the site */
+h1, h2, h3, h4, h5, h6, .font-heading {
+  display: inline-block !important;
+  transform: scaleY(1.17) !important;
+  transform-origin: left !important;
 }
 ```
 
@@ -320,23 +295,37 @@ export default function HomePage() {
     <div className="w-full flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
       
       {/* 1. HERO + ENGINEERING SEARCH */}
-      <section className="w-full px-6 lg:px-10 pt-20 pb-16 md:pt-32 md:pb-24 flex flex-col items-center justify-center text-center">
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)] border-tricolor-gradient bg-white px-4 py-1.5 inline-flex items-center gap-2">
-            🇮🇳 MADE IN INDIA
-          </span>
-          <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)] border border-[var(--border)] bg-white px-4 py-1.5 inline-flex items-center">
-            INDIAN DRONE HARDWARE
-          </span>
-          <span className="hidden sm:inline-flex font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)] border border-[var(--border)] bg-white px-4 py-1.5 items-center">
-            BUILT FOR GLOBAL OPERATIONS
-          </span>
+      <section className="w-full px-6 lg:px-10 pt-3 pb-16 md:pt-4 md:pb-24 flex flex-col items-center justify-center text-center">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-8">
+          <h1 className="font-heading font-extrabold text-[40px] md:text-[72px] leading-[1.05] tracking-tight max-w-5xl text-center md:text-left">
+            <span className="text-[var(--primary)]">India's</span> Drone <span className="text-[var(--accent)]">Hardware</span> <span className="text-[var(--success)]">Marketplace.</span>
+          </h1>
+          <Image 
+            src="/images/make-in-india.png" 
+            alt="Make in India" 
+            width={412} 
+            height={288} 
+            className="w-auto h-[160px] md:h-[288px] object-contain shrink-0" 
+          />
         </div>
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[72px] leading-[1.05] tracking-tight max-w-5xl mb-6">
-          India's Drone Hardware Marketplace.
-        </h1>
+
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
+                <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] border-[var(--primary)] bg-white px-4 py-1.5 inline-flex items-center gap-2 border">
+                  <svg className="w-3.5 h-3.5 text-[var(--primary)]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                  </svg>
+                  MADE IN INDIA
+                </span>
+                <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--accent)] border-[var(--accent)] bg-white px-4 py-1.5 inline-flex items-center border">
+                  INDIAN DRONE HARDWARE
+                </span>
+                <span className="hidden sm:inline-flex font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--success)] border-[var(--success)] bg-white px-4 py-1.5 items-center border">
+                  BUILT FOR GLOBAL OPERATIONS
+                </span>
+        </div>
+
         <p className="font-sans text-[16px] md:text-[20px] text-[var(--muted-foreground)] max-w-3xl mb-12 leading-relaxed">
-          <span className="text-tricolor-gradient font-bold">Made in India. Built for the World.</span> Find, evaluate, compare, and procure canonical engineering components for UAVs.
+          Find, evaluate, compare, and procure canonical engineering components for UAVs.
         </p>
 
         {/* Large Engineering Search Input */}
@@ -370,29 +359,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 1.5. BRAND MARQUEE */}
-      <section className="w-full border-y border-[var(--border)] bg-[#FAFAFA] overflow-hidden py-4 flex relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-16 before:bg-gradient-to-r before:from-[#FAFAFA] before:to-transparent before:z-10 after:absolute after:right-0 after:top-0 after:bottom-0 after:w-16 after:bg-gradient-to-l after:from-[#FAFAFA] after:to-transparent after:z-10">
-        <div className="flex whitespace-nowrap animate-[infinite-scroll-left_30s_linear_infinite] shrink-0">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex items-center shrink-0">
-              <span className="font-heading font-black text-[24px] uppercase tracking-tight mx-8 text-[var(--foreground)]">
-                INDIA'S #1 DRONE HARDWARE MARKETPLACE
-              </span>
-              <span className="w-2 h-2 bg-tricolor-gradient rounded-full"></span>
-              <span className="font-heading font-black text-[24px] uppercase tracking-tight mx-8 text-tricolor-gradient">
-                RUDRASTRA
-              </span>
-              <span className="w-2 h-2 bg-tricolor-gradient rounded-full"></span>
-            </div>
-          ))}
-        </div>
-      </section>
+
 
       {/* 2. ENGINEERING TAXONOMY (CATEGORY GRID) */}
       <section className="w-full px-6 lg:px-10 py-20 bg-white border-y border-[var(--border)]">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12">
           <div>
-            <h2 className="font-heading font-bold text-[32px] tracking-tight mb-3">System Architecture</h2>
+            <h2 className="font-heading font-bold text-[32px] tracking-tight mb-3 text-[var(--foreground)]"><span className="text-[var(--accent)]">System</span> Architecture</h2>
             <p className="font-sans text-[15px] text-[var(--muted-foreground)] max-w-xl">
               Browse components by engineering system and application.
             </p>
@@ -415,17 +388,17 @@ export default function HomePage() {
             { id: "06", name: "Navigation", sub: "GNSS, RTK, Optical Flow", count: 48 },
             { id: "07", name: "Airframe", sub: "Frames, Landing Gear, Mounts", count: 215 },
             { id: "08", name: "Payload", sub: "Gimbals, Cameras, LiDAR", count: 67 },
-          ].map((cat) => (
-            <Link key={cat.id} href={`/categories/${cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="group relative bg-white p-8 flex flex-col hover:bg-[#FAFAFA] transition-colors duration-fast h-[240px]">
-              <div className="flex justify-between items-start mb-6">
-                <span className="font-sans text-[12px] font-bold text-[var(--muted-foreground)]">{cat.id}</span>
-                <span className="font-sans text-[11px] font-bold text-[var(--muted-foreground)] opacity-70 group-hover:opacity-100 transition-opacity duration-fast">{cat.count} items</span>
+          ].map((cat, i) => (
+            <Link key={cat.id} href={`/categories/${cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="group relative p-6 flex flex-col transition-colors duration-fast h-[160px] bg-white hover:bg-[var(--primary)]">
+              <div className="flex justify-between items-start mb-4">
+                <span className="font-sans text-[12px] text-[var(--muted-foreground)] group-hover:text-white">{cat.id}</span>
+                <span className="font-sans text-[11px] opacity-70 group-hover:opacity-100 transition-opacity duration-fast text-[var(--muted-foreground)] group-hover:text-white/80">{cat.count} items</span>
               </div>
-              <h3 className="font-heading font-bold text-[20px] tracking-tight mb-2 group-hover:text-[var(--primary)] transition-colors duration-fast">{cat.name}</h3>
-              <p className="font-sans text-[13px] text-[var(--muted-foreground)]">{cat.sub}</p>
+              <h3 className="font-heading text-[20px] tracking-tight mb-2 transition-colors duration-fast group-hover:text-white">{cat.name}</h3>
+              <p className="font-sans text-[13px] text-[var(--muted-foreground)] group-hover:text-white/90">{cat.sub}</p>
               
-              <div className="absolute bottom-8 right-8 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast">
-                <svg className="w-5 h-5 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <div className="absolute bottom-6 right-6 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </div>
@@ -438,11 +411,11 @@ export default function HomePage() {
       <section className="w-full px-6 lg:px-10 py-24 bg-[#FAFAFA]">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16">
           <div className="max-w-2xl">
-            <h2 className="font-heading font-bold text-[36px] tracking-tight mb-4 leading-[1.1]">
-              Technical Components
+            <h2 className="font-heading font-bold text-[36px] tracking-tight mb-4 leading-[1.1] text-[var(--foreground)]">
+              Technical <span className="text-[var(--primary)]">Components</span>
             </h2>
             <p className="font-sans text-[16px] text-[var(--muted-foreground)] leading-relaxed">
-              Canonical hardware records with aggregated multi-seller pricing and stock availability.
+              <span className="text-[var(--accent)]">Canonical</span> hardware records with aggregated multi-seller pricing and <span className="text-[var(--success)]">stock availability.</span>
             </p>
           </div>
           <Link href="/products" className="group hidden md:inline-flex items-center gap-2 font-sans font-semibold text-[14px] text-[var(--foreground)] mt-6 border-b border-[var(--foreground)] pb-1 transition-colors duration-fast hover:text-[var(--primary)] hover:border-[var(--primary)]">
@@ -486,20 +459,14 @@ export default function HomePage() {
           ].map((prod, i) => (
             <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative">
               
+              {i === 0 && (
+                <div className="absolute top-0 left-0 bg-[var(--primary)] text-white font-sans font-bold text-[11px] px-3 py-1.5 z-20">New</div>
+              )}
+
               {/* Compare checkbox mock */}
-              <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-fast flex items-center gap-2 bg-white/90 backdrop-blur px-2 py-1 border border-[var(--border)]">
+              <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-fast flex items-center gap-2 bg-white/90 backdrop-blur px-2 py-1 border border-[var(--border)] mt-6">
                 <div className="w-3.5 h-3.5 border border-[var(--foreground)]"></div>
                 <span className="font-sans text-[11px] font-semibold tracking-wider uppercase text-[var(--foreground)]">Compare</span>
-              </div>
-
-              {/* Tags */}
-              <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-                {i === 0 && (
-                  <span className="bg-[var(--success)] text-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest">New</span>
-                )}
-                {i === 1 && (
-                  <span className="bg-[var(--primary)] text-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest">Bestseller</span>
-                )}
               </div>
 
               {/* Image Container with SLOW scaling */}
@@ -545,8 +512,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
           <div>
             <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] mb-4 block">Compatibility Graph</span>
-            <h2 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight mb-6">
-              Validate before you build.
+            <h2 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight mb-6 text-white">
+              <span className="text-[var(--primary)]">Validate</span> before <span className="text-[var(--success)]">you build.</span>
             </h2>
             <p className="font-sans text-[16px] text-[#A0A0A0] leading-relaxed max-w-lg mb-10">
               Check electrical bounds, mechanical mounts, and protocol compatibility across your entire component stack instantly.
@@ -602,7 +569,7 @@ export default function HomePage() {
       {/* 5. MANUFACTURERS GRID */}
       <section className="w-full px-6 lg:px-10 py-20 bg-white border-b border-[var(--border)]">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-          <h2 className="font-heading font-bold text-[32px] tracking-tight">Canonical Manufacturers</h2>
+          <h2 className="font-heading font-bold text-[32px] tracking-tight text-[var(--foreground)]"><span className="text-[var(--accent)]">Canonical</span> Manufacturers</h2>
           <Link href="/manufacturers" className="group hidden md:inline-flex items-center gap-2 font-sans font-semibold text-[14px] text-[var(--foreground)] border-b border-[var(--foreground)] pb-1 transition-colors duration-fast hover:text-[var(--primary)] hover:border-[var(--primary)]">
             All manufacturers
             <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -625,9 +592,9 @@ export default function HomePage() {
       
       {/* 5.5. REVIEWS / TESTIMONIALS */}
       <section className="w-full py-24 bg-[#FAFAFA] border-b border-t border-[var(--border)] overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-tricolor-gradient opacity-20"></div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--primary)] opacity-20"></div>
         <div className="max-w-4xl mx-auto text-center mb-16 px-6">
-          <h2 className="font-heading font-extrabold text-[36px] tracking-tight mb-4">Trusted by Indian Defense & Commercial Operators.</h2>
+          <h2 className="font-heading font-extrabold text-[36px] tracking-tight mb-4 text-[var(--foreground)]"><span className="text-[var(--primary)]">Trusted</span> by Indian Defense & <span className="text-[var(--accent)]">Commercial Operators</span>.</h2>
           <p className="font-sans text-[16px] text-[var(--muted-foreground)]">
             Procurement engineers rely on Rudrastra's canonical hardware graph for accurate technical sourcing.
           </p>
@@ -685,7 +652,7 @@ export default function HomePage() {
       {/* 6. B2B PROCUREMENT PIPELINE */}
       <section className="w-full px-6 lg:px-10 py-24 bg-[#FAFAFA] border-b border-[var(--border)]">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="font-heading font-extrabold text-[36px] tracking-tight mb-4">Turn your BOM into a procurement plan.</h2>
+          <h2 className="font-heading font-extrabold text-[36px] tracking-tight mb-4 text-[var(--foreground)]">Turn your <span className="text-[var(--primary)]">BOM</span> into a <span className="text-[var(--success)]">procurement plan.</span></h2>
           <p className="font-sans text-[16px] text-[var(--muted-foreground)]">
             Upload your CSV. We match components to our canonical graph, aggregate supplier offers, and generate an RFQ instantly.
           </p>
@@ -726,7 +693,7 @@ export default function HomePage() {
       <section className="w-full px-6 lg:px-10 py-24 bg-white border-b border-[var(--border)]">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12">
           <div>
-            <h2 className="font-heading font-bold text-[32px] tracking-tight mb-3">Engineering Resources</h2>
+            <h2 className="font-heading font-bold text-[32px] tracking-tight mb-3 text-[var(--foreground)]"><span className="text-[var(--accent)]">Engineering</span> Resources</h2>
             <p className="font-sans text-[15px] text-[var(--muted-foreground)] max-w-xl">
               Technical documentation, calculators, and system architecture guides.
             </p>
@@ -756,7 +723,7 @@ export default function HomePage() {
 
       {/* 8. NEWSLETTER (TECHNICAL) */}
       <section className="w-full px-6 lg:px-10 py-20 bg-[#111] text-white flex flex-col items-center text-center">
-        <h2 className="font-heading font-bold text-[32px] tracking-tight mb-4">Stay ahead of the hardware stack.</h2>
+        <h2 className="font-heading font-bold text-[32px] tracking-tight mb-4">Stay ahead of the <span className="text-[var(--accent)]">hardware stack.</span></h2>
         <p className="font-sans text-[15px] text-[#A0A0A0] max-w-md mb-8">
           Weekly updates on new canonical components, firmware compatibility notes, and supply chain lead times.
         </p>
@@ -797,7 +764,7 @@ export default function ProductsPage() {
           Drone Hardware Catalog
         </span>
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Find the exact component.
+          Find the exact <span className="text-[var(--primary)]">component.</span>
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl mb-8">
           Search by manufacturer, MPN, specification, category or engineering requirement.
@@ -1066,7 +1033,8 @@ import Image from "next/image";
  * P0: Canonical Product Detail Page (PDP)
  * Focuses on Canonical Data -> Compatibility Graph -> Multi-Seller Offers.
  */
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   // Mock data for the demonstration
   const product = {
     mfg: "T-Motor",
@@ -1370,7 +1338,7 @@ export default function CategoriesPage() {
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16 text-center flex flex-col items-center">
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight mb-4 max-w-3xl">
-          Explore the drone hardware stack.
+          Browse by <span className="text-[var(--primary)]">Engineering</span> System
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-xl">
           Browse components by engineering system, interface, specification and application.
@@ -1380,24 +1348,24 @@ export default function CategoriesPage() {
       {/* CATEGORY BLOCKS */}
       <section className="w-full max-w-7xl mx-auto px-6 lg:px-10 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((cat) => (
-          <Link key={cat.id} href={cat.link} className="bg-white border border-[var(--border)] p-8 flex flex-col h-[320px] relative group hover:bg-[#FAFAFA] transition-colors duration-fast">
+          <Link key={cat.id} href={cat.link} className="bg-white border border-[var(--border)] p-8 flex flex-col h-[320px] relative group hover:bg-[var(--primary)] transition-colors duration-fast">
             <div className="flex justify-between items-start mb-8">
-              <span className="font-sans text-[14px] font-bold text-[var(--muted-foreground)]">{cat.id}</span>
-              <span className="font-sans text-[12px] font-bold text-[var(--muted-foreground)] opacity-70 group-hover:opacity-100 transition-opacity duration-fast">{cat.count.toLocaleString()} components</span>
+              <span className="font-sans text-[14px] font-bold text-[var(--muted-foreground)] group-hover:text-white/85 transition-colors duration-fast">{cat.id}</span>
+              <span className="font-sans text-[12px] font-bold text-[var(--muted-foreground)] opacity-70 group-hover:opacity-100 transition-opacity duration-fast group-hover:text-white/85">{cat.count.toLocaleString()} components</span>
             </div>
             
-            <h2 className="font-heading font-bold text-[28px] tracking-tight uppercase mb-4">{cat.name}</h2>
+            <h2 className="font-heading font-bold text-[28px] tracking-tight uppercase mb-4 group-hover:text-white transition-colors duration-fast">{cat.name}</h2>
             
-            <p className="font-sans text-[15px] text-[var(--muted-foreground)] leading-relaxed mb-6 flex-1">
+            <p className="font-sans text-[15px] text-[var(--muted-foreground)] leading-relaxed mb-6 flex-1 group-hover:text-white/90 transition-colors duration-fast">
               {cat.desc.split(', ').map((item, i) => (
                 <span key={i} className="block mb-1">• {item}</span>
               ))}
             </p>
             
-            <div className="flex justify-between items-end mt-auto pt-4 border-t border-[var(--border)]">
-              <span className="font-sans font-bold text-[14px] flex items-center gap-2 group-hover:text-[var(--primary)] transition-colors duration-fast">
+            <div className="flex justify-between items-end mt-auto pt-4 border-t border-[var(--border)] group-hover:border-white/20 transition-colors duration-fast">
+              <span className="font-sans font-bold text-[14px] flex items-center gap-2 group-hover:text-white transition-colors duration-fast">
                 Explore
-                <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </span>
@@ -1420,9 +1388,10 @@ import Image from "next/image";
  * P0: Subcategory Page
  * Includes the contextual Engineering Calculator module.
  */
-export default function SubcategoryPage({ params }: { params: { category: string } }) {
+export default async function SubcategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  const resolvedParams = await params;
   // We mock the content assuming it's the "propulsion" route.
-  const title = params.category === "propulsion" ? "Propulsion" : "Category";
+  const title = resolvedParams.category === "propulsion" ? "Propulsion" : "Category";
   
   return (
     <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
@@ -1439,7 +1408,7 @@ export default function SubcategoryPage({ params }: { params: { category: string
       {/* 1. HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4 capitalize">
-          {title}
+          <span className="text-[var(--accent)]">{title}</span> Components
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl mb-8">
           Motors, ESCs and propellers for multirotor, fixed-wing and heavy-lift platforms.
@@ -1541,7 +1510,7 @@ export default function ComparePage() {
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Compare components without opening ten tabs.
+          <span className="text-[var(--primary)]">Compare</span> components without opening ten tabs.
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl">
           Evaluate technical specifications side-by-side to make the right engineering decision.
@@ -1622,6 +1591,7 @@ export default function ComparePage() {
 ```tsx
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 /**
  * P0: Compatibility Builder
@@ -1645,7 +1615,7 @@ export default function CompatibilityPage() {
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Know it works before you buy it.
+          Know it works before you <span className="text-[var(--success)]">buy it.</span>
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl">
           Validate electrical, mechanical and communication compatibility across your drone system.
@@ -1656,7 +1626,7 @@ export default function CompatibilityPage() {
         
         {/* BUILDER FORM */}
         <div className="bg-white border border-[var(--border)] p-8">
-          <h2 className="font-heading font-bold text-[18px] mb-8 uppercase tracking-widest text-[var(--muted-foreground)]">Select Components</h2>
+          <h2 className="font-heading font-bold text-[18px] mb-8 uppercase tracking-widest text-[var(--muted-foreground)]">Select <span className="text-[var(--accent)]">Components</span></h2>
           
           <div className="space-y-6">
             <div className="flex flex-col">
@@ -1711,7 +1681,7 @@ export default function CompatibilityPage() {
 
         {/* RESULTS TERMINAL */}
         <div className="bg-[#111111] text-white p-8 relative flex flex-col h-full min-h-[400px]">
-          <h2 className="font-heading font-bold text-[18px] mb-8 uppercase tracking-widest text-[#666]">System Status</h2>
+          <h2 className="font-heading font-bold text-[18px] mb-8 uppercase tracking-widest text-[#666]">System <span className="text-[var(--success)]">Status</span></h2>
           
           {result === null && !checking && (
             <div className="flex-1 flex items-center justify-center text-[#444] font-mono text-[14px]">
@@ -1805,7 +1775,7 @@ export default function BomPage() {
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Turn your BOM into a procurement plan.
+          Turn your <span className="text-[var(--primary)]">BOM</span> into a procurement plan.
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl mb-8">
           Upload your drone's bill of materials. Rudrastra identifies components, matches suppliers and highlights procurement risks.
@@ -1832,7 +1802,7 @@ export default function BomPage() {
                   <path strokeLinecap="square" strokeLinejoin="miter" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
               </div>
-              <h2 className="font-heading font-bold text-[24px] mb-2">Upload your BOM</h2>
+              <h2 className="font-heading font-bold text-[24px] mb-2">Upload your <span className="text-[var(--primary)]">BOM</span></h2>
               <p className="font-sans text-[14px] text-[var(--muted-foreground)] mb-8">
                 Accepts .csv, .xlsx, or .xls. Ensure your file contains manufacturer and MPN columns for accurate matching.
               </p>
@@ -1853,7 +1823,7 @@ export default function BomPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <h2 className="font-heading font-bold text-[24px] mb-2">Identifying components</h2>
+              <h2 className="font-heading font-bold text-[24px] mb-2"><span className="text-[var(--accent)]">Identifying</span> components</h2>
               <p className="font-sans text-[14px] text-[var(--muted-foreground)] font-mono">
                 Matching MPNs against canonical hardware graph...
               </p>
@@ -1865,7 +1835,7 @@ export default function BomPage() {
             <div>
               <div className="flex justify-between items-end mb-8">
                 <div>
-                  <h2 className="font-heading font-bold text-[24px] mb-2 uppercase tracking-tight">Your BOM</h2>
+                  <h2 className="font-heading font-bold text-[24px] mb-2 uppercase tracking-tight">Your <span className="text-[var(--primary)]">BOM</span></h2>
                   <p className="font-sans text-[14px] text-[var(--muted-foreground)]">
                     4 canonical matches found. 1 component requires manual review.
                   </p>
@@ -2054,7 +2024,7 @@ export default function RfqPage() {
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16 mb-12 text-center flex flex-col items-center">
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Tell us what you need. We'll source it.
+          Tell us what you need. We'll <span className="text-[var(--primary)]">source it.</span>
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl">
           Submit your component requirements, quantities and delivery constraints.
