@@ -216,3 +216,13 @@ To maximize engineering discipline and eliminate conflicting code modifications,
 ### 3. Non-Negotiable Rules
 
 All agents MUST read and strictly adhere to the AI skill deployment boundaries defined in [`.agents/non_negotiable.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/.agents/non_negotiable.md).
+
+### 4. Mandatory Prompt-Level Skill Deployment & Verification Pipeline
+
+For every prompt and task execution, the agent MUST:
+1. Ground reasoning in the **3 Mandatory Foundation Skills**:
+   * **`cave man` (Simplicity):** Aggressively eliminate overengineering, mock elements, and premature abstractions. Keep implementations clean and minimal.
+   * **`karpathy-guidelines` (Precision):** Define exact boundaries, outline assumptions, and make minimal, target-focused code modifications. Avoid changing unrelated lines or refactoring working structures.
+   * **`dependency-management` (Zero-Bloat):** Leverage native platform APIs and existing tools first. Do not introduce new npm packages unless explicitly approved.
+2. Track any **Contextual Skills** (from the skill deck, e.g. `taste`, `ui-ux-pro`, `impeccable`, `seo`, `postgres`, `performance`, `webapp-testing`) that were utilized to complete the prompt's specific requirement.
+3. Conclude every response with a structured **Skill Deployment & Verification Report** confirming compliance.
