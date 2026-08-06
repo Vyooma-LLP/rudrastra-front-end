@@ -4,13 +4,14 @@
 > [!IMPORTANT]
 > **Architecture v1.0 is frozen. Agents must implement the existing contracts; architectural deviations require explicit change control. No new infrastructure, domain abstractions, libraries, or architectural patterns may be introduced merely for convenience.**
 
-This file (`.agents/AGENTS.md`) defines the mandatory architectural commandments, behavioral governance rules, invariant constraints, CQRS patterns, and execution workflows for all AI coding agents operating on the **Vyooma Technical B2B Marketplace & Engineering Discovery Engine**.
+This file (`.agents/AGENTS.md`) defines the mandatory architectural commandments, behavioral governance rules, invariant constraints, CQRS patterns, and execution workflows for all AI coding agents operating on the **Rudrastra Technical B2B Marketplace & Engineering Discovery Engine**.
 
 ---
 
 ## 1. Project Identity & Scope
 
-* **System Identity**: We are building India's canonical **Technical B2B Marketplace + Product Information System (PIM) + Engineering Discovery Engine** for Drone Hardware.
+* **System Identity**: We are building India's canonical **Technical B2B Marketplace + Product Information System (PIM) + Engineering Discovery Engine** for Drone Hardware (**Rudrastra**).
+* **Product Requirements**: Sourced from [`PRD.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/PRD.md) (FROZEN v1.0).
 * **Core Moat**: A structured technical catalog and engineering compatibility graph—not just an attractive storefront. Multi-vendor commerce is the monetization layer built on top of authoritative engineering data.
 * **Dual User Experience**:
   * **Consumer-Facing**: Uncover-inspired, minimal, high-performance, visually premium.
@@ -212,3 +213,6 @@ To maximize engineering discipline and eliminate conflicting code modifications,
   `Implementation` -> `Security-Guidance` -> `CodeRabbit Review` -> `Strix Pen Testing` -> `Playwright E2E Security Suite` -> `Dependency Audit`
   * *Explicitly assert protection against: IDOR, RBAC bypass, RLS bypass, multi-tenant leakage, webhook forgery, payment capture replay, and inventory race conditions.*
 
+### 3. Non-Negotiable Rules
+
+All agents MUST read and strictly adhere to the AI skill deployment boundaries defined in [`.agents/non_negotiable.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/.agents/non_negotiable.md).

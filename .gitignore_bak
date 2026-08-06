@@ -1,0 +1,12 @@
+# Dependencies & Build
+node_modules/
+.next/
+dist/
+build/
+.tmp_skills/
+.env
+.env*.local
+
+# System & IDE
+.DS_Store
+*.log
