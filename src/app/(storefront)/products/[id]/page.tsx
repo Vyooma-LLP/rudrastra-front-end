@@ -1,12 +1,17 @@
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 
 /**
  * P0: Canonical Product Detail Page (PDP)
  * Focuses on Canonical Data -> Compatibility Graph -> Multi-Seller Offers.
  */
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
+export default function ProductDetailPage({ params }: { params: React.Usable<{ id: string }> }) {
+  const resolvedParams = React.use(params);
+  const [activeTab, setActiveTab] = useState<'overview' | 'specifications' | 'compatibility' | 'sellers'>('overview');
   // Mock data for the demonstration
   const product = {
     mfg: "T-Motor",
@@ -49,9 +54,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   };
 
   return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      
-      {/* Breadcrumbs */}
+    <CapabilityGuard featureKey="catalog.products">
+      <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
+        
+        {/* Breadcrumbs */}
       <div className="w-full px-6 lg:px-10 py-4 font-sans text-[12px] text-[var(--muted-foreground)] flex items-center gap-2">
         <Link href="/" className="hover:text-[var(--foreground)] transition-colors">Home</Link>
         <span>/</span>
@@ -118,9 +124,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <Link href={`/rfq?mpn=${product.mpn}`} className="flex-1 flex justify-center items-center bg-[var(--foreground)] text-white font-sans font-bold text-[14px] h-[52px] hover:bg-[var(--primary)] transition-colors duration-fast">
                 Request Quote
               </Link>
-              <button className="flex-1 flex justify-center items-center bg-white border border-[var(--border)] text-[var(--foreground)] font-sans font-bold text-[14px] h-[52px] hover:border-[var(--foreground)] transition-colors duration-fast">
+              <Link href={`/compare?add=${product.id}`} className="flex-1 flex justify-center items-center bg-white border border-[var(--border)] text-[var(--foreground)] font-sans font-bold text-[14px] h-[52px] hover:border-[var(--foreground)] transition-colors duration-fast">
                 Compare Options
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -147,52 +153,68 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           {/* TABS */}
           <div className="w-full mb-8">
             <div className="flex border-b border-[var(--border)] font-sans text-[14px] font-semibold">
-              <button className="px-6 py-4 border-b-2 border-[var(--foreground)] text-[var(--foreground)]">Overview</button>
-              <button className="px-6 py-4 border-b-2 border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors duration-fast">Specifications</button>
-              <button className="px-6 py-4 border-b-2 border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors duration-fast">Compatibility</button>
-              <button className="px-6 py-4 border-b-2 border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors duration-fast">Sellers</button>
+              {(['overview', 'specifications', 'compatibility', 'sellers'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-6 py-4 border-b-2 capitalize transition-colors duration-fast ${
+                    activeTab === tab
+                      ? 'border-[var(--foreground)] text-[var(--foreground)]'
+                      : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* OVERVIEW CONTENT */}
+          {activeTab === 'overview' && (
           <div className="font-sans text-[15px] leading-relaxed text-[#333] mb-12 max-w-3xl">
             <p>{product.overview}</p>
           </div>
+          )}
 
           {/* SPECIFICATIONS */}
-          <div className="mb-16">
-            <h3 className="font-heading font-bold text-[24px] tracking-tight mb-6">Specifications</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-              {/* Electrical */}
-              <div>
-                <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Electrical</h4>
-                <div className="flex flex-col">
-                  {product.specs.electrical.map((s, i) => (
-                    <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
-                      <span className="text-[var(--muted-foreground)]">{s.label}</span>
-                      <span className="font-semibold text-right">{s.val}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {activeTab === 'specifications' && (
+          <CapabilityGuard featureKey="catalog.specifications" fallback={<div className="mb-16 p-6 border border-red-200 bg-red-50 text-red-600 rounded-xl text-sm font-bold flex items-center justify-center h-32">Product Specifications Module Offline</div>}>
+            <div className="mb-16">
+              <h3 className="font-heading font-bold text-[24px] tracking-tight mb-6">Specifications</h3>
               
-              {/* Mechanical */}
-              <div>
-                <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Mechanical</h4>
-                <div className="flex flex-col">
-                  {product.specs.mechanical.map((s, i) => (
-                    <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
-                      <span className="text-[var(--muted-foreground)]">{s.label}</span>
-                      <span className="font-semibold text-right">{s.val}</span>
-                    </div>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                {/* Electrical */}
+                <div>
+                  <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Electrical</h4>
+                  <div className="flex flex-col">
+                    {product.specs.electrical.map((s, i) => (
+                      <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
+                        <span className="text-[var(--muted-foreground)]">{s.label}</span>
+                        <span className="font-semibold text-right">{s.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Mechanical */}
+                <div>
+                  <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Mechanical</h4>
+                  <div className="flex flex-col">
+                    {product.specs.mechanical.map((s, i) => (
+                      <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
+                        <span className="text-[var(--muted-foreground)]">{s.label}</span>
+                        <span className="font-semibold text-right">{s.val}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </CapabilityGuard>
+          )}
 
-          {/* COMPATIBILITY ("THE KILLER SECTION") */}
+          {/* COMPATIBILITY */}
+          {activeTab === 'compatibility' && (
           <div className="mb-16 bg-white border border-[var(--border)] p-8">
             <h3 className="font-heading font-bold text-[24px] tracking-tight mb-2">Works with</h3>
             <p className="font-sans text-[14px] text-[var(--muted-foreground)] mb-6">
@@ -222,8 +244,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </svg>
             </Link>
           </div>
+          )}
 
           {/* SELLERS SECTION */}
+          {activeTab === 'sellers' && (
           <div>
             <h3 className="font-heading font-bold text-[24px] tracking-tight mb-2">Available from verified sellers</h3>
             <div className="w-full overflow-x-auto mt-6 border border-[var(--border)] bg-white">
@@ -239,7 +263,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
                   {product.offers.map((offer, i) => (
-                    <tr key={i} className="group hover:bg-[#FAFAFA] transition-all duration-fast hover:translate-x-[2px] cursor-pointer">
+                    <tr
+                      key={i}
+                      onClick={() => window.location.href = `/rfq?mpn=${product.mpn}&seller=${encodeURIComponent(offer.name)}`}
+                      className="group hover:bg-[#FAFAFA] transition-all duration-fast hover:translate-x-[2px] cursor-pointer"
+                    >
                       <td className="px-6 py-5 font-semibold text-[var(--foreground)] flex items-center gap-2 relative">
                         {offer.name}
                         {offer.verified && (
@@ -268,16 +296,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
 
             <div className="mt-6 flex justify-end">
-              <button className="font-sans font-bold text-[14px] text-[var(--foreground)] flex items-center gap-2 hover:text-[var(--primary)] transition-colors duration-fast">
+              <Link href={`/compare?add=${product.id}`} className="font-sans font-bold text-[14px] text-[var(--foreground)] flex items-center gap-2 hover:text-[var(--primary)] transition-colors duration-fast">
                 Compare offers
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-              </button>
+              </Link>
             </div>
           </div>
+          )}
         </div>
       </div>
-    </div>
+      </div>
+    </CapabilityGuard>
   );
 }

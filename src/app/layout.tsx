@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Syne } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/layout/AuthContext";
+import { CapabilitiesProvider } from "@/components/layout/CapabilitiesContext";
+import { CartProvider } from "@/components/commerce/CartContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -29,7 +32,13 @@ export default function RootLayout({
       className={`${inter.variable} ${syne.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
+        <CapabilitiesProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </AuthProvider>
+        </CapabilitiesProvider>
       </body>
     </html>
   );

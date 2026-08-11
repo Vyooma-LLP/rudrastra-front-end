@@ -1,6 +1,12 @@
 "use client";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
+import { useCommand } from '@/hooks/useCommand';
+import { MockSubmitRfqAdapter } from '@/modules/procurement/frontend-contracts/MockRfqAdapter';
+import { SubmitRfqResult } from '@/modules/procurement/frontend-contracts/RfqContract';
+
+const submitRfqCommand = new MockSubmitRfqAdapter();
 
 /**
  * P0: RFQ Form
@@ -9,14 +15,30 @@ import { useSearchParams } from "next/navigation";
 function RfqFormContent() {
   const searchParams = useSearchParams();
   const prefillMpn = searchParams.get('mpn');
-  const [submitted, setSubmitted] = useState(false);
+  const [submittedResult, setSubmittedResult] = useState<SubmitRfqResult | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { execute, isLoading } = useCommand({
+    command: submitRfqCommand,
+    onSuccess: (result) => {
+      setSubmittedResult(result);
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    const formData = new FormData(e.currentTarget);
+    execute({
+      company: formData.get('company') as string,
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      requirements: formData.get('requirements') as string,
+      deliveryLocation: formData.get('deliveryLocation') as string,
+      requiredBy: formData.get('requiredBy') as string,
+    });
   };
 
-  if (submitted) {
+  if (submittedResult) {
     return (
       <div className="w-full max-w-2xl mx-auto bg-white border border-[var(--border)] p-12 text-center">
         <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -24,13 +46,13 @@ function RfqFormContent() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="font-heading font-extrabold text-[32px] tracking-tight mb-2">RFQ-2026-00142</h2>
+        <h2 className="font-heading font-extrabold text-[32px] tracking-tight mb-2">{submittedResult.rfqId}</h2>
         <p className="font-sans text-[18px] font-bold text-[var(--foreground)] mb-6">Received.</p>
         <p className="font-sans text-[15px] text-[var(--muted-foreground)] leading-relaxed max-w-sm mx-auto mb-10">
           Our procurement team will review your requirement and respond with matched suppliers and pricing shortly.
         </p>
         <button 
-          onClick={() => setSubmitted(false)}
+          onClick={() => setSubmittedResult(null)}
           className="font-sans font-bold text-[14px] text-[var(--foreground)] hover:text-[var(--primary)] transition-colors"
         >
           Submit another request
@@ -49,19 +71,19 @@ function RfqFormContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Company</label>
-              <input required type="text" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
+              <input required name="company" type="text" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Name</label>
-              <input required type="text" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
+              <input required name="name" type="text" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Email</label>
-              <input required type="email" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
+              <input required name="email" type="email" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Phone</label>
-              <input type="tel" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
+              <input name="phone" type="tel" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
             </div>
           </div>
         </div>
@@ -73,6 +95,7 @@ function RfqFormContent() {
           <div className="flex flex-col gap-2 mb-6">
             <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">What are you sourcing?</label>
             <textarea 
+              name="requirements"
               required
               rows={4} 
               defaultValue={prefillMpn ? `Requesting quote for MPN: ${prefillMpn}` : ''}
@@ -93,17 +116,21 @@ function RfqFormContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Delivery Location</label>
-              <input required type="text" placeholder="City, Country" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
+              <input name="deliveryLocation" required type="text" placeholder="City, Country" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Required By</label>
-              <input required type="date" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
+              <input name="requiredBy" required type="date" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
             </div>
           </div>
         </div>
 
-        <button type="submit" className="w-full h-14 bg-[var(--foreground)] text-white font-sans font-bold text-[15px] hover:bg-[var(--primary)] transition-colors duration-fast">
-          Submit RFQ
+        <button disabled={isLoading} type="submit" className="w-full h-14 bg-[var(--foreground)] text-white font-sans font-bold text-[15px] hover:bg-[var(--primary)] transition-colors duration-fast disabled:opacity-50 flex items-center justify-center">
+          {isLoading ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          ) : (
+            "Submit RFQ"
+          )}
         </button>
 
       </form>
@@ -113,11 +140,12 @@ function RfqFormContent() {
 
 export default function RfqPage() {
   return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5] pb-24">
+    <CapabilityGuard featureKey="procurement.rfq">
+<div className="w-full flex flex-col min-h-screen bg-[#F5F5F5] pb-24">
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16 mb-12 text-center flex flex-col items-center">
         <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Tell us what you need. We'll <span className="text-[var(--primary)]">source it.</span>
+          Tell us what you need. We&apos;ll <span className="text-[var(--primary)]">source it.</span>
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl">
           Submit your component requirements, quantities and delivery constraints.
@@ -130,5 +158,6 @@ export default function RfqPage() {
         </Suspense>
       </div>
     </div>
+    </CapabilityGuard>
   );
 }

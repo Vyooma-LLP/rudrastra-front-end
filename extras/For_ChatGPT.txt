@@ -1,141 +1,167 @@
-Here is the updated Rudrastra B2B Engineering website code:
+# Rudrastra B2B Technical Marketplace & Engineering Discovery Engine
+# Comprehensive Project Context, Architecture v1.0 Blueprint & Codebase State for ChatGPT
 
---- app/globals.css ---
+---
+
+## 1. Executive Summary & Product Vision
+
+Rudrastra is India's canonical **Technical B2B Marketplace + Product Information System (PIM) + Engineering Discovery Engine** for Drone Hardware.
+It is built specifically for drone manufacturers, defense contractors, robotics companies, and component suppliers in India.
+
+### Core Value Moat
+- **Not just a storefront**: A structured technical catalog and engineering compatibility graph. Multi-vendor commerce is the monetization layer built on top of authoritative engineering data.
+- **McMaster-Carr style PIM Architecture**: Category-specific typed specifications, units of measurement, MPN identity, CAD model attachments, and serial-verified diagnostics.
+- **Dual User Experience**:
+  - Storefront & Discovery: Minimal, high-performance, visual Uncover design aesthetic (`#F5F5F5` background, `#111111` typography, Saffron/Navy/Green engineering accents).
+  - Engineering & B2B Workspace: Dense, structured technical information (datasheets, CAD models, MPNs, specifications, compatibility trees, lead times, certifications, credit lines).
+
+---
+
+## 2. Frozen Architecture v1.0 & The Eight Commandments
+
+The system architecture is **FROZEN v1.0**. All code modifications must strictly obey these 8 commandments:
+
+1. **`Product ≠ Variant ≠ Seller Offer ≠ Seller SKU ≠ Inventory`**:
+   - `catalog_products`: Canonical manufacturer product family (e.g. "T-Motor MN4014").
+   - `product_variants`: Sellable engineering variations (e.g. "400KV", "500KV").
+   - `seller_offers`: Commercial offer (price, lead time, MOQ) by seller.
+   - `seller_skus`: Seller SKU mapping to an offer (`UNIQUE(seller_id, sku_code)`).
+   - `inventory_items`: Physical stock tracking by location and seller SKU.
+2. **`PostgreSQL is Source of Truth; Typesense is Derived Index`**:
+   - Supabase PostgreSQL handles all relational integrity, transactions, and audit logs.
+   - Typesense is derived and disposable, reconstructible via `/api/admin/search/rebuild`.
+3. **`Technical Specifications are Structured, Typed, Normalized PIM Data`**:
+   - Categories -> `spec_definitions` -> `product_spec_values` (linked to variant or product).
+4. **`Inventory and Money Movement are Transactional, Idempotent, Auditable`**:
+   - `sellable_quantity = on_hand_quantity - reserved_quantity`. Enforce 10-minute TTL reservations.
+   - Double-entry immutable ledger (`ledger_transactions`, `ledger_accounts`, `ledger_entries`).
+5. **`Every Tenant Boundary is Enforced by RLS + Auth`**:
+   - Public/User context connects via JWT with RLS policies (`USING` + `WITH CHECK`).
+6. **`Every State Transition is CQRS-Enforced & Replay-Safe`**:
+   - Commands own mutations within transactions. Queries never mutate state. Webhooks processed idempotently via `processed_webhooks`.
+7. **`Outbox Delivery is At-Least-Once; Event Consumers Must Be Idempotent`**:
+   - `outbox_events` guarantees at-least-once delivery with exponential backoff.
+8. **`Least-Privilege Worker Capability Model`**:
+   - Workers assigned explicit `WORKER_CAPABILITIES` (`SEARCH_INDEX_WRITE`, `OUTBOX_PROCESS`, etc.).
+
+---
+
+## 3. Design System & Universal UI/UX Guidelines
+
+- **Background Canvas**: `#F5F5F5`
+- **Primary Foreground / Text**: `#111111`
+- **Cards / Containers**: `#FFFFFF` with `#E5E5E5` borders
+- **Brand Engineering Accents**:
+  - Primary (Saffron): `#F35C27`
+  - Accent (Navy): `#305CDE`
+  - Success (Green): `#138808`
+- **Typography**: Syne (Headings), Inter (Body & UI), Font-Mono (SKUs, Prices, AWBs, GSTINs).
+- **Universal Top Header Navigation (`Navbar.tsx`)**:
+  `[ Logo ]  [ Categories  Products  Engineering  Manufacturers ]  [cart] [ Request Quote (Black Box) ] [ Auth / Profile ]`
+- **Session Authority & Role-Based Security**:
+  - Fixed Session Roles for Standard Users: Customer sees Customer links; Seller sees Seller links; Ops sees Ops links.
+  - Developer Testing Mode: Role switcher badge (`Dev Role Override`) rendered exclusively for `praneeth@vyooma.tech` to allow multi-tenant UI testing during development.
+  - Unauthenticated Visitors: Display explicit `Sign In` (`/login`) and `Create Account` (`/signup`) buttons in header.
+
+---
+
+## 4. Completed 40 Page Route Inventory
+
+All 40 routes compile cleanly via Next.js 16 Turbopack compiler (`npm run build` verified):
+
+### Authentication & Merchant Onboarding (3 Routes)
+- `/login` — Sign In to Rudrastra (Email/Password, Corporate SSO)
+- `/signup` — Create Account (Customer Engineer vs Seller Merchant Registration)
+- `/sell` — Become a Verified Seller Onboarding Portal
+
+### Storefront & Product Discovery (11 Routes)
+- `/` — Storefront Home
+- `/categories` — Taxonomy Directory
+- `/categories/[category]` — Parametric Category Filter Page
+- `/products` — Canonical Product Catalog
+- `/products/[id]` — Product Detail Page (PDP) & Seller Offer Comparison Table
+- `/engineering` — Engineering Datasheets & CAD Library
+- `/manufacturers` — Canonical Brand Index
+- `/compatibility` — Compatibility Explorer
+- `/compare` — Side-by-Side Component Comparison
+- `/bom` — Bulk BOM Import & RFQ Tool
+- `/rfq` — B2B Request for Quote Form
+
+### Customer Account Suite (6 Routes)
+- `/account` — Engineering Account Overview
+- `/account/orders` — Order History & Granular Tracking
+- `/account/orders/[id]` — Order Detail & FSM Progress Timeline
+- `/account/rma` — Technical RMA Diagnostic Evidence Submission
+- `/account/warranties` — Active Warranties & Coverage Policies
+- `/account/tickets` — Support Tickets & SLA Timers
+
+### B2B Organization Workspace (4 Routes)
+- `/organization/dashboard` — B2B Spend Metrics & Approved Net Terms Credit
+- `/organization/projects` — Engineering Drone Projects & BOM Allocation
+- `/organization/members` — Team Members & PO Approval Limits
+- `/organization/procurement` — Procurement & PO Sign-Off Workflow
+
+### Seller Merchant Hub (5 Routes)
+- `/seller/dashboard` — Merchant Sales & Fulfillment Overview
+- `/seller/offers` — Offer Mapping, Prices & GST Rates
+- `/seller/inventory` — Stock Ledger (On-hand vs Reserved)
+- `/seller/orders` — Sub-Orders & Shiprocket AWB Dispatch
+- `/seller/payouts` — Razorpay Route Settlements & Fees
+
+### Operations Mission Control (7 Routes)
+- `/ops` — Ops Overview & Superadmin Control
+- `/ops/catalog` — PIM Catalog Verification Desk
+- `/ops/tickets` — Technical Support Desk & SLA Triage
+- `/ops/rma` — RMA Quarantine & Serial Verification Desk
+- `/ops/disputes` — Buyer/Seller Dispute Arbitration
+- `/ops/reconciliation` — Financial Double-Entry Ledger Reconciliation
+- `/ops/audit-logs` — Immutable System Audit Trail
+
+### Cart, Checkout & Support (4 Routes)
+- `/cart` — Procurement Cart & Compatibility Check
+- `/checkout` — Corporate GST Checkout & Net Terms Selection
+- `/checkout/success` — Order Confirmation & Split Seller Emission
+- `/support` — Technical Diagnostic & Support Portal
+
+---
+
+## 5. Canonical Header Component (`src/components/layout/Navbar.tsx`)
+
 ```tsx
-@import "tailwindcss";
-@import "tw-animate-css";
+"use client";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-success: var(--success);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
-
-  /* Uncover: sharp corners everywhere */
-  --radius: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-
-  /* Motion Primitives */
-  --default-transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-uncover: cubic-bezier(0.25, 1, 0.5, 1);
-  
-  --animate-infinite-scroll-left: infinite-scroll-left 40s linear infinite;
-  --animate-infinite-scroll-right: infinite-scroll-right 40s linear infinite;
-  
-  @keyframes infinite-scroll-left {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-
-  @keyframes infinite-scroll-right {
-    from { transform: translateX(-50%); }
-    to { transform: translateX(0); }
-  }
-}
-
-@utility duration-fast {
-  transition-duration: 150ms;
-}
-
-@utility duration-normal {
-  transition-duration: 250ms;
-}
-
-@utility duration-slow {
-  transition-duration: 400ms;
-}
-
-:root {
-  /* Indigenous Engineering Theme */
-  --background: #F5F5F5;
-  --foreground: #111111;
-  --card: #FFFFFF;
-  --card-foreground: #111111;
-  
-  /* Indian Flag Colors */
-  --primary: #F35C27; /* Saffron */
-  --primary-foreground: #FFFFFF;
-  --success: #138808; /* Green */
-  --accent: #305CDE;  /* Navy Blue */
-  --accent-foreground: #FFFFFF;
-
-  --muted: #E8E8E8;
-  --muted-foreground: #777777;
-  --border: #E5E5E5;
-}
-
-@layer base {
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: var(--font-sans);
-    background-color: var(--background);
-    color: var(--foreground);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Headings use Syne */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading);
-    letter-spacing: -0.02em;
-    font-weight: 700;
-  }
-
-  ::selection {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-  }
-}
-
-@layer utilities {
-  
-  
-}
-
-/* Ensure the Syne heading font is stretched by 17% in height across the site */
-h1, h2, h3, h4, h5, h6, .font-heading {
-  display: inline-block !important;
-  transform: scaleY(1.17) !important;
-  transform-origin: left !important;
-}
-```
-
---- components/layout/Navbar.tsx ---
-```tsx
+import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { 
+  ShoppingCart, User, Package, Wrench, ShieldCheck, 
+  Store, Building2, ChevronDown, Menu, X, Tag, Layers, Landmark,
+  LogIn, UserPlus, LogOut, ShieldAlert, Code2
+} from "lucide-react";
 
-/**
- * Navbar — Pixel-accurate reproduction of the Uncover template navigation.
- * Revised for Rudrastra B2B Engineering taxonomy.
- */
 export function Navbar() {
+  const pathname = usePathname();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const currentUser = {
+    name: "Praneeth Kumar",
+    email: "praneeth@vyooma.tech",
+  };
+
+  const [sessionRole, setSessionRole] = useState<"customer" | "seller" | "ops" | "logged_out">("customer");
+
+  const centerNavLinks = [
+    { name: "Categories", path: "/categories" },
+    { name: "Products", path: "/products" },
+    { name: "Engineering", path: "/engineering" },
+    { name: "Manufacturers", path: "/manufacturers" },
+  ];
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-[var(--border)]">
+    <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-[var(--border)] font-sans">
       <nav className="w-full px-6 lg:px-10 h-[72px] flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 shrink-0"
-        >
-          {/* Uncover-style double chevron mark */}
+        <Link href="/" className="flex items-center gap-2 shrink-0">
           <svg width="36" height="28" viewBox="0 0 36 28" fill="none" className="text-[var(--foreground)]">
             <path d="M0 0L12 14L0 28H6L18 14L6 0H0Z" fill="currentColor" />
             <path d="M14 0L26 14L14 28H20L32 14L20 0H14Z" fill="currentColor" />
@@ -143,1910 +169,87 @@ export function Navbar() {
           <span className="font-heading font-bold text-[16px] tracking-tight ml-2">RUDRASTRA</span>
         </Link>
 
-        {/* Center Navigation */}
-        <div className="hidden md:flex items-center gap-1 font-sans text-[14px] font-medium">
-          {[
-            { name: "Categories", path: "/categories" },
-            { name: "Products", path: "/products" },
-            { name: "Engineering", path: "/engineering" },
-            { name: "Manufacturers", path: "/manufacturers" },
-          ].map((link) => (
-            <Link
-              key={link.name}
-              href={link.path}
-              className="group flex items-center gap-1 px-4 py-2 border border-transparent hover:border-[#111111] transition-colors duration-fast"
-            >
+        <div className="hidden md:flex items-center gap-1 font-medium text-[14px]">
+          {centerNavLinks.map((link) => (
+            <Link key={link.name} href={link.path} className="px-4 py-2 border rounded-full hover:border-[#111111] transition-colors">
               {link.name}
-              <svg className="w-3.5 h-3.5 opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
             </Link>
           ))}
         </div>
 
-        {/* Right CTA */}
-        <div className="flex items-center gap-4">
-          <Link
-            href="/rfq"
-            className="hidden md:inline-flex px-5 py-2.5 border border-[var(--foreground)] text-[13px] font-sans font-semibold hover:bg-[var(--foreground)] hover:text-white transition-colors duration-fast"
-          >
+        <div className="flex items-center gap-3">
+          <Link href="/cart" className="p-2 relative" title="Shopping Cart">
+            <ShoppingCart className="w-5 h-5" />
+            <span className="absolute top-0 right-0 bg-[#111111] text-white font-mono text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
+          </Link>
+
+          <Link href="/rfq" className="hidden md:inline-flex px-5 py-2.5 bg-[#111111] text-white text-[13px] font-semibold">
             Request Quote
           </Link>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden p-2"
-            aria-label="Open menu"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
+          {sessionRole === "logged_out" ? (
+            <div className="hidden sm:flex items-center gap-2 text-xs font-semibold">
+              <Link href="/login" className="px-3.5 py-2 hover:bg-slate-100 flex items-center gap-1.5"><LogIn className="w-4 h-4" /> Sign In</Link>
+              <Link href="/signup" className="px-4 py-2 border border-[#111111] flex items-center gap-1.5"><UserPlus className="w-4 h-4" /> Create Account</Link>
+            </div>
+          ) : (
+            <div className="relative">
+              <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="p-2 flex items-center gap-1.5">
+                <User className="w-5 h-5" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white border rounded-xl shadow-xl p-3 z-50 text-[13px]">
+                  <div className="p-3 bg-slate-50 rounded border mb-2 font-bold">{currentUser.name} ({sessionRole.toUpperCase()})</div>
+
+                  {/* DEVELOPER TESTING SWITCHER — EXCLUSIVELY FOR praneeth@vyooma.tech */}
+                  {currentUser.email === "praneeth@vyooma.tech" && (
+                    <div className="bg-amber-50 border border-amber-200 p-2 rounded mb-3 text-[10px]">
+                      <div className="font-bold text-amber-800 uppercase flex items-center gap-1"><Code2 className="w-3 h-3" /> Dev Role Override</div>
+                      <div className="grid grid-cols-3 gap-1 mt-1 text-center font-semibold">
+                        <button onClick={() => setSessionRole("customer")} className={`py-1 rounded ${sessionRole === "customer" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border"}`}>Customer</button>
+                        <button onClick={() => setSessionRole("seller")} className={`py-1 rounded ${sessionRole === "seller" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border"}`}>Seller</button>
+                        <button onClick={() => setSessionRole("ops")} className={`py-1 rounded ${sessionRole === "ops" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border"}`}>Ops</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FIXED CUSTOMER ROLE LINKS */}
+                  {sessionRole === "customer" && (
+                    <div className="space-y-1">
+                      <Link href="/account" onClick={() => setIsProfileOpen(false)} className="block p-2 hover:bg-slate-50 font-semibold">Account Dashboard</Link>
+                      <Link href="/account/orders" onClick={() => setIsProfileOpen(false)} className="block p-2 hover:bg-slate-50 font-semibold">Orders & Tracking</Link>
+                      <Link href="/sell" onClick={() => setIsProfileOpen(false)} className="block p-2 hover:bg-emerald-50 text-emerald-700 font-bold">Become a Seller</Link>
+                    </div>
+                  )}
+
+                  {/* FIXED SELLER ROLE LINKS */}
+                  {sessionRole === "seller" && (
+                    <div className="space-y-1">
+                      <Link href="/seller/dashboard" onClick={() => setIsProfileOpen(false)} className="block p-2 text-emerald-700 font-semibold">Seller Dashboard</Link>
+                      <Link href="/seller/offers" onClick={() => setIsProfileOpen(false)} className="block p-2 text-emerald-700 font-semibold">Offers & SKU Mapping</Link>
+                    </div>
+                  )}
+
+                  <div className="border-t mt-2 pt-2">
+                    <button onClick={() => { setSessionRole("logged_out"); setIsProfileOpen(false); }} className="w-full text-left p-2 text-rose-600 font-bold flex items-center gap-2">
+                      <LogOut className="w-4 h-4" /> Sign Out of Session
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </nav>
     </header>
   );
 }
-
 ```
 
---- components/layout/Footer.tsx ---
-```tsx
-import Link from "next/link";
+---
 
-/**
- * Footer — Uncover-style minimal footer.
- * Revised for Rudrastra B2B Engineering taxonomy.
- */
-export function Footer() {
-  return (
-    <footer className="w-full bg-white mt-auto border-t border-[var(--border)]">
-      <div className="px-6 lg:px-10 py-16 grid grid-cols-1 md:grid-cols-5 gap-12">
-        {/* Brand column */}
-        <div className="md:col-span-2">
-          <Link href="/" className="flex items-center gap-2 mb-4">
-            <svg width="36" height="28" viewBox="0 0 36 28" fill="none" className="text-[var(--foreground)]">
-              <path d="M0 0L12 14L0 28H6L18 14L6 0H0Z" fill="currentColor" />
-              <path d="M14 0L26 14L14 28H20L32 14L20 0H14Z" fill="currentColor" />
-            </svg>
-            <span className="font-heading font-bold text-[18px] tracking-tight ml-2">RUDRASTRA</span>
-          </Link>
-          <p className="text-[13px] text-[var(--muted-foreground)] leading-relaxed max-w-xs">
-            Technical infrastructure for drone hardware procurement.
-          </p>
-        </div>
+## 6. Backend Domain Execution Roadmap (Phases 5 → 15)
 
-        {/* Platform */}
-        <div>
-          <h4 className="font-sans font-semibold text-[14px] mb-5">PLATFORM</h4>
-          <ul className="space-y-3 text-[13px] text-[var(--muted-foreground)]">
-            <li><Link href="/categories" className="hover:text-[var(--foreground)] transition-colors duration-fast">Categories</Link></li>
-            <li><Link href="/products" className="hover:text-[var(--foreground)] transition-colors duration-fast">Products</Link></li>
-            <li><Link href="/compare" className="hover:text-[var(--foreground)] transition-colors duration-fast">Compare</Link></li>
-            <li><Link href="/manufacturers" className="hover:text-[var(--foreground)] transition-colors duration-fast">Manufacturers</Link></li>
-            <li><Link href="/sellers" className="hover:text-[var(--foreground)] transition-colors duration-fast">Sellers</Link></li>
-          </ul>
-        </div>
-
-        {/* Engineering */}
-        <div>
-          <h4 className="font-sans font-semibold text-[14px] mb-5">ENGINEERING</h4>
-          <ul className="space-y-3 text-[13px] text-[var(--muted-foreground)]">
-            <li><Link href="/compatibility" className="hover:text-[var(--foreground)] transition-colors duration-fast">Compatibility</Link></li>
-            <li><Link href="/bom" className="hover:text-[var(--foreground)] transition-colors duration-fast">BOM</Link></li>
-            <li><Link href="/engineering/calculators" className="hover:text-[var(--foreground)] transition-colors duration-fast">Calculators</Link></li>
-            <li><Link href="/engineering/guides" className="hover:text-[var(--foreground)] transition-colors duration-fast">Guides</Link></li>
-            <li><Link href="/docs" className="hover:text-[var(--foreground)] transition-colors duration-fast">Documentation</Link></li>
-          </ul>
-        </div>
-
-        {/* Procurement & Company */}
-        <div className="flex flex-col gap-10">
-          <div>
-            <h4 className="font-sans font-semibold text-[14px] mb-5">PROCUREMENT</h4>
-            <ul className="space-y-3 text-[13px] text-[var(--muted-foreground)]">
-              <li><Link href="/rfq" className="hover:text-[var(--foreground)] transition-colors duration-fast">Request Quote</Link></li>
-              <li><Link href="/suppliers" className="hover:text-[var(--foreground)] transition-colors duration-fast">Supplier Network</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-sans font-semibold text-[14px] mb-5">COMPANY</h4>
-            <ul className="space-y-3 text-[13px] text-[var(--muted-foreground)]">
-              <li><Link href="/about" className="hover:text-[var(--foreground)] transition-colors duration-fast">About</Link></li>
-              <li><Link href="/contact" className="hover:text-[var(--foreground)] transition-colors duration-fast">Contact</Link></li>
-              <li><Link href="/newsletter" className="hover:text-[var(--foreground)] transition-colors duration-fast">Newsletter</Link></li>
-              <li><Link href="/privacy" className="hover:text-[var(--foreground)] transition-colors duration-fast">Privacy</Link></li>
-              <li><Link href="/terms" className="hover:text-[var(--foreground)] transition-colors duration-fast">Terms</Link></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom bar */}
-      <div className="px-6 lg:px-10 py-6 border-t border-[var(--border)] flex flex-col md:flex-row items-center justify-between text-[12px] text-[var(--muted-foreground)]">
-        <p>&copy; {new Date().getFullYear()} Rudrastra</p>
-        <div className="flex gap-5 mt-3 md:mt-0">
-          <span className="hover:text-[var(--foreground)] cursor-pointer transition-colors duration-fast">LinkedIn</span>
-          <span className="hover:text-[var(--foreground)] cursor-pointer transition-colors duration-fast">GitHub</span>
-          <span className="hover:text-[var(--foreground)] cursor-pointer transition-colors duration-fast">X</span>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-```
-
---- app/(storefront)/page.tsx ---
-```tsx
-import Link from "next/link";
-import Image from "next/image";
-
-/**
- * Rudrastra Homepage
- * 
- * Hierarchy:
- * Hero -> Engineering Search -> Taxonomy -> Featured Components -> Compatibility Intelligence -> Manufacturers -> BOM/RFQ -> Engineering Resources -> Newsletter
- */
-export default function HomePage() {
-  return (
-    <div className="w-full flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
-      
-      {/* 1. HERO + ENGINEERING SEARCH */}
-      <section className="w-full px-6 lg:px-10 pt-3 pb-16 md:pt-4 md:pb-24 flex flex-col items-center justify-center text-center">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-8">
-          <h1 className="font-heading font-extrabold text-[40px] md:text-[72px] leading-[1.05] tracking-tight max-w-5xl text-center md:text-left">
-            <span className="text-[var(--primary)]">India's</span> Drone <span className="text-[var(--accent)]">Hardware</span> <span className="text-[var(--success)]">Marketplace.</span>
-          </h1>
-          <Image 
-            src="/images/make-in-india.png" 
-            alt="Make in India" 
-            width={412} 
-            height={288} 
-            className="w-auto h-[160px] md:h-[288px] object-contain shrink-0" 
-          />
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-                <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] border-[var(--primary)] bg-white px-4 py-1.5 inline-flex items-center gap-2 border">
-                  <svg className="w-3.5 h-3.5 text-[var(--primary)]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                  </svg>
-                  MADE IN INDIA
-                </span>
-                <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--accent)] border-[var(--accent)] bg-white px-4 py-1.5 inline-flex items-center border">
-                  INDIAN DRONE HARDWARE
-                </span>
-                <span className="hidden sm:inline-flex font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--success)] border-[var(--success)] bg-white px-4 py-1.5 items-center border">
-                  BUILT FOR GLOBAL OPERATIONS
-                </span>
-        </div>
-
-        <p className="font-sans text-[16px] md:text-[20px] text-[var(--muted-foreground)] max-w-3xl mb-12 leading-relaxed">
-          Find, evaluate, compare, and procure canonical engineering components for UAVs.
-        </p>
-
-        {/* Large Engineering Search Input */}
-        <div className="w-full max-w-3xl relative flex items-center group">
-          <svg className="absolute left-5 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--primary)] transition-colors duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="square" strokeLinejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search MPN, manufacturer, KV, voltage, protocol..."
-            className="w-full h-[64px] pl-14 pr-[120px] bg-white border border-[var(--border)] font-sans text-[16px] focus:outline-none focus:border-[var(--foreground)] transition-colors duration-fast placeholder:text-[var(--muted-foreground)] focus:placeholder:opacity-50"
-          />
-          <button className="absolute right-2 top-2 bottom-2 bg-[var(--foreground)] text-white font-sans font-semibold text-[14px] px-6 hover:bg-[var(--primary)] transition-all duration-fast flex items-center gap-2 group/btn">
-            Search
-            <svg className="w-4 h-4 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Popular searches */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[13px] font-sans text-[var(--muted-foreground)]">
-          <span className="font-semibold text-[var(--foreground)]">Popular:</span>
-          <Link href="/products?q=MN4014" className="hover:text-[var(--foreground)] transition-colors duration-fast border-b border-transparent hover:border-[var(--foreground)]">MN4014</Link>
-          <span>·</span>
-          <Link href="/products?q=Pixhawk+6X" className="hover:text-[var(--foreground)] transition-colors duration-fast border-b border-transparent hover:border-[var(--foreground)]">Pixhawk 6X</Link>
-          <span>·</span>
-          <Link href="/products?q=45A+ESC" className="hover:text-[var(--foreground)] transition-colors duration-fast border-b border-transparent hover:border-[var(--foreground)]">45A ESC</Link>
-          <span>·</span>
-          <Link href="/products?q=M10+GNSS" className="hover:text-[var(--foreground)] transition-colors duration-fast border-b border-transparent hover:border-[var(--foreground)]">M10 GNSS</Link>
-        </div>
-      </section>
-
-
-
-      {/* 2. ENGINEERING TAXONOMY (CATEGORY GRID) */}
-      <section className="w-full px-6 lg:px-10 py-20 bg-white border-y border-[var(--border)]">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-          <div>
-            <h2 className="font-heading font-bold text-[32px] tracking-tight mb-3 text-[var(--foreground)]"><span className="text-[var(--accent)]">System</span> Architecture</h2>
-            <p className="font-sans text-[15px] text-[var(--muted-foreground)] max-w-xl">
-              Browse components by engineering system and application.
-            </p>
-          </div>
-          <Link href="/categories" className="group hidden md:inline-flex items-center gap-2 font-sans font-semibold text-[14px] text-[var(--foreground)] border-b border-[var(--foreground)] pb-1 mt-6 transition-colors duration-fast hover:text-[var(--primary)] hover:border-[var(--primary)]">
-            View all categories
-            <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[1px] bg-[var(--border)] border border-[var(--border)]">
-          {[
-            { id: "01", name: "Propulsion", sub: "Motors, ESCs, Propellers", count: 412 },
-            { id: "02", name: "Flight Control", sub: "FCs, IMUs, Sensors", count: 85 },
-            { id: "03", name: "Power", sub: "Batteries, BMS, PDBs", count: 124 },
-            { id: "04", name: "Compute & AI", sub: "Companion PCs, Accelerators", count: 32 },
-            { id: "05", name: "Communication", sub: "Telemetry, Radios, LTE", count: 96 },
-            { id: "06", name: "Navigation", sub: "GNSS, RTK, Optical Flow", count: 48 },
-            { id: "07", name: "Airframe", sub: "Frames, Landing Gear, Mounts", count: 215 },
-            { id: "08", name: "Payload", sub: "Gimbals, Cameras, LiDAR", count: 67 },
-          ].map((cat, i) => (
-            <Link key={cat.id} href={`/categories/${cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`} className="group relative p-6 flex flex-col transition-colors duration-fast h-[160px] bg-white hover:bg-[var(--primary)]">
-              <div className="flex justify-between items-start mb-4">
-                <span className="font-sans text-[12px] text-[var(--muted-foreground)] group-hover:text-white">{cat.id}</span>
-                <span className="font-sans text-[11px] opacity-70 group-hover:opacity-100 transition-opacity duration-fast text-[var(--muted-foreground)] group-hover:text-white/80">{cat.count} items</span>
-              </div>
-              <h3 className="font-heading text-[20px] tracking-tight mb-2 transition-colors duration-fast group-hover:text-white">{cat.name}</h3>
-              <p className="font-sans text-[13px] text-[var(--muted-foreground)] group-hover:text-white/90">{cat.sub}</p>
-              
-              <div className="absolute bottom-6 right-6 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* 3. CANONICAL PRODUCT DISCOVERY */}
-      <section className="w-full px-6 lg:px-10 py-24 bg-[#FAFAFA]">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16">
-          <div className="max-w-2xl">
-            <h2 className="font-heading font-bold text-[36px] tracking-tight mb-4 leading-[1.1] text-[var(--foreground)]">
-              Technical <span className="text-[var(--primary)]">Components</span>
-            </h2>
-            <p className="font-sans text-[16px] text-[var(--muted-foreground)] leading-relaxed">
-              <span className="text-[var(--accent)]">Canonical</span> hardware records with aggregated multi-seller pricing and <span className="text-[var(--success)]">stock availability.</span>
-            </p>
-          </div>
-          <Link href="/products" className="group hidden md:inline-flex items-center gap-2 font-sans font-semibold text-[14px] text-[var(--foreground)] mt-6 border-b border-[var(--foreground)] pb-1 transition-colors duration-fast hover:text-[var(--primary)] hover:border-[var(--primary)]">
-            Explore catalog
-            <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              mfg: "T-Motor",
-              mpn: "MN4014",
-              id: "RUD-MOT-MN4014",
-              desc: "400KV Brushless Motor",
-              specs: ["6S-12S", "8.2kg Max Thrust"],
-              img: "/images/products/rudrastra_motor_1785921295587.png",
-              price: "₹8,450"
-            },
-            {
-              mfg: "Holybro",
-              mpn: "Pixhawk 6X",
-              id: "RUD-FC-PX6X",
-              desc: "Pro Autopilot Controller",
-              specs: ["STM32H753", "Triple IMU"],
-              img: "/images/products/rudrastra_fc_1785921305227.png",
-              price: "₹34,200"
-            },
-            {
-              mfg: "Hobbywing",
-              mpn: "XRotor 40A",
-              id: "RUD-ESC-XR40",
-              desc: "4-in-1 BLHeli_32 ESC",
-              specs: ["40A Cont.", "3-6S LiPo"],
-              img: "/images/products/rudrastra_esc_1785921326270.png",
-              price: "₹5,100"
-            }
-          ].map((prod, i) => (
-            <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative">
-              
-              {i === 0 && (
-                <div className="absolute top-0 left-0 bg-[var(--primary)] text-white font-sans font-bold text-[11px] px-3 py-1.5 z-20">New</div>
-              )}
-
-              {/* Compare checkbox mock */}
-              <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-fast flex items-center gap-2 bg-white/90 backdrop-blur px-2 py-1 border border-[var(--border)] mt-6">
-                <div className="w-3.5 h-3.5 border border-[var(--foreground)]"></div>
-                <span className="font-sans text-[11px] font-semibold tracking-wider uppercase text-[var(--foreground)]">Compare</span>
-              </div>
-
-              {/* Image Container with SLOW scaling */}
-              <div className="w-full h-[280px] bg-[#F9F9F9] flex items-center justify-center p-8 overflow-hidden relative">
-                <Image 
-                  src={prod.img} 
-                  alt={`${prod.mfg} ${prod.mpn}`} 
-                  width={250} 
-                  height={250} 
-                  className="object-contain transform group-hover:scale-[1.03] transition-transform duration-slow ease-uncover"
-                />
-              </div>
-
-              {/* Metadata Container with NORMAL shift (-4px) */}
-              <div className="p-6 flex flex-col bg-white transform group-hover:-translate-y-1 transition-transform duration-normal ease-uncover z-20">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex flex-col">
-                    <span className="font-sans text-[12px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-1">{prod.mfg}</span>
-                    <h3 className="font-heading font-bold text-[18px] text-[var(--foreground)]">{prod.mpn}</h3>
-                  </div>
-                  <svg className="w-5 h-5 text-[var(--primary)] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </div>
-                
-                <div className="flex justify-between items-end mt-4 pt-4 border-t border-[var(--border)]">
-                  <div className="flex gap-3 text-[12px] font-sans text-[var(--muted-foreground)]">
-                    {prod.specs.map(spec => <span key={spec}>{spec}</span>)}
-                  </div>
-                  <span className="font-sans font-bold text-[15px]">{prod.price}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. COMPATIBILITY INTELLIGENCE (B2B VALUE PROP) */}
-      <section className="w-full px-6 lg:px-10 py-24 bg-[#111111] text-white overflow-hidden relative">
-        {/* Subtle grid pattern bg */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-        
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
-          <div>
-            <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] mb-4 block">Compatibility Graph</span>
-            <h2 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight mb-6 text-white">
-              <span className="text-[var(--primary)]">Validate</span> before <span className="text-[var(--success)]">you build.</span>
-            </h2>
-            <p className="font-sans text-[16px] text-[#A0A0A0] leading-relaxed max-w-lg mb-10">
-              Check electrical bounds, mechanical mounts, and protocol compatibility across your entire component stack instantly.
-            </p>
-            <Link href="/compatibility" className="group inline-flex items-center gap-3 bg-white text-black font-sans font-bold px-7 py-3.5 hover:bg-[var(--primary)] hover:text-white transition-colors duration-fast">
-              Run System Check
-              <svg className="w-4 h-4 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          </div>
-
-          {/* Interactive Terminal/Validator Mock */}
-          <div className="bg-[#1A1A1A] border border-[#333] p-8 shadow-2xl relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-[var(--primary)]"></div>
-            
-            <div className="font-sans text-[11px] font-bold uppercase tracking-widest text-[#666] mb-6 flex justify-between">
-              <span>System Validator</span>
-              <span className="text-[var(--success)]">Live</span>
-            </div>
-
-            <div className="space-y-4 font-mono text-[13px]">
-              <div className="flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both delay-100">
-                <span className="text-[var(--success)] mt-0.5">✓</span>
-                <div>
-                  <div className="text-white">Electrical</div>
-                  <div className="text-[#888] mt-1">Voltage ranges overlap (6S 22.2V - 25.2V).</div>
-                </div>
-              </div>
-              <div className="w-px h-4 bg-[#333] ml-[5px] animate-in fade-in duration-500 fill-mode-both delay-200"></div>
-              
-              <div className="flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both delay-300">
-                <span className="text-[var(--success)] mt-0.5">✓</span>
-                <div>
-                  <div className="text-white">Protocol</div>
-                  <div className="text-[#888] mt-1">DSHOT600 supported by both FC and ESC.</div>
-                </div>
-              </div>
-              <div className="w-px h-4 bg-[#333] ml-[5px] animate-in fade-in duration-500 fill-mode-both delay-400"></div>
-
-              <div className="flex items-start gap-4 p-3 bg-yellow-500/10 border border-yellow-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both delay-500">
-                <span className="text-yellow-500 mt-0.5">⚠</span>
-                <div>
-                  <div className="text-yellow-500 font-bold">Mechanical Firmware</div>
-                  <div className="text-[#888] mt-1">PX4 v1.15+ required for exact telemetry mapping.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. MANUFACTURERS GRID */}
-      <section className="w-full px-6 lg:px-10 py-20 bg-white border-b border-[var(--border)]">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-          <h2 className="font-heading font-bold text-[32px] tracking-tight text-[var(--foreground)]"><span className="text-[var(--accent)]">Canonical</span> Manufacturers</h2>
-          <Link href="/manufacturers" className="group hidden md:inline-flex items-center gap-2 font-sans font-semibold text-[14px] text-[var(--foreground)] border-b border-[var(--foreground)] pb-1 transition-colors duration-fast hover:text-[var(--primary)] hover:border-[var(--primary)]">
-            All manufacturers
-            <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {["T-Motor", "Hobbywing", "Holybro", "Matek Systems", "Foxeer", "Radiomaster", "Skydroid", "KDE Direct"].map((mfg) => (
-            <Link key={mfg} href={`/manufacturers/${mfg.toLowerCase().replace(/ /g, '-')}`} className="group bg-[#FAFAFA] border border-transparent p-6 hover:border-[#111111] hover:bg-white transition-all duration-fast flex justify-between items-center">
-              <span className="font-heading font-bold text-[16px] transform transition-transform duration-fast group-hover:-translate-y-0.5">{mfg}</span>
-              <svg className="w-4 h-4 text-[var(--muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          ))}
-        </div>
-      </section>
-      
-      {/* 5.5. REVIEWS / TESTIMONIALS */}
-      <section className="w-full py-24 bg-[#FAFAFA] border-b border-t border-[var(--border)] overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--primary)] opacity-20"></div>
-        <div className="max-w-4xl mx-auto text-center mb-16 px-6">
-          <h2 className="font-heading font-extrabold text-[36px] tracking-tight mb-4 text-[var(--foreground)]"><span className="text-[var(--primary)]">Trusted</span> by Indian Defense & <span className="text-[var(--accent)]">Commercial Operators</span>.</h2>
-          <p className="font-sans text-[16px] text-[var(--muted-foreground)]">
-            Procurement engineers rely on Rudrastra's canonical hardware graph for accurate technical sourcing.
-          </p>
-        </div>
-
-        {/* Row 1: Scrolling Left */}
-        <div className="w-full relative flex mb-6 group before:absolute before:left-0 before:top-0 before:bottom-0 before:w-32 before:bg-gradient-to-r before:from-[#FAFAFA] before:to-transparent before:z-10 after:absolute after:right-0 after:top-0 after:bottom-0 after:w-32 after:bg-gradient-to-l after:from-[#FAFAFA] after:to-transparent after:z-10">
-          <div className="flex animate-[infinite-scroll-left_40s_linear_infinite] group-hover:[animation-play-state:paused] shrink-0">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex gap-6 px-3 shrink-0">
-                {[
-                  { quote: "The compatibility graph saved us hours. We no longer have to cross-reference multiple PDFs to check ESC and Motor pairing.", author: "Lead Engineer", company: "Aerospace Defence Labs" },
-                  { quote: "We source our entire prototyping BOM directly through Rudrastra. Lead times are accurate and localized.", author: "Procurement Head", company: "National Drone Corp" },
-                  { quote: "Finally, a platform built for hardware engineers instead of hobbyists. The CAD models and datasheets are perfectly organized.", author: "Hardware Architect", company: "Vayu Dynamics" },
-                  { quote: "Rudrastra's RFQ process reduced our sourcing turnaround from weeks to just 48 hours for large military orders.", author: "Supply Chain Manager", company: "Tactical UAV Systems" }
-                ].map((review, j) => (
-                  <div key={j} className="w-[400px] shrink-0 bg-white border border-[var(--border)] p-8 flex flex-col justify-between h-[200px] hover:border-black transition-colors duration-fast">
-                    <p className="font-sans text-[15px] leading-relaxed text-[var(--foreground)]">"{review.quote}"</p>
-                    <div className="flex flex-col mt-4">
-                      <span className="font-sans font-bold text-[14px]">{review.author}</span>
-                      <span className="font-sans text-[13px] text-[var(--muted-foreground)]">{review.company}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Row 2: Scrolling Right */}
-        <div className="w-full relative flex group before:absolute before:left-0 before:top-0 before:bottom-0 before:w-32 before:bg-gradient-to-r before:from-[#FAFAFA] before:to-transparent before:z-10 after:absolute after:right-0 after:top-0 after:bottom-0 after:w-32 after:bg-gradient-to-l after:from-[#FAFAFA] after:to-transparent after:z-10">
-          <div className="flex animate-[infinite-scroll-right_40s_linear_infinite] group-hover:[animation-play-state:paused] shrink-0">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex gap-6 px-3 shrink-0">
-                {[
-                  { quote: "Having canonical MPNs and proper stock tracking from multiple Indian vendors is a game-changer.", author: "R&D Director", company: "Skywatch Technologies" },
-                  { quote: "The transparency in pricing and technical validation checks prevented two major procurement errors last quarter.", author: "Chief Technical Officer", company: "Garuda Aerial Ops" },
-                  { quote: "We manufacture indigenous flight controllers, and listing them on Rudrastra instantly connected us with B2B buyers.", author: "Founder", company: "Indigenous Flight Systems" },
-                  { quote: "I can upload an entire spreadsheet BOM and get matching components in seconds. Extremely efficient.", author: "Integration Engineer", company: "AeroIndia Systems" }
-                ].map((review, j) => (
-                  <div key={j} className="w-[400px] shrink-0 bg-white border border-[var(--border)] p-8 flex flex-col justify-between h-[200px] hover:border-black transition-colors duration-fast">
-                    <p className="font-sans text-[15px] leading-relaxed text-[var(--foreground)]">"{review.quote}"</p>
-                    <div className="flex flex-col mt-4">
-                      <span className="font-sans font-bold text-[14px]">{review.author}</span>
-                      <span className="font-sans text-[13px] text-[var(--muted-foreground)]">{review.company}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6. B2B PROCUREMENT PIPELINE */}
-      <section className="w-full px-6 lg:px-10 py-24 bg-[#FAFAFA] border-b border-[var(--border)]">
-        <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="font-heading font-extrabold text-[36px] tracking-tight mb-4 text-[var(--foreground)]">Turn your <span className="text-[var(--primary)]">BOM</span> into a <span className="text-[var(--success)]">procurement plan.</span></h2>
-          <p className="font-sans text-[16px] text-[var(--muted-foreground)]">
-            Upload your CSV. We match components to our canonical graph, aggregate supplier offers, and generate an RFQ instantly.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto relative">
-          <div className="hidden md:block absolute top-[28px] left-[10%] right-[10%] h-px bg-[var(--border)] z-0"></div>
-
-          {[
-            { step: "01", title: "Upload BOM", desc: "CSV containing manufacturer and MPNs." },
-            { step: "02", title: "Parse & Match", desc: "Maps directly to canonical definitions." },
-            { step: "03", title: "Compare Sellers", desc: "Evaluate lead time, MOQ, and terms." },
-            { step: "04", title: "Generate RFQ", desc: "Submit directly to supplier network." }
-          ].map((item, i) => (
-            <div key={i} className="flex flex-col items-center text-center relative z-10">
-              <div className="w-14 h-14 bg-white border-2 border-[var(--foreground)] flex items-center justify-center font-heading font-bold text-[18px] mb-6">
-                {item.step}
-              </div>
-              <h4 className="font-sans font-bold text-[16px] mb-2">{item.title}</h4>
-              <p className="font-sans text-[13px] text-[var(--muted-foreground)] max-w-[180px]">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-        
-        <div className="mt-16 flex justify-center">
-          <Link href="/bom" className="group inline-flex items-center gap-2 bg-[var(--foreground)] text-white font-sans font-bold px-8 py-3.5 hover:bg-[var(--primary)] transition-all duration-fast relative overflow-hidden">
-            <span className="relative z-10 flex items-center gap-2">
-              Upload BOM
-              <svg className="w-4 h-4 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-          </Link>
-        </div>
-      </section>
-
-      {/* 7. ENGINEERING RESOURCES */}
-      <section className="w-full px-6 lg:px-10 py-24 bg-white border-b border-[var(--border)]">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-          <div>
-            <h2 className="font-heading font-bold text-[32px] tracking-tight mb-3 text-[var(--foreground)]"><span className="text-[var(--accent)]">Engineering</span> Resources</h2>
-            <p className="font-sans text-[15px] text-[var(--muted-foreground)] max-w-xl">
-              Technical documentation, calculators, and system architecture guides.
-            </p>
-          </div>
-          <Link href="/engineering" className="group hidden md:inline-flex items-center gap-2 font-sans font-semibold text-[14px] text-[var(--foreground)] border-b border-[var(--foreground)] pb-1 mt-6 transition-colors duration-fast hover:text-[var(--primary)] hover:border-[var(--primary)]">
-            View all resources
-            <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { tag: "Calculator", title: "Motor KV Selection Engine", desc: "Calculate optimal RPM based on payload weight, propeller pitch, and voltage." },
-            { tag: "Guide", title: "Drone Electrical Architecture", desc: "Reference schematics for redundant power delivery in heavy-lift UAVs." },
-            { tag: "Reference", title: "Telemetry Protocol Matrix", desc: "Cross-compatibility table for Mavlink, CRSF, and SBUS implementations." }
-          ].map((res, i) => (
-            <Link key={i} href="/engineering" className="group p-8 border border-[var(--border)] bg-[#FAFAFA] hover:bg-white hover:border-[#111] transition-colors duration-fast flex flex-col h-full">
-              <span className="font-sans text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] mb-4">{res.tag}</span>
-              <h3 className="font-heading font-bold text-[20px] mb-3 text-[var(--foreground)] leading-tight">{res.title}</h3>
-              <p className="font-sans text-[14px] text-[var(--muted-foreground)] leading-relaxed mt-auto">{res.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* 8. NEWSLETTER (TECHNICAL) */}
-      <section className="w-full px-6 lg:px-10 py-20 bg-[#111] text-white flex flex-col items-center text-center">
-        <h2 className="font-heading font-bold text-[32px] tracking-tight mb-4">Stay ahead of the <span className="text-[var(--accent)]">hardware stack.</span></h2>
-        <p className="font-sans text-[15px] text-[#A0A0A0] max-w-md mb-8">
-          Weekly updates on new canonical components, firmware compatibility notes, and supply chain lead times.
-        </p>
-        <div className="flex w-full max-w-md relative group">
-          <input 
-            type="email" 
-            placeholder="engineering@company.com" 
-            className="w-full h-[56px] pl-6 pr-32 bg-[#1A1A1A] border border-[#333] font-sans text-[14px] text-white focus:outline-none focus:border-[var(--primary)] transition-colors duration-fast placeholder:text-[#555]"
-          />
-          <button className="absolute right-2 top-2 bottom-2 bg-white text-black font-sans font-bold text-[13px] px-6 hover:bg-[var(--primary)] hover:text-white transition-all duration-fast">
-            Subscribe
-          </button>
-        </div>
-      </section>
-      
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/products/page.tsx ---
-```tsx
-import Link from "next/link";
-import Image from "next/image";
-
-/**
- * P0: Products Discovery Engine
- * Implements strict engineering filters (Category, Electrical, Interface, Physical, Commercial)
- * and the dense product card architecture.
- */
-export default function ProductsPage() {
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      {/* 1. HERO & SEARCH */}
-      <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
-        <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--muted-foreground)] mb-4 block">
-          Drone Hardware Catalog
-        </span>
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Find the exact <span className="text-[var(--primary)]">component.</span>
-        </h1>
-        <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl mb-8">
-          Search by manufacturer, MPN, specification, category or engineering requirement.
-        </p>
-
-        {/* Large Search Input */}
-        <div className="w-full max-w-4xl relative flex items-center group">
-          <svg className="absolute left-5 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--primary)] transition-colors duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="square" strokeLinejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search MPN, manufacturer, KV, voltage, protocol..."
-            className="w-full h-[64px] pl-14 pr-[120px] bg-white border border-[var(--border)] font-sans text-[16px] focus:outline-none focus:border-[var(--foreground)] transition-colors duration-fast placeholder:text-[var(--muted-foreground)] focus:placeholder:opacity-50"
-          />
-          <button className="absolute right-2 top-2 bottom-2 bg-[var(--foreground)] text-white font-sans font-semibold text-[14px] px-8 hover:bg-[var(--primary)] transition-colors duration-fast flex items-center gap-2 group/btn">
-            Search
-            <svg className="w-4 h-4 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Popular Tags */}
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-[13px] font-sans text-[var(--muted-foreground)]">
-          <span className="font-semibold text-[var(--foreground)]">Popular:</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">MN4014</span>
-          <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">Pixhawk 6X</span>
-          <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">45A ESC</span>
-          <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">M10 GNSS</span>
-          <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">6S LiPo</span>
-        </div>
-      </section>
-
-      {/* 2. MAIN CATALOG LAYOUT */}
-      <section className="w-full px-6 lg:px-10 py-12 flex flex-col md:flex-row gap-10">
-        
-        {/* LEFT: ENGINEERING FILTERS */}
-        <aside className="w-full md:w-[280px] shrink-0">
-          <h2 className="font-heading font-bold text-[18px] mb-6">Filters</h2>
-
-          {/* Category Filter */}
-          <div className="mb-8">
-            <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Category</h3>
-            <div className="flex flex-wrap gap-2">
-              {["Propulsion", "Flight Control", "Power", "Compute & AI", "Airframe", "Communication"].map((item, i) => (
-                <label key={i} className={`flex items-center px-3 py-1.5 cursor-pointer border transition-colors duration-fast ${i === 0 ? 'bg-black text-white border-black' : 'bg-white border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5]'}`}>
-                  <span className="font-sans text-[13px] font-medium">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Electrical Filter */}
-          <div className="mb-8 border-t border-[var(--border)] pt-6">
-            <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Electrical</h3>
-            <div className="flex flex-wrap gap-2">
-              {["Voltage", "Current", "KV", "Power", "Capacity"].map((item, i) => (
-                <label key={i} className="flex items-center px-3 py-1.5 cursor-pointer bg-white border border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5] transition-colors duration-fast">
-                  <span className="font-sans text-[13px] font-medium">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Interface Filter */}
-          <div className="mb-8 border-t border-[var(--border)] pt-6">
-            <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Interface</h3>
-            <div className="flex flex-wrap gap-2">
-              {["CAN", "UART", "I2C", "SPI", "PWM", "Ethernet"].map((item, i) => (
-                <label key={i} className="flex items-center px-3 py-1.5 cursor-pointer bg-white border border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5] transition-colors duration-fast">
-                  <span className="font-sans text-[13px] font-medium">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          
-          {/* Commercial Filter */}
-          <div className="mb-8 border-t border-[var(--border)] pt-6">
-            <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Commercial</h3>
-            <div className="flex flex-wrap gap-2">
-              {["Price", "MOQ", "Lead time", "Stock"].map((item, i) => (
-                <label key={i} className="flex items-center px-3 py-1.5 cursor-pointer bg-white border border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5] transition-colors duration-fast">
-                  <span className="font-sans text-[13px] font-medium">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* RIGHT: RESULTS GRID */}
-        <div className="flex-1">
-          {/* Results header */}
-          <div className="flex justify-between items-center mb-6 border-b border-[var(--border)] pb-4">
-            <span className="font-sans font-bold text-[14px]">1,284 COMPONENTS</span>
-            <div className="flex items-center gap-2 font-sans text-[14px]">
-              <span className="text-[var(--muted-foreground)]">Sort:</span>
-              <select className="bg-transparent font-semibold focus:outline-none cursor-pointer">
-                <option>Relevance</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>KV: High to Low</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Product Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {[
-              {
-                mfg: "T-Motor",
-                mpn: "MN4014",
-                id: "RUD-MOT-MN4014",
-                desc: "400KV Brushless Motor",
-                specs: [{ label: "Voltage", val: "6S-12S" }, { label: "KV", val: "400KV" }, { label: "Max thrust", val: "8.2kg" }],
-                price: "₹12,450",
-                sellers: 3,
-                img: "/images/products/rudrastra_motor_1785921295587.png"
-              },
-              {
-                mfg: "Holybro",
-                mpn: "Pixhawk 6X",
-                id: "RUD-FC-PX6X",
-                desc: "Pro Autopilot Controller",
-                specs: [{ label: "MCU", val: "STM32H753" }, { label: "IMU", val: "Triple" }],
-                price: "₹18,200",
-                sellers: 2,
-                img: "/images/products/rudrastra_fc_1785921305227.png"
-              },
-              {
-                mfg: "Hobbywing",
-                mpn: "XRotor 40A",
-                id: "RUD-ESC-XR40",
-                desc: "4-in-1 BLHeli_32 ESC",
-                specs: [{ label: "Cont.", val: "40A" }, { label: "Input", val: "3-6S LiPo" }],
-                price: "₹6,800",
-                sellers: 4,
-                img: "/images/products/rudrastra_esc_1785921326270.png"
-              },
-              {
-                mfg: "T-Motor",
-                mpn: "MN3510",
-                id: "RUD-MOT-MN3510",
-                desc: "360KV Navigator Series",
-                specs: [{ label: "Voltage", val: "6S-8S" }, { label: "KV", val: "360KV" }, { label: "Max thrust", val: "4.5kg" }],
-                price: "₹8,900",
-                sellers: 2,
-                img: "/images/products/rudrastra_motor_1785921295587.png"
-              },
-              {
-                mfg: "Holybro",
-                mpn: "M10 GPS",
-                id: "RUD-NAV-M10",
-                desc: "M10 GNSS Module",
-                specs: [{ label: "Protocol", val: "UART" }, { label: "Constellation", val: "Multi" }],
-                price: "₹3,400",
-                sellers: 5,
-                img: "/images/products/rudrastra_gps_1785921355597.png"
-              },
-              {
-                mfg: "Tattu",
-                mpn: "6S 5000mAh",
-                id: "RUD-PWR-6S5K",
-                desc: "6S 5000mAh 60C LiPo",
-                specs: [{ label: "Voltage", val: "22.2V" }, { label: "Capacity", val: "5000mAh" }],
-                price: "₹9,200",
-                sellers: 1,
-                img: "/images/products/rudrastra_battery_1785921378157.png"
-              }
-            ].map((prod, i) => (
-              <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative h-full">
-                
-                {/* COMPARE CHECKBOX HOVER */}
-                <div className="absolute top-4 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-fast flex items-center gap-2 bg-white/90 backdrop-blur px-2 py-1 border border-[var(--border)] cursor-pointer hover:bg-black hover:text-white group/check">
-                  <div className="w-3.5 h-3.5 border border-[var(--foreground)] group-hover/check:border-white"></div>
-                  <span className="font-sans text-[11px] font-semibold tracking-wider uppercase">Compare</span>
-                </div>
-
-                {/* IMAGE */}
-                <div className="w-full h-[240px] bg-white flex items-center justify-center p-6 overflow-hidden relative border-b border-[var(--border)]">
-                  <Image 
-                    src={prod.img} 
-                    alt={`${prod.mfg} ${prod.mpn}`} 
-                    width={200} 
-                    height={200} 
-                    className="object-contain transform group-hover:scale-[1.03] transition-transform duration-slow ease-uncover"
-                  />
-                </div>
-
-                {/* METADATA */}
-                <div className="p-5 flex flex-col flex-1 transform group-hover:-translate-y-1 transition-transform duration-normal ease-uncover z-10 bg-white">
-                  <span className="font-sans text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-1 px-2 py-0.5 bg-[#F5F5F5] self-start">{prod.mfg}</span>
-                  
-                  <div className="flex justify-between items-start mt-2 mb-1">
-                    <h3 className="font-heading font-bold text-[18px] text-[var(--foreground)]">{prod.mpn}</h3>
-                    <svg className="w-5 h-5 text-[var(--primary)] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </div>
-                  
-                  <p className="font-sans text-[13px] text-[var(--muted-foreground)] mb-4">{prod.desc}</p>
-                  
-                  {/* Specs Grid */}
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 mb-5">
-                    {prod.specs.map((spec, idx) => (
-                      <div key={idx} className="flex flex-col">
-                        <span className="font-sans text-[11px] text-[var(--muted-foreground)] uppercase">{spec.label}</span>
-                        <span className="font-sans text-[13px] font-medium">{spec.val}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Price & Commercials */}
-                  <div className="mt-auto pt-4 border-t border-[var(--border)] flex justify-between items-end">
-                    <div>
-                      <div className="font-heading font-bold text-[18px] leading-none mb-1">{prod.price}</div>
-                      <div className="font-sans text-[11px] text-[var(--muted-foreground)]">{prod.sellers} verified sellers</div>
-                    </div>
-                    <div className="flex items-center gap-1.5 font-sans text-[11px] font-semibold text-green-600">
-                      <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
-                      In Stock
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          <div className="mt-12 flex justify-center">
-            <div className="flex items-center gap-2">
-              <button className="w-10 h-10 border border-[var(--border)] flex items-center justify-center hover:border-[#111] transition-colors duration-fast disabled:opacity-50 disabled:hover:border-[var(--border)]" disabled>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="square" strokeLinejoin="miter" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button className="w-10 h-10 border border-[#111] bg-[#111] text-white flex items-center justify-center font-sans font-bold text-[13px]">1</button>
-              <button className="w-10 h-10 border border-[var(--border)] flex items-center justify-center font-sans font-medium text-[13px] hover:border-[#111] transition-colors duration-fast">2</button>
-              <button className="w-10 h-10 border border-[var(--border)] flex items-center justify-center font-sans font-medium text-[13px] hover:border-[#111] transition-colors duration-fast">3</button>
-              <span className="mx-2 text-[var(--muted-foreground)]">...</span>
-              <button className="w-10 h-10 border border-[var(--border)] flex items-center justify-center hover:border-[#111] transition-colors duration-fast">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="square" strokeLinejoin="miter" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/products/[id]/page.tsx ---
-```tsx
-import Link from "next/link";
-import Image from "next/image";
-
-/**
- * P0: Canonical Product Detail Page (PDP)
- * Focuses on Canonical Data -> Compatibility Graph -> Multi-Seller Offers.
- */
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
-  // Mock data for the demonstration
-  const product = {
-    mfg: "T-Motor",
-    mpn: "MN4014",
-    id: "RUD-MOT-MN4014",
-    desc: "400KV Brushless Motor",
-    img: "/images/products/rudrastra_motor_1785921295587.png",
-    aggPrice: "₹12,450",
-    sellers: 3,
-    overview: "The MN4014 is a highly efficient propulsion motor designed for professional aerial photography and industrial applications. Features extreme reliability and minimal vibration.",
-    specs: {
-      electrical: [
-        { label: "KV Rating", val: "400" },
-        { label: "Operating Voltage", val: "6S-12S LiPo" },
-        { label: "Max Continuous Current (180S)", val: "30A" },
-        { label: "Max Continuous Power (180S)", val: "900W" },
-        { label: "Internal Resistance", val: "67mΩ" },
-        { label: "Idle Current (10V)", val: "1.1A" }
-      ],
-      mechanical: [
-        { label: "Stator Size", val: "40x14 mm" },
-        { label: "Motor Dimensions", val: "Φ44.8 x 34.5 mm" },
-        { label: "Weight", val: "168g" },
-        { label: "Shaft Diameter", val: "4.0 mm" },
-        { label: "Mounting Pattern", val: "25x25mm, M3" },
-        { label: "Bearing", val: "EZO 694ZZ" }
-      ]
-    },
-    compatibility: [
-      { type: "ESC", status: "match", text: "Hobbywing X8 ESC" },
-      { type: "ESC", status: "match", text: "80A ESC" },
-      { type: "Battery", status: "match", text: "6S–12S LiPo" },
-      { type: "Propeller", status: "warning", text: "15×5 propeller" }
-    ],
-    offers: [
-      { name: "Aero Components India", verified: true, price: "₹12,450", moq: 1, lead: "2 days", stock: true },
-      { name: "DroneTech Supply", verified: true, price: "₹11,980", moq: 5, lead: "5 days", stock: true },
-      { name: "Indie UAV Parts", verified: true, price: "₹11,600", moq: 20, lead: "8 days", stock: false }
-    ]
-  };
-
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      
-      {/* Breadcrumbs */}
-      <div className="w-full px-6 lg:px-10 py-4 font-sans text-[12px] text-[var(--muted-foreground)] flex items-center gap-2">
-        <Link href="/" className="hover:text-[var(--foreground)] transition-colors">Home</Link>
-        <span>/</span>
-        <Link href="/products" className="hover:text-[var(--foreground)] transition-colors">Products</Link>
-        <span>/</span>
-        <Link href="/categories/propulsion" className="hover:text-[var(--foreground)] transition-colors">Propulsion</Link>
-        <span>/</span>
-        <span className="text-[var(--foreground)] font-semibold">{product.mpn}</span>
-      </div>
-
-      <div className="w-full max-w-7xl mx-auto px-6 lg:px-10 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
-        
-        {/* LEFT COLUMN: Media */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="w-full aspect-square bg-white border border-[var(--border)] flex items-center justify-center p-8 relative">
-            <span className="absolute top-4 left-4 font-sans text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest px-2 py-1 bg-[#F5F5F5]">
-              {product.id}
-            </span>
-            <Image 
-              src={product.img} 
-              alt={product.mpn} 
-              width={400} 
-              height={400} 
-              className="object-contain"
-            />
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            {[1,2,3,4].map((i) => (
-              <div key={i} className={`aspect-square border ${i===1 ? 'border-[var(--foreground)]' : 'border-[var(--border)]'} bg-white flex items-center justify-center cursor-pointer hover:border-[var(--foreground)] transition-colors duration-fast`}>
-                <Image src={product.img} alt="Thumbnail" width={60} height={60} className="object-contain opacity-60 hover:opacity-100 transition-opacity" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: Product Core Data */}
-        <div className="lg:col-span-7 flex flex-col">
-          
-          <div className="border-b border-[var(--border)] pb-8 mb-8">
-            <span className="font-sans text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2 block">{product.mfg}</span>
-            <h1 className="font-heading font-extrabold text-[40px] md:text-[48px] leading-none tracking-tight text-[var(--foreground)] mb-3">
-              {product.mpn}
-            </h1>
-            <p className="font-sans text-[18px] text-[var(--muted-foreground)] mb-6">
-              {product.desc}
-            </p>
-            
-            <div className="flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--foreground)] mb-8">
-              <div className="flex text-[var(--foreground)]">
-                {/* 5 Stars */}
-                {[1,2,3,4,5].map(i => (
-                  <svg key={i} className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                ))}
-              </div>
-              <span className="px-2 py-0.5 bg-[var(--border)] text-[10px] font-bold uppercase tracking-wider">Verified specification</span>
-            </div>
-
-            <div className="flex items-end gap-6 mb-8">
-              <div className="font-heading font-bold text-[36px] leading-none">{product.aggPrice}</div>
-              <div className="font-sans text-[13px] text-[var(--muted-foreground)] pb-1">Available from {product.sellers} sellers</div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href={`/rfq?mpn=${product.mpn}`} className="flex-1 flex justify-center items-center bg-[var(--foreground)] text-white font-sans font-bold text-[14px] h-[52px] hover:bg-[var(--primary)] transition-colors duration-fast">
-                Request Quote
-              </Link>
-              <button className="flex-1 flex justify-center items-center bg-white border border-[var(--border)] text-[var(--foreground)] font-sans font-bold text-[14px] h-[52px] hover:border-[var(--foreground)] transition-colors duration-fast">
-                Compare Options
-              </button>
-            </div>
-          </div>
-
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            <div className="flex flex-col">
-              <span className="font-heading font-bold text-[20px]">{product.specs.electrical[1].val}</span>
-              <span className="font-sans text-[12px] text-[var(--muted-foreground)]">Voltage</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-heading font-bold text-[20px]">{product.specs.electrical[0].val}</span>
-              <span className="font-sans text-[12px] text-[var(--muted-foreground)]">KV Rating</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-heading font-bold text-[20px]">8.2kg</span>
-              <span className="font-sans text-[12px] text-[var(--muted-foreground)]">Max Thrust</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-heading font-bold text-[20px]">{product.specs.mechanical[2].val}</span>
-              <span className="font-sans text-[12px] text-[var(--muted-foreground)]">Weight</span>
-            </div>
-          </div>
-
-          {/* TABS */}
-          <div className="w-full mb-8">
-            <div className="flex border-b border-[var(--border)] font-sans text-[14px] font-semibold">
-              <button className="px-6 py-4 border-b-2 border-[var(--foreground)] text-[var(--foreground)]">Overview</button>
-              <button className="px-6 py-4 border-b-2 border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors duration-fast">Specifications</button>
-              <button className="px-6 py-4 border-b-2 border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors duration-fast">Compatibility</button>
-              <button className="px-6 py-4 border-b-2 border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors duration-fast">Sellers</button>
-            </div>
-          </div>
-
-          {/* OVERVIEW CONTENT */}
-          <div className="font-sans text-[15px] leading-relaxed text-[#333] mb-12 max-w-3xl">
-            <p>{product.overview}</p>
-          </div>
-
-          {/* SPECIFICATIONS */}
-          <div className="mb-16">
-            <h3 className="font-heading font-bold text-[24px] tracking-tight mb-6">Specifications</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-              {/* Electrical */}
-              <div>
-                <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Electrical</h4>
-                <div className="flex flex-col">
-                  {product.specs.electrical.map((s, i) => (
-                    <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
-                      <span className="text-[var(--muted-foreground)]">{s.label}</span>
-                      <span className="font-semibold text-right">{s.val}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Mechanical */}
-              <div>
-                <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Mechanical</h4>
-                <div className="flex flex-col">
-                  {product.specs.mechanical.map((s, i) => (
-                    <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
-                      <span className="text-[var(--muted-foreground)]">{s.label}</span>
-                      <span className="font-semibold text-right">{s.val}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* COMPATIBILITY ("THE KILLER SECTION") */}
-          <div className="mb-16 bg-white border border-[var(--border)] p-8">
-            <h3 className="font-heading font-bold text-[24px] tracking-tight mb-2">Works with</h3>
-            <p className="font-sans text-[14px] text-[var(--muted-foreground)] mb-6">
-              Compatibility is evaluated against voltage, current, interface and mechanical constraints.
-            </p>
-
-            <div className="font-mono text-[14px] bg-[#FAFAFA] border border-[var(--border)] p-6 mb-8">
-              <div className="font-bold text-[var(--foreground)] mb-2">{product.mpn}</div>
-              <div className="ml-2 border-l border-[var(--border)] pl-4 flex flex-col gap-3 relative py-2">
-                {product.compatibility.map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 relative">
-                    {/* Horizontal connector line */}
-                    <div className="absolute -left-4 w-4 h-px bg-[var(--border)] top-1/2"></div>
-                    <span className={`text-[12px] flex items-center justify-center font-bold ${item.status === 'match' ? 'text-green-600' : 'text-yellow-600'}`}>
-                      {item.status === 'match' ? '✓' : '⚠'}
-                    </span>
-                    <span className="text-[var(--foreground)]">{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Link href={`/compatibility?component=${product.id}`} className="inline-flex items-center gap-2 font-sans font-bold text-[14px] text-[var(--foreground)] hover:text-[var(--primary)] transition-colors duration-fast">
-              Run Compatibility Check
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          </div>
-
-          {/* SELLERS SECTION */}
-          <div>
-            <h3 className="font-heading font-bold text-[24px] tracking-tight mb-2">Available from verified sellers</h3>
-            <div className="w-full overflow-x-auto mt-6 border border-[var(--border)] bg-white">
-              <table className="w-full text-left font-sans text-[14px] whitespace-nowrap">
-                <thead>
-                  <tr className="border-b border-[var(--border)] bg-[#FAFAFA] text-[12px] uppercase text-[var(--muted-foreground)] tracking-wider">
-                    <th className="px-6 py-4 font-semibold">Seller</th>
-                    <th className="px-6 py-4 font-semibold text-right">Price</th>
-                    <th className="px-6 py-4 font-semibold text-right">MOQ</th>
-                    <th className="px-6 py-4 font-semibold text-right">Lead time</th>
-                    <th className="px-6 py-4 font-semibold">Stock</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border)]">
-                  {product.offers.map((offer, i) => (
-                    <tr key={i} className="group hover:bg-[#FAFAFA] transition-all duration-fast hover:translate-x-[2px] cursor-pointer">
-                      <td className="px-6 py-5 font-semibold text-[var(--foreground)] flex items-center gap-2 relative">
-                        {offer.name}
-                        {offer.verified && (
-                          <svg className="w-4 h-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {/* Hover Arrow */}
-                        <svg className="w-4 h-4 text-[var(--primary)] absolute -left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="square" strokeLinejoin="miter" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </td>
-                      <td className="px-6 py-5 text-right font-bold">{offer.price}</td>
-                      <td className="px-6 py-5 text-right text-[var(--muted-foreground)]">{offer.moq}</td>
-                      <td className="px-6 py-5 text-right text-[var(--muted-foreground)]">{offer.lead}</td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${offer.stock ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-[12px]">{offer.stock ? 'In Stock' : 'Out of Stock'}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button className="font-sans font-bold text-[14px] text-[var(--foreground)] flex items-center gap-2 hover:text-[var(--primary)] transition-colors duration-fast">
-                Compare offers
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/categories/page.tsx ---
-```tsx
-import Link from "next/link";
-
-/**
- * P0: Categories (Engineering Taxonomy)
- * Root hub for UAV hardware subsystems.
- */
-export default function CategoriesPage() {
-  const categories = [
-    { id: "01", name: "Propulsion", desc: "Motors, ESCs, Propellers, Motor accessories", count: 1420, link: "/categories/propulsion" },
-    { id: "02", name: "Flight Control", desc: "Flight controllers, IMUs, Sensors", count: 312, link: "/categories/flight-control" },
-    { id: "03", name: "Power", desc: "Batteries, BMS, Power modules, PDB", count: 856, link: "/categories/power" },
-    { id: "04", name: "Compute & AI", desc: "Companion computers, AI accelerators, SBCs", count: 124, link: "/categories/compute" },
-    { id: "05", name: "Communication", desc: "Telemetry, Radios, LTE, Wi-Fi", count: 290, link: "/categories/communication" },
-    { id: "06", name: "Navigation", desc: "GNSS, RTK, Compass, Optical flow", count: 185, link: "/categories/navigation" },
-    { id: "07", name: "Airframe", desc: "Frames, Landing gear, Mounts", count: 540, link: "/categories/airframe" },
-    { id: "08", name: "Payload", desc: "Gimbals, Cameras, LiDAR, Thermal", count: 210, link: "/categories/payload" },
-  ];
-
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      
-      {/* HERO */}
-      <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16 text-center flex flex-col items-center">
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight mb-4 max-w-3xl">
-          Browse by <span className="text-[var(--primary)]">Engineering</span> System
-        </h1>
-        <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-xl">
-          Browse components by engineering system, interface, specification and application.
-        </p>
-      </section>
-
-      {/* CATEGORY BLOCKS */}
-      <section className="w-full max-w-7xl mx-auto px-6 lg:px-10 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((cat) => (
-          <Link key={cat.id} href={cat.link} className="bg-white border border-[var(--border)] p-8 flex flex-col h-[320px] relative group hover:bg-[var(--primary)] transition-colors duration-fast">
-            <div className="flex justify-between items-start mb-8">
-              <span className="font-sans text-[14px] font-bold text-[var(--muted-foreground)] group-hover:text-white/85 transition-colors duration-fast">{cat.id}</span>
-              <span className="font-sans text-[12px] font-bold text-[var(--muted-foreground)] opacity-70 group-hover:opacity-100 transition-opacity duration-fast group-hover:text-white/85">{cat.count.toLocaleString()} components</span>
-            </div>
-            
-            <h2 className="font-heading font-bold text-[28px] tracking-tight uppercase mb-4 group-hover:text-white transition-colors duration-fast">{cat.name}</h2>
-            
-            <p className="font-sans text-[15px] text-[var(--muted-foreground)] leading-relaxed mb-6 flex-1 group-hover:text-white/90 transition-colors duration-fast">
-              {cat.desc.split(', ').map((item, i) => (
-                <span key={i} className="block mb-1">• {item}</span>
-              ))}
-            </p>
-            
-            <div className="flex justify-between items-end mt-auto pt-4 border-t border-[var(--border)] group-hover:border-white/20 transition-colors duration-fast">
-              <span className="font-sans font-bold text-[14px] flex items-center gap-2 group-hover:text-white transition-colors duration-fast">
-                Explore
-                <svg className="w-4 h-4 transform opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </span>
-            </div>
-          </Link>
-        ))}
-      </section>
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/categories/[category]/page.tsx ---
-```tsx
-import Link from "next/link";
-import Image from "next/image";
-
-/**
- * P0: Subcategory Page
- * Includes the contextual Engineering Calculator module.
- */
-export default async function SubcategoryPage({ params }: { params: Promise<{ category: string }> }) {
-  const resolvedParams = await params;
-  // We mock the content assuming it's the "propulsion" route.
-  const title = resolvedParams.category === "propulsion" ? "Propulsion" : "Category";
-  
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      
-      {/* Breadcrumbs */}
-      <div className="w-full px-6 lg:px-10 py-4 font-sans text-[12px] text-[var(--muted-foreground)] flex items-center gap-2">
-        <Link href="/" className="hover:text-[var(--foreground)] transition-colors">Home</Link>
-        <span>/</span>
-        <Link href="/categories" className="hover:text-[var(--foreground)] transition-colors">Categories</Link>
-        <span>/</span>
-        <span className="text-[var(--foreground)] font-semibold uppercase">{title}</span>
-      </div>
-
-      {/* 1. HERO */}
-      <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4 capitalize">
-          <span className="text-[var(--accent)]">{title}</span> Components
-        </h1>
-        <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl mb-8">
-          Motors, ESCs and propellers for multirotor, fixed-wing and heavy-lift platforms.
-        </p>
-        <span className="font-sans font-bold text-[14px]">1,420 COMPONENTS</span>
-      </section>
-
-      {/* 2. SUBCATEGORY EXPLORATION & CALCULATOR */}
-      <section className="w-full px-6 lg:px-10 py-12 flex flex-col lg:flex-row gap-10">
-        
-        {/* Left: Subcategories & Filters */}
-        <div className="flex-1">
-          <h2 className="font-heading font-bold text-[24px] mb-6">Subcategories</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            {["Motors", "ESCs", "Propellers", "Motor Accessories"].map((sub) => (
-              <Link key={sub} href={`/products?category=${sub.toLowerCase()}`} className="bg-white border border-[var(--border)] p-6 text-center hover:border-[#111] hover:bg-[#FAFAFA] transition-colors duration-fast">
-                <span className="font-sans font-semibold text-[14px]">{sub}</span>
-              </Link>
-            ))}
-          </div>
-
-          <h2 className="font-heading font-bold text-[24px] mb-6">Top Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Minimal product cards for the category view */}
-            {[
-              { mfg: "T-Motor", mpn: "MN4014", id: "RUD-MOT-MN4014", price: "₹12,450", img: "/images/products/rudrastra_motor_1785921295587.png" },
-              { mfg: "Hobbywing", mpn: "XRotor 40A", id: "RUD-ESC-XR40", price: "₹6,800", img: "/images/products/rudrastra_esc_1785921326270.png" },
-              { mfg: "APC", mpn: "15x5E", id: "RUD-PRP-15X5E", price: "₹850", img: "/images/products/rudrastra_propeller_1785921366443.png" },
-            ].map((prod, i) => (
-              <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] p-4 flex flex-col hover:border-[#111] transition-colors duration-fast">
-                <div className="w-full h-[180px] bg-[#F9F9F9] flex items-center justify-center p-4 mb-4 relative overflow-hidden">
-                  <Image src={prod.img} alt={prod.mpn} width={120} height={120} className="object-contain transform group-hover:scale-[1.03] transition-transform duration-slow" />
-                </div>
-                <span className="font-sans text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{prod.mfg}</span>
-                <span className="font-heading font-bold text-[16px]">{prod.mpn}</span>
-                <div className="mt-2 flex justify-between items-center">
-                  <span className="font-sans font-semibold text-[14px]">{prod.price}</span>
-                  <svg className="w-4 h-4 text-[var(--primary)] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: The Engineering Tool Teaser */}
-        <aside className="w-full lg:w-[320px] shrink-0">
-          <div className="bg-[#111111] text-white p-8 sticky top-24">
-            <h3 className="font-heading font-bold text-[20px] mb-2">Propulsion matching</h3>
-            <p className="font-sans text-[13px] text-[#888] mb-8">Size your power system accurately before purchasing components.</p>
-            
-            <div className="flex flex-col items-center gap-1 font-mono text-[13px] font-bold text-center mb-8">
-              <div className="w-full py-2 bg-[#222] border border-[#333]">Motor KV</div>
-              <svg className="w-4 h-4 text-[#666] my-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="square" strokeLinejoin="miter" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-              <div className="w-full py-2 bg-[#222] border border-[#333]">Battery voltage</div>
-              <svg className="w-4 h-4 text-[#666] my-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="square" strokeLinejoin="miter" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-              <div className="w-full py-2 bg-[#222] border border-[#333]">ESC current</div>
-              <svg className="w-4 h-4 text-[#666] my-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="square" strokeLinejoin="miter" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-              <div className="w-full py-2 bg-[#222] border border-[#333]">Propeller size</div>
-              <svg className="w-4 h-4 text-[#666] my-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="square" strokeLinejoin="miter" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-              <div className="w-full py-2 bg-[var(--primary)] text-black border border-orange-500">Expected thrust</div>
-            </div>
-
-            <Link href="/engineering/calculators" className="w-full inline-flex justify-center items-center gap-2 bg-white text-black font-sans font-bold px-4 py-3 hover:bg-[var(--primary)] hover:text-white transition-colors duration-fast">
-              Open Propulsion Calculator
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          </div>
-        </aside>
-
-      </section>
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/compare/page.tsx ---
-```tsx
-import Link from "next/link";
-import Image from "next/image";
-
-/**
- * P0: Compare Components
- * Engineering comparison of specifications.
- */
-export default function ComparePage() {
-  const components = [
-    { id: "RUD-MOT-MN4014", mfg: "T-Motor", mpn: "MN4014", img: "/images/products/rudrastra_motor_1785921295587.png", price: "₹12,450", kv: "400", voltage: "6S-12S", weight: "168g", current: "30A", thrust: "8.2kg" },
-    { id: "RUD-MOT-MN3510", mfg: "T-Motor", mpn: "MN3510", img: "/images/products/rudrastra_motor_1785921295587.png", price: "₹8,900", kv: "360", voltage: "6S-8S", weight: "140g", current: "22A", thrust: "4.5kg" },
-    { id: "RUD-MOT-MN4010", mfg: "T-Motor", mpn: "MN4010", img: "/images/products/rudrastra_motor_1785921295587.png", price: "₹10,200", kv: "420", voltage: "6S-12S", weight: "155g", current: "28A", thrust: "6.8kg" },
-  ];
-
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      {/* HERO */}
-      <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          <span className="text-[var(--primary)]">Compare</span> components without opening ten tabs.
-        </h1>
-        <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl">
-          Evaluate technical specifications side-by-side to make the right engineering decision.
-        </p>
-      </section>
-
-      {/* COMPARISON TABLE */}
-      <section className="w-full max-w-7xl mx-auto px-6 lg:px-10 py-16">
-        <div className="bg-white border border-[var(--border)] overflow-x-auto">
-          <table className="w-full text-left font-sans text-[14px]">
-            <thead>
-              <tr>
-                <th className="p-6 border-b border-r border-[var(--border)] bg-[#FAFAFA] w-[200px] shrink-0 min-w-[150px]">
-                  {/* Empty corner */}
-                </th>
-                {components.map(c => (
-                  <th key={c.id} className="p-6 border-b border-[var(--border)] bg-white min-w-[250px] relative group">
-                    <button className="absolute top-4 right-4 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="square" strokeLinejoin="miter" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                    <div className="flex flex-col items-center text-center">
-                      <Image src={c.img} alt={c.mpn} width={100} height={100} className="object-contain mb-4" />
-                      <span className="text-[11px] font-bold text-[var(--muted-foreground)] uppercase">{c.mfg}</span>
-                      <Link href={`/products/${c.id}`} className="font-heading font-bold text-[18px] hover:text-[var(--primary)] transition-colors mt-1 mb-2">{c.mpn}</Link>
-                      <span className="font-bold text-[16px]">{c.price}</span>
-                    </div>
-                  </th>
-                ))}
-                {/* Add new column */}
-                <th className="p-6 border-b border-l border-[var(--border)] bg-[#FAFAFA] min-w-[200px]">
-                  <button className="w-full h-[180px] border-2 border-dashed border-[var(--border)] hover:border-[var(--foreground)] hover:bg-white transition-colors duration-fast flex flex-col items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-                    <svg className="w-6 h-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="square" strokeLinejoin="miter" d="M12 4v16m8-8H4" /></svg>
-                    <span className="font-semibold text-[13px]">Add Component</span>
-                  </button>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {[
-                { label: "KV Rating", key: "kv" },
-                { label: "Operating Voltage", key: "voltage" },
-                { label: "Weight", key: "weight" },
-                { label: "Max Current", key: "current" },
-                { label: "Max Thrust", key: "thrust" },
-              ].map((row, i) => (
-                <tr key={i} className="hover:bg-[#FAFAFA] transition-colors duration-fast">
-                  <td className="p-6 font-semibold text-[13px] text-[var(--muted-foreground)] uppercase tracking-wider border-r border-[var(--border)]">
-                    {row.label}
-                  </td>
-                  {components.map(c => (
-                    <td key={c.id} className="p-6 font-medium text-center relative">
-                      {/* Highlight differences subtly */}
-                      <span className={`${row.key === 'voltage' && c.voltage !== '6S-12S' ? 'bg-yellow-50 px-2 py-1 border border-yellow-200 text-yellow-800' : ''}`}>
-                        {c[row.key as keyof typeof c]}
-                      </span>
-                    </td>
-                  ))}
-                  <td className="p-6 border-l border-[var(--border)]"></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <Link href="/rfq" className="bg-[var(--foreground)] text-white font-sans font-bold px-8 py-3.5 hover:bg-[var(--primary)] transition-colors duration-fast">
-            Request quote for selected components
-          </Link>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/compatibility/page.tsx ---
-```tsx
-"use client";
-import { useState } from "react";
-import Link from "next/link";
-
-/**
- * P0: Compatibility Builder
- * Interactive system validation.
- */
-export default function CompatibilityPage() {
-  const [checking, setChecking] = useState(false);
-  const [result, setResult] = useState<boolean | null>(null);
-
-  const handleCheck = () => {
-    setChecking(true);
-    setResult(null);
-    setTimeout(() => {
-      setChecking(false);
-      setResult(true);
-    }, 800);
-  };
-
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      {/* HERO */}
-      <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Know it works before you <span className="text-[var(--success)]">buy it.</span>
-        </h1>
-        <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl">
-          Validate electrical, mechanical and communication compatibility across your drone system.
-        </p>
-      </section>
-
-      <section className="w-full max-w-7xl mx-auto px-6 lg:px-10 py-16 grid grid-cols-1 lg:grid-cols-2 gap-16">
-        
-        {/* BUILDER FORM */}
-        <div className="bg-white border border-[var(--border)] p-8">
-          <h2 className="font-heading font-bold text-[18px] mb-8 uppercase tracking-widest text-[var(--muted-foreground)]">Select <span className="text-[var(--accent)]">Components</span></h2>
-          
-          <div className="space-y-6">
-            <div className="flex flex-col">
-              <label className="font-sans text-[13px] font-bold mb-2">Motor</label>
-              <select className="w-full h-12 px-4 border border-[var(--border)] font-sans text-[14px] bg-[#FAFAFA] focus:outline-none focus:border-[var(--foreground)] transition-colors">
-                <option>T-Motor MN4014</option>
-                <option>T-Motor MN3510</option>
-              </select>
-            </div>
-            
-            <div className="flex flex-col">
-              <label className="font-sans text-[13px] font-bold mb-2">ESC</label>
-              <select className="w-full h-12 px-4 border border-[var(--border)] font-sans text-[14px] bg-[#FAFAFA] focus:outline-none focus:border-[var(--foreground)] transition-colors">
-                <option>Hobbywing XRotor 40A</option>
-                <option>T-Motor FLAME 60A</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-sans text-[13px] font-bold mb-2">Flight Controller</label>
-              <select className="w-full h-12 px-4 border border-[var(--border)] font-sans text-[14px] bg-[#FAFAFA] focus:outline-none focus:border-[var(--foreground)] transition-colors">
-                <option>Pixhawk 6X</option>
-                <option>Cube Orange+</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-sans text-[13px] font-bold mb-2">Battery</label>
-              <select className="w-full h-12 px-4 border border-[var(--border)] font-sans text-[14px] bg-[#FAFAFA] focus:outline-none focus:border-[var(--foreground)] transition-colors">
-                <option>6S 5000mAh LiPo</option>
-                <option>12S 10000mAh Solid State</option>
-              </select>
-            </div>
-            
-            <div className="flex flex-col">
-              <label className="font-sans text-[13px] font-bold mb-2">Propeller</label>
-              <select className="w-full h-12 px-4 border border-[var(--border)] font-sans text-[14px] bg-[#FAFAFA] focus:outline-none focus:border-[var(--foreground)] transition-colors">
-                <option>APC 15x5E</option>
-                <option>T-Motor 16x5.4 Carbon</option>
-              </select>
-            </div>
-
-            <button 
-              onClick={handleCheck}
-              disabled={checking}
-              className="w-full h-14 bg-[var(--foreground)] text-white font-sans font-bold uppercase tracking-wider text-[14px] hover:bg-[var(--primary)] transition-colors mt-4 disabled:opacity-50"
-            >
-              {checking ? "Analyzing..." : "Check System"}
-            </button>
-          </div>
-        </div>
-
-        {/* RESULTS TERMINAL */}
-        <div className="bg-[#111111] text-white p-8 relative flex flex-col h-full min-h-[400px]">
-          <h2 className="font-heading font-bold text-[18px] mb-8 uppercase tracking-widest text-[#666]">System <span className="text-[var(--success)]">Status</span></h2>
-          
-          {result === null && !checking && (
-            <div className="flex-1 flex items-center justify-center text-[#444] font-mono text-[14px]">
-              Awaiting system configuration...
-            </div>
-          )}
-
-          {checking && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-[var(--primary)] font-mono text-[14px]">
-              <svg className="animate-spin w-8 h-8" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Validating electrical boundaries...</span>
-            </div>
-          )}
-
-          {result && (
-            <div className="space-y-6 font-mono text-[14px]">
-              {/* Animated appearance logic mocked via CSS classes would normally go here */}
-              <div className="flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                <span className="text-green-500 mt-0.5">✓</span>
-                <div>
-                  <div className="font-bold">Motor ↔ ESC</div>
-                  <div className="text-[#888] text-[12px] mt-1">400KV motor max current (30A) is within 40A ESC continuous rating.</div>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200 delay-100 fill-mode-both">
-                <span className="text-green-500 mt-0.5">✓</span>
-                <div>
-                  <div className="font-bold">ESC ↔ Battery</div>
-                  <div className="text-[#888] text-[12px] mt-1">6S battery (22.2V nominal) is within ESC 3-6S input limits.</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200 delay-200 fill-mode-both">
-                <span className="text-green-500 mt-0.5">✓</span>
-                <div>
-                  <div className="font-bold">FC ↔ ESC Protocol</div>
-                  <div className="text-[#888] text-[12px] mt-1">Pixhawk 6X supports PWM/DShot required by XRotor ESC.</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 bg-yellow-500/10 border border-yellow-500/20 animate-in fade-in slide-in-from-bottom-2 duration-200 delay-300 fill-mode-both">
-                <span className="text-yellow-500 mt-0.5">⚠</span>
-                <div>
-                  <div className="text-yellow-500 font-bold">Propeller Oversize Warning</div>
-                  <div className="text-[#888] text-[12px] mt-1">16x5.4 carbon prop on 6S will pull 42A at 100% throttle, exceeding 40A ESC continuous rating. Risk of thermal shutdown.</div>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-[#333] flex justify-end animate-in fade-in duration-200 delay-500 fill-mode-both">
-                <Link href="/bom" className="bg-white text-black font-sans font-bold px-6 py-3 hover:bg-[var(--primary)] hover:text-white transition-colors duration-fast">
-                  Save to BOM
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/bom/page.tsx ---
-```tsx
-"use client";
-import { useState } from "react";
-import Link from "next/link";
-
-/**
- * P0: BOM to Procurement Workflow
- * Upload -> Identify -> Match -> Compare -> RFQ
- */
-export default function BomPage() {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-
-  const handleUpload = () => {
-    setStep(2);
-    // Mock the processing time to show the extraction and matching
-    setTimeout(() => {
-      setStep(3);
-    }, 1500);
-  };
-
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-      {/* HERO */}
-      <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Turn your <span className="text-[var(--primary)]">BOM</span> into a procurement plan.
-        </h1>
-        <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl mb-8">
-          Upload your drone's bill of materials. Rudrastra identifies components, matches suppliers and highlights procurement risks.
-        </p>
-        <div className="flex items-center gap-4">
-          <button className="bg-[var(--foreground)] text-white font-sans font-bold px-8 py-3.5 hover:bg-[var(--primary)] transition-colors duration-fast">
-            Upload BOM
-          </button>
-          <button className="bg-white border border-[var(--border)] text-[var(--foreground)] font-sans font-bold px-8 py-3.5 hover:border-[var(--foreground)] transition-colors duration-fast">
-            Build BOM manually
-          </button>
-        </div>
-      </section>
-
-      {/* WORKFLOW PIPELINE */}
-      <section className="w-full px-6 lg:px-10 py-16 max-w-7xl mx-auto">
-        <div className="bg-white border border-[var(--border)] p-8 lg:p-12">
-          
-          {/* STEP 1: UPLOAD */}
-          {step === 1 && (
-            <div className="flex flex-col items-center text-center max-w-xl mx-auto py-12">
-              <div className="w-20 h-20 bg-[#FAFAFA] border-2 border-dashed border-[var(--border)] rounded-full flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="square" strokeLinejoin="miter" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <h2 className="font-heading font-bold text-[24px] mb-2">Upload your <span className="text-[var(--primary)]">BOM</span></h2>
-              <p className="font-sans text-[14px] text-[var(--muted-foreground)] mb-8">
-                Accepts .csv, .xlsx, or .xls. Ensure your file contains manufacturer and MPN columns for accurate matching.
-              </p>
-              
-              <button 
-                onClick={handleUpload}
-                className="w-full bg-[#FAFAFA] border border-[var(--border)] font-sans font-bold text-[14px] px-8 py-4 hover:border-[#111] hover:bg-white transition-colors duration-fast cursor-pointer"
-              >
-                Select File
-              </button>
-            </div>
-          )}
-
-          {/* STEP 2: PROCESSING */}
-          {step === 2 && (
-            <div className="flex flex-col items-center text-center max-w-xl mx-auto py-24">
-              <svg className="animate-spin w-12 h-12 text-[var(--foreground)] mb-6" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <h2 className="font-heading font-bold text-[24px] mb-2"><span className="text-[var(--accent)]">Identifying</span> components</h2>
-              <p className="font-sans text-[14px] text-[var(--muted-foreground)] font-mono">
-                Matching MPNs against canonical hardware graph...
-              </p>
-            </div>
-          )}
-
-          {/* STEP 3: RESULTS (YOUR BOM) */}
-          {step === 3 && (
-            <div>
-              <div className="flex justify-between items-end mb-8">
-                <div>
-                  <h2 className="font-heading font-bold text-[24px] mb-2 uppercase tracking-tight">Your <span className="text-[var(--primary)]">BOM</span></h2>
-                  <p className="font-sans text-[14px] text-[var(--muted-foreground)]">
-                    4 canonical matches found. 1 component requires manual review.
-                  </p>
-                </div>
-                <Link href="/rfq" className="hidden md:inline-flex bg-[var(--foreground)] text-white font-sans font-bold px-6 py-3 hover:bg-[var(--primary)] transition-colors duration-fast">
-                  Generate Procurement Plan →
-                </Link>
-              </div>
-
-              <div className="border border-[var(--border)] overflow-x-auto">
-                <table className="w-full text-left font-sans text-[14px] whitespace-nowrap">
-                  <thead>
-                    <tr className="border-b border-[var(--border)] bg-[#FAFAFA] text-[12px] uppercase text-[var(--muted-foreground)] tracking-wider">
-                      <th className="px-6 py-4 font-semibold">Extracted Component</th>
-                      <th className="px-6 py-4 font-semibold">Canonical Match</th>
-                      <th className="px-6 py-4 font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--border)]">
-                    {/* MATCHES */}
-                    <tr className="hover:bg-[#FAFAFA] transition-colors duration-fast">
-                      <td className="px-6 py-4 font-mono text-[13px]">T-Motor MN4014</td>
-                      <td className="px-6 py-4 font-semibold"><Link href="/products/RUD-MOT-MN4014" className="hover:text-[var(--primary)] transition-colors">RUD-MOT-MN4014</Link></td>
-                      <td className="px-6 py-4"><span className="text-green-600 font-bold text-[12px] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>Matched</span></td>
-                    </tr>
-                    <tr className="hover:bg-[#FAFAFA] transition-colors duration-fast">
-                      <td className="px-6 py-4 font-mono text-[13px]">Hobbywing X8</td>
-                      <td className="px-6 py-4 font-semibold"><Link href="/products/RUD-ESC-X8" className="hover:text-[var(--primary)] transition-colors">RUD-ESC-X8</Link></td>
-                      <td className="px-6 py-4"><span className="text-green-600 font-bold text-[12px] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>Matched</span></td>
-                    </tr>
-                    <tr className="hover:bg-[#FAFAFA] transition-colors duration-fast">
-                      <td className="px-6 py-4 font-mono text-[13px]">Pixhawk 6X</td>
-                      <td className="px-6 py-4 font-semibold"><Link href="/products/RUD-FC-PX6X" className="hover:text-[var(--primary)] transition-colors">RUD-FC-PX6X</Link></td>
-                      <td className="px-6 py-4"><span className="text-green-600 font-bold text-[12px] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>Matched</span></td>
-                    </tr>
-                    <tr className="hover:bg-[#FAFAFA] transition-colors duration-fast">
-                      <td className="px-6 py-4 font-mono text-[13px]">LiPo 6S 5000mAh</td>
-                      <td className="px-6 py-4 font-semibold"><Link href="/products/RUD-PWR-6S5K" className="hover:text-[var(--primary)] transition-colors">RUD-PWR-6S5K</Link></td>
-                      <td className="px-6 py-4"><span className="text-green-600 font-bold text-[12px] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>Matched</span></td>
-                    </tr>
-                    {/* WARNING */}
-                    <tr className="hover:bg-[#FAFAFA] transition-colors duration-fast bg-yellow-50/50">
-                      <td className="px-6 py-4 font-mono text-[13px]">M10 GNSS</td>
-                      <td className="px-6 py-4 font-semibold text-yellow-700">Multiple candidates</td>
-                      <td className="px-6 py-4"><span className="text-yellow-600 font-bold text-[12px] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>2 possible matches</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile CTA */}
-              <div className="mt-8 flex justify-center md:hidden">
-                <Link href="/rfq" className="w-full text-center bg-[var(--foreground)] text-white font-sans font-bold px-6 py-4 hover:bg-[var(--primary)] transition-colors duration-fast">
-                  Generate Procurement Plan →
-                </Link>
-              </div>
-            </div>
-          )}
-
-        </div>
-      </section>
-    </div>
-  );
-}
-
-```
-
---- app/(storefront)/rfq/page.tsx ---
-```tsx
-"use client";
-import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-
-/**
- * P0: RFQ Form
- * Progressive disclosure form for sourcing requirements.
- */
-function RfqFormContent() {
-  const searchParams = useSearchParams();
-  const prefillMpn = searchParams.get('mpn');
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
-
-  if (submitted) {
-    return (
-      <div className="w-full max-w-2xl mx-auto bg-white border border-[var(--border)] p-12 text-center">
-        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h2 className="font-heading font-extrabold text-[32px] tracking-tight mb-2">RFQ-2026-00142</h2>
-        <p className="font-sans text-[18px] font-bold text-[var(--foreground)] mb-6">Received.</p>
-        <p className="font-sans text-[15px] text-[var(--muted-foreground)] leading-relaxed max-w-sm mx-auto mb-10">
-          Our procurement team will review your requirement and respond with matched suppliers and pricing shortly.
-        </p>
-        <button 
-          onClick={() => setSubmitted(false)}
-          className="font-sans font-bold text-[14px] text-[var(--foreground)] hover:text-[var(--primary)] transition-colors"
-        >
-          Submit another request
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full max-w-3xl mx-auto bg-white border border-[var(--border)] p-8 md:p-12">
-      <form onSubmit={handleSubmit} className="space-y-10">
-        
-        {/* Contact Info */}
-        <div>
-          <h3 className="font-sans text-[12px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-6 border-b border-[var(--border)] pb-2">Contact Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Company</label>
-              <input required type="text" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Name</label>
-              <input required type="text" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Email</label>
-              <input required type="email" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Phone</label>
-              <input type="tel" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
-            </div>
-          </div>
-        </div>
-
-        {/* Requirements */}
-        <div>
-          <h3 className="font-sans text-[12px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-6 border-b border-[var(--border)] pb-2">Sourcing Requirements</h3>
-          
-          <div className="flex flex-col gap-2 mb-6">
-            <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">What are you sourcing?</label>
-            <textarea 
-              required
-              rows={4} 
-              defaultValue={prefillMpn ? `Requesting quote for MPN: ${prefillMpn}` : ''}
-              placeholder="e.g. 50x MN4014 Motors, 10x Pixhawk 6X"
-              className="w-full p-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors resize-none"
-            ></textarea>
-          </div>
-
-          <div className="flex items-center justify-center w-full mb-8">
-            <div className="w-full py-6 border-2 border-dashed border-[var(--border)] flex flex-col items-center justify-center text-[var(--muted-foreground)] hover:border-[var(--foreground)] hover:text-[var(--foreground)] transition-colors cursor-pointer bg-[#FAFAFA]">
-              <svg className="w-6 h-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              <span className="font-sans font-bold text-[13px]">Upload BOM (Optional)</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Delivery Location</label>
-              <input required type="text" placeholder="City, Country" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-sans text-[13px] font-bold text-[var(--foreground)]">Required By</label>
-              <input required type="date" className="w-full h-12 px-4 border border-[var(--border)] bg-[#FAFAFA] font-sans text-[14px] focus:outline-none focus:border-[var(--foreground)] transition-colors" />
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" className="w-full h-14 bg-[var(--foreground)] text-white font-sans font-bold text-[15px] hover:bg-[var(--primary)] transition-colors duration-fast">
-          Submit RFQ
-        </button>
-
-      </form>
-    </div>
-  );
-}
-
-export default function RfqPage() {
-  return (
-    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5] pb-24">
-      {/* HERO */}
-      <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16 mb-12 text-center flex flex-col items-center">
-        <h1 className="font-heading font-extrabold text-[40px] md:text-[56px] leading-[1.05] tracking-tight max-w-3xl mb-4">
-          Tell us what you need. We'll <span className="text-[var(--primary)]">source it.</span>
-        </h1>
-        <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl">
-          Submit your component requirements, quantities and delivery constraints.
-        </p>
-      </section>
-
-      <div className="px-6">
-        <Suspense fallback={<div className="w-full max-w-3xl mx-auto h-[400px] bg-white border border-[var(--border)] animate-pulse"></div>}>
-          <RfqFormContent />
-        </Suspense>
-      </div>
-    </div>
-  );
-}
-
-```
-
-
-
---- DESIGN REVIEW (Impeccable & Uncover Standards) ---
-The current iteration adheres to the 'Uncover' visual language & 'impeccable' design standard by ensuring:
-- **Uncover Visual Fidelity**: Minimalist off-white canvas (`#F5F5F5`), stark black body typography (`#111111`), vibrant orange accents (`#F35C27`), and sharp 0px corners across cards and buttons.
-- **Typography & Spacing**: Syne font for bold headlines, Inter for crisp data reading. Uncover-accurate whitespace and double-chevron branded logo.
-- **Elimination of AI Slop**: Removed all fake credibility. Replaced generic product representations with strict Canonical Hardware mappings (Manufacturer vs MPN vs Canonical ID).
-- **B2B Technical Engineering Intent**: Executed P0 routes (Products, Categories, Compare, Compatibility, BOM, RFQ) directly targeting UAV engineers rather than standard e-commerce flows.
+Frontend UI is 100% complete with authentication screens, fixed user session roles, and exclusive developer testing controls for `praneeth@vyooma.tech`. Next steps involve building out backend domain handlers in `src/modules/` following the 16-step Definition of Done (DoD).

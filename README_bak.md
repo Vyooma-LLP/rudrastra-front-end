@@ -3,9 +3,9 @@
 
 > [!IMPORTANT]
 > **Architecture v1.0 (TRD), PRD v1.0, & Failure Control Spec v1.0 are FROZEN (FINAL GO).**
-> - **Product Requirements (`PRD.md`)**: [`PRD.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/PRD.md) defines canonical 52-section product specifications, 4 Core Planes (Product, Commerce, Control, Operations), 15 Product Invariants, and PRD $\rightarrow$ TRD Governance Rules.
-> - **Failure Control Spec (`failure_control_spec.md`)**: [`docs/operations/failure_control_spec.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/docs/operations/failure_control_spec.md) defines 14 System Invariants and 100-Item Control Matrix (`AUTH-001` to `HUM-006`) across 18 failure domains.
-> - **Technical Architecture (`ARCHITECTURE.md`)**: Defines system architecture, database schema, CQRS modules, and mechanical governance. Next authoritative step is TRD v1.1 reconciliation.
+> - **Product Requirements (`extras/historical/PRD.md`)**: [`extras/historical/PRD.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/extras/historical/PRD.md) defines canonical 52-section product specifications, 4 Core Planes (Product, Commerce, Control, Operations), 15 Product Invariants, and PRD $\rightarrow$ TRD Governance Rules.
+> - **Failure Control Spec (`failure_control_spec.md`)**: [`extras/audits/failure_control_spec.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/extras/audits/failure_control_spec.md) defines 14 System Invariants and 100-Item Control Matrix (`AUTH-001` to `HUM-006`) across 18 failure domains.
+> - **Technical Architecture (`extras/historical/ARCHITECTURE.md`)**: Defines system architecture, database schema, CQRS modules, and mechanical governance. Next authoritative step is TRD v1.1 reconciliation.
 
 ---
 

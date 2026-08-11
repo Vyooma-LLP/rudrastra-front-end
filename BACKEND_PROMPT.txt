@@ -1,0 +1,1199 @@
+You are the Principal Backend Architect, Distributed Systems Engineer,
+Security Architect, Database Architect, and AWS Infrastructure Architect
+taking ownership of the Rudrastra B2B Engineering Marketplace backend.
+
+This is NOT a coding task yet.
+
+Your first responsibility is to understand the entire existing system,
+reconcile the existing frontend contracts, discover contradictions,
+pressure-test the proposed architecture from the balcony view, and produce
+the five authoritative backend documents:
+
+1. BACKEND_PRD.md
+2. BACKEND_TRD.md
+3. BACKEND_PLAN.md
+4. BACKEND_INSTRUCTIONS.md
+5. ARCHITECTURE_DECISIONS.md
+
+ONLY AFTER THESE DOCUMENTS HAVE BEEN created, cross-referenced,
+pressure-tested, and approved should implementation begin.
+
+============================================================
+0. ABSOLUTE RULE
+============================================================
+
+DO NOT START CODING.
+
+DO NOT CREATE BACKEND FILES.
+
+DO NOT MODIFY FRONTEND CODE.
+
+DO NOT INVENT APIs.
+
+DO NOT casually modify frontend contracts.
+
+DO NOT assume previous "backend-ready" or "green" reports are correct.
+
+First perform complete repository archaeology.
+
+Your job is to discover the REAL system, not confirm what previous reports
+claimed.
+
+If the repository contradicts the documentation:
+
+    REAL CODE > CONTRACT DOCUMENTATION > PREVIOUS REPORTS
+
+But do not silently resolve contradictions.
+
+Record them explicitly in a contradiction register and determine the
+correct authoritative behavior before implementation.
+
+============================================================
+1. BALCONY VIEW — MANDATORY
+============================================================
+
+Before designing individual modules, understand the entire system as one
+distributed system.
+
+Do NOT optimize one module while creating system-level failure modes.
+
+Reason across:
+
+Browser
+↓
+Frontend
+↓
+Authentication
+↓
+API
+↓
+Authorization
+↓
+Organization tenancy
+↓
+Capability evaluator
+↓
+PostgreSQL
+↓
+Object storage
+↓
+Payment provider
+↓
+Shipping provider
+↓
+Queues
+↓
+Workers
+↓
+Events
+↓
+Control plane
+↓
+Audit
+↓
+Observability
+↓
+AWS infrastructure
+↓
+Deployment
+↓
+DNS
+↓
+Backups
+↓
+Disaster recovery
+
+For every major component ask:
+
+"What happens if this component is:
+
+- unavailable?
+- duplicated?
+- delayed?
+- stale?
+- compromised?
+- partially successful?
+- inconsistent?
+- restarted?
+- rolled back?
+- partitioned?
+- overloaded?
+- maliciously invoked?
+
+What state does the rest of the system believe exists?
+
+Who is authoritative?
+
+How is inconsistency detected?
+
+How is it repaired?
+
+Can the operation safely be retried?
+
+Can it execute twice?
+
+Can an old application instance execute it?
+
+Can one organization access another organization's data?
+
+Can a financial operation produce two valid outcomes?
+
+Can an attacker bypass the intended boundary?
+
+What happens after recovery?"
+
+Do not stop at the happy path.
+
+============================================================
+2. REPOSITORY FORENSICS — FIRST ACTION
+============================================================
+
+Before creating the documents, inspect the repository completely.
+
+Read and reconcile:
+
+BACKEND_HANDOFF.md
+ARCHITECTURE_FREEZE.md
+existing architecture documentation
+package.json
+database-related files
+frontend contracts
+command contracts
+query contracts
+capability contracts
+Money type
+CommandMetadata
+CommandErrorCode
+QueryContext
+CapabilityDecision
+all adapters
+auth contracts
+organization contracts
+seller contracts
+commerce contracts
+cart contracts
+order contracts
+payment contracts
+RFQ contracts
+procurement contracts
+BOM contracts
+compatibility contracts
+shipping contracts
+file contracts
+control-center contracts
+existing route structure
+existing database abstractions
+existing infrastructure configuration
+existing environment configuration
+
+Search for:
+
+- TODO
+- FIXME
+- mock
+- fake
+- temporary
+- localStorage
+- sessionStorage
+- setTimeout
+- setInterval
+- any
+- TODO backend
+- API placeholders
+- hardcoded IDs
+- hardcoded prices
+- role assumptions
+- capability assumptions
+- organization assumptions
+- direct database access
+- client-side authorization
+- financial calculations
+- file upload paths
+- authentication assumptions
+
+Create a FORENSIC FINDINGS section.
+
+============================================================
+3. CONTRACT RECONCILIATION
+============================================================
+
+Create a complete CONTRACT INVENTORY.
+
+For every existing frontend command/query:
+
+| Contract | Operation | Input | Output | Backend endpoint/service |
+| DB entities | Auth | Organization scope | Capability |
+| Idempotency | Transaction | Events | Failure modes |
+
+Do not invent incompatible APIs.
+
+Backend APIs must satisfy the existing contracts unless a documented
+contradiction proves the contract itself must change.
+
+If a contract is incomplete:
+
+DO NOT silently invent behavior.
+
+Record:
+
+- missing information
+- recommended behavior
+- reason
+- impact
+- decision required
+
+============================================================
+4. DOCUMENT 1 — BACKEND_PRD.md
+============================================================
+
+BACKEND_PRD.md defines WHAT the backend must provide.
+
+Include:
+
+1. Product vision
+2. Product scope
+3. Users
+4. Organizations
+5. Sellers
+6. Buyers
+7. Marketplace behavior
+8. Engineering workflows
+9. Commerce workflows
+10. Procurement workflows
+11. Seller workflows
+12. Control-plane workflows
+13. Authentication requirements
+14. Authorization requirements
+15. Capability requirements
+16. Entitlement requirements
+17. Financial requirements
+18. File-processing requirements
+19. Notifications
+20. Audit requirements
+21. Operational requirements
+22. Non-functional requirements
+23. Security requirements
+24. Availability requirements
+25. Performance expectations
+26. Data integrity requirements
+27. Compliance considerations
+28. Out-of-scope functionality
+29. MVP vs future scope
+30. Acceptance criteria
+
+Every requirement must be testable.
+
+Separate:
+
+MUST
+SHOULD
+MAY
+DEFERRED
+
+Do not allow product requirements to silently become architecture.
+
+============================================================
+5. DOCUMENT 2 — BACKEND_TRD.md
+============================================================
+
+BACKEND_TRD.md is the technical source of truth.
+
+Define the complete technical architecture.
+
+Use PostgreSQL as the transactional source of truth.
+
+Evaluate:
+
+AWS ECS/Fargate
+ALB
+RDS PostgreSQL
+S3
+CloudFront
+SQS
+EventBridge
+ElastiCache
+Cognito
+Secrets Manager
+CloudWatch
+WAF
+Route 53
+
+Do NOT use services simply because they exist.
+
+For every AWS service document:
+
+- purpose
+- why required
+- alternatives
+- cost/complexity
+- failure mode
+- recovery strategy
+- scaling characteristics
+
+Prefer a modular monolith initially.
+
+Do not introduce:
+
+EKS
+Kafka
+service mesh
+microservices
+Redis
+Lambda everywhere
+
+unless there is a demonstrated architectural reason.
+
+Define modules:
+
+identity
+organizations
+users
+roles
+permissions
+capabilities
+entitlements
+catalog
+manufacturers
+products
+inventory
+cart
+checkout
+orders
+payments
+RFQ
+procurement
+BOM
+compatibility
+shipments
+files
+notifications
+audit
+control-plane
+
+For every module define:
+
+entities
+commands
+queries
+repositories
+services
+authorization
+transactions
+events
+dependencies
+failure modes
+
+Prevent circular dependencies.
+
+============================================================
+6. DATABASE ARCHITECTURE
+============================================================
+
+Design:
+
+primary keys
+foreign keys
+unique constraints
+check constraints
+indexes
+timestamps
+soft deletion
+optimistic concurrency
+tenant isolation
+auditability
+idempotency
+
+Every security-sensitive invariant must be enforced server-side.
+
+Explicitly design organization isolation.
+
+Never trust:
+
+organizationId
+sellerId
+userId
+orderId
+cartId
+
+from the client.
+
+Ownership must be verified server-side.
+
+============================================================
+7. MONEY
+============================================================
+
+Money MUST NOT use floating-point numbers.
+
+Define canonical:
+
+Money {
+    amountMinor
+    currency
+}
+
+Backend owns:
+
+prices
+discounts
+taxes
+shipping
+totals
+seller splits
+commissions
+payments
+refunds
+
+Frontend totals are NEVER trusted.
+
+Checkout must recompute authoritative totals from database state.
+
+Design:
+
+price snapshots
+tax snapshots
+discount snapshots
+cart race conditions
+inventory race conditions
+payment retries
+refunds
+reconciliation
+
+============================================================
+8. IDEMPOTENCY
+============================================================
+
+All meaningful mutations must support idempotency.
+
+At minimum:
+
+checkout
+order creation
+payment initiation
+RFQ submission
+shipment creation
+inventory mutation
+seller fulfillment
+capability mutations
+emergency actions
+
+Define:
+
+idempotency key
+request hash
+command ID
+request ID
+response caching
+retention
+expiration
+conflict behavior
+
+Rules:
+
+same key + same payload
+→ return original result
+
+same key + different payload
+→ IDEMPOTENCY_CONFLICT
+
+Never rely on frontend button disabling.
+
+============================================================
+9. CONCURRENCY
+============================================================
+
+Explicitly design concurrency for:
+
+cart
+inventory
+checkout
+orders
+payments
+RFQs
+seller inventory
+capability configuration
+configuration publishing
+
+Use:
+
+transactions
+row locks
+optimistic concurrency
+unique constraints
+idempotency
+
+Document exactly which mechanism protects each invariant.
+
+============================================================
+10. AUTHENTICATION
+============================================================
+
+Evaluate Cognito versus alternatives.
+
+Consider:
+
+MFA
+token lifecycle
+session revocation
+refresh tokens
+organization membership
+seller membership
+backend verification
+credential compromise
+logout
+account disablement
+
+Authentication is backend-authoritative.
+
+============================================================
+11. AUTHORIZATION
+============================================================
+
+Implement server-side:
+
+authentication
+organization membership
+seller membership
+RBAC
+capability evaluation
+commercial entitlement
+organization overrides
+deny precedence
+
+Frontend guards are UX only.
+
+Preserve the frozen capability evaluator.
+
+HARD BLOCKS:
+
+1. Emergency Kill
+2. Platform Safe Mode
+3. Platform Availability
+4. Dependency Failure
+5. Organization Explicit DENY
+
+ACCESS REQUIREMENTS:
+
+6. Commercial Entitlement / explicit GRANT
+7. Rollout
+8. RBAC
+
+DENY ALWAYS overrides GRANT.
+
+============================================================
+12. CONTROL PLANE
+============================================================
+
+Preserve:
+
+environment isolation
+immutable configuration versions
+configuration lifecycle
+drafts
+optimistic locking
+command idempotency
+approval workflow
+emergency kills
+safe mode
+instance generation fencing
+max staleness
+activation barriers
+drift detection
+break-glass access
+audit chains
+propagation health
+
+Define:
+
+configuration schema
+publication
+rollback
+compatibility
+consumer synchronization
+stale consumers
+zombie consumers
+dead consumers
+deployment ordering
+split brain
+out-of-order events
+duplicate events
+missed events
+
+Initial propagation may use PostgreSQL-backed version detection.
+
+Abstract transport so it can later migrate to:
+
+Redis
+SQS
+EventBridge
+SNS
+
+without rewriting domain logic.
+
+============================================================
+13. FILE SECURITY
+============================================================
+
+Engineering files are untrusted input.
+
+Architecture:
+
+Browser
+→ presigned upload
+→ S3 quarantine
+→ malware scan
+→ validation
+→ promotion
+→ immutable file identity
+→ business command
+
+Handle:
+
+MIME spoofing
+extension spoofing
+ZIP bombs
+decompression bombs
+oversized files
+malicious PDFs
+malicious CAD
+path traversal
+duplicate files
+unauthorized access
+signed URL expiry
+SSRF
+
+Never send unvalidated files directly into business workflows.
+
+============================================================
+14. ASYNC PROCESSING
+============================================================
+
+Identify operations that must be asynchronous.
+
+At minimum evaluate:
+
+BOM parsing
+compatibility analysis
+file scanning
+report generation
+notifications
+shipment workflows
+large engineering computation
+
+Pattern:
+
+command
+→ transaction
+→ event/job
+→ queue
+→ worker
+→ result
+→ status update
+
+Workers must be idempotent.
+
+Define retries and DLQs.
+
+============================================================
+15. PAYMENTS
+============================================================
+
+Treat payments as a distributed system.
+
+Never assume:
+
+payment API success == order success
+
+Define explicit state machines.
+
+Handle:
+
+duplicate payment requests
+duplicate webhooks
+delayed webhooks
+webhook before API response
+payment success + DB failure
+DB success + client timeout
+refunds
+partial refunds
+reconciliation
+
+Define reconciliation jobs.
+
+============================================================
+16. OBSERVABILITY
+============================================================
+
+Every meaningful request must be traceable.
+
+Propagate:
+
+requestId
+commandId
+idempotencyKey
+userId
+organizationId
+sellerId
+instanceId
+configurationVersion
+
+Never log:
+
+passwords
+tokens
+payment secrets
+private files
+sensitive personal information
+
+Define:
+
+structured logs
+metrics
+tracing
+alerts
+audit logs
+correlation
+
+============================================================
+17. SECURITY THREAT MODEL
+============================================================
+
+Explicitly test:
+
+IDOR
+broken access control
+privilege escalation
+organization escape
+seller escape
+replay
+idempotency abuse
+file upload attacks
+SSRF
+SQL injection
+XSS
+CSRF
+token theft
+webhook forgery
+rate-limit bypass
+enumeration
+payload abuse
+resource exhaustion
+
+Frontend security is never considered sufficient.
+
+============================================================
+18. AWS DEPLOYMENT
+============================================================
+
+Define:
+
+development
+staging
+production
+
+Environment isolation is mandatory.
+
+Include:
+
+Docker
+CI/CD
+migrations
+rollback
+health checks
+readiness
+liveness
+Secrets Manager
+logging
+monitoring
+WAF
+TLS
+network boundaries
+
+Domain is registered with GoDaddy.
+
+Do NOT assume GoDaddy hosts the application.
+
+Explicitly document:
+
+GoDaddy DNS
+→ AWS infrastructure
+→ frontend/backend
+
+Evaluate:
+
+keep DNS at GoDaddy
+vs
+Route 53 authoritative DNS
+
+Do not migrate DNS without a concrete benefit.
+
+============================================================
+19. BACKUPS / DR
+============================================================
+
+Define:
+
+RPO
+RTO
+RDS backups
+PITR
+snapshots
+S3 versioning
+S3 lifecycle
+restore procedures
+restore testing
+regional failure assumptions
+
+A backup is NOT considered valid until restoration has been tested.
+
+============================================================
+20. MIGRATIONS
+============================================================
+
+Every schema migration must consider:
+
+backward compatibility
+rolling deployments
+old instances
+new instances
+rollback
+backfills
+destructive changes
+
+Use expand/contract migrations where required.
+
+============================================================
+21. TESTING
+============================================================
+
+Define:
+
+unit
+integration
+database
+authorization
+contract
+API
+concurrency
+idempotency
+security
+file upload
+payment/webhook
+failure injection
+E2E
+
+Mandatory adversarial tests:
+
+two simultaneous checkouts
+duplicate checkout
+same idempotency key + different payload
+duplicate webhook
+delayed webhook
+DB failure during transaction
+DB failure after transaction
+worker crash
+duplicate queue delivery
+stale capability
+zombie instance
+organization violation
+seller violation
+expired session
+revoked capability
+emergency kill during operation
+rollback during deployment
+malware upload
+oversized file
+malicious MIME
+stale browser
+
+============================================================
+22. FAILURE MATRIX
+============================================================
+
+BACKEND_TRD.md and BACKEND_PLAN.md must contain a failure matrix with
+AT LEAST 30 scenarios.
+
+Required columns:
+
+| Failure |
+| Detection |
+| Immediate Behavior |
+| Recovery |
+| Data Integrity |
+| User Experience |
+
+============================================================
+23. DOCUMENT 3 — BACKEND_PLAN.md
+============================================================
+
+BACKEND_PLAN.md answers:
+
+HOW and IN WHAT ORDER will we build the backend?
+
+Do not blindly use a predefined sequence.
+
+Derive dependency-safe implementation order from the actual repository.
+
+At minimum evaluate:
+
+Phase 0
+Repository forensic analysis
+
+Phase 1
+Infrastructure foundation
+
+Phase 2
+Database/domain foundation
+
+Phase 3
+Identity/organization/authorization
+
+Phase 4
+Capability control plane
+
+Phase 5
+Catalog/manufacturers/products
+
+Phase 6
+Cart/inventory
+
+Phase 7
+Checkout/orders/payments
+
+Phase 8
+RFQ/procurement
+
+Phase 9
+Engineering/BOM/compatibility
+
+Phase 10
+Files/workers
+
+Phase 11
+Seller operations/shipping
+
+Phase 12
+Observability/security
+
+Phase 13
+Production deployment
+
+Change the sequence if dependency analysis proves a better one.
+
+For every phase define:
+
+objective
+dependencies
+deliverables
+schema work
+API work
+security work
+tests
+failure scenarios
+exit criteria
+rollback strategy
+
+No phase is complete without passing its exit criteria.
+
+============================================================
+24. DOCUMENT 4 — BACKEND_INSTRUCTIONS.md
+============================================================
+
+This document is the execution constitution.
+
+It must contain NON-NEGOTIABLE rules.
+
+Examples:
+
+1. Never trust frontend data.
+2. Never use floating point money.
+3. Never bypass organization authorization.
+4. Never bypass capability evaluation.
+5. Never create backend behavior that contradicts contracts.
+6. Never silently change contracts.
+7. Never perform security-sensitive validation only on the frontend.
+8. Never create non-idempotent meaningful mutations.
+9. Never assume retries happen only once.
+10. Never assume webhooks happen once.
+11. Never assume queues deliver once.
+12. Never assume instances are always current.
+13. Never store secrets in source code.
+14. Never log secrets.
+15. Never bypass database constraints.
+16. Never merge code without tests.
+17. Never perform destructive migrations without rollback strategy.
+18. Never call architecture "production-ready" without adversarial testing.
+19. Never add AWS services without architectural justification.
+20. Never introduce microservices without demonstrated need.
+
+Also define:
+
+coding standards
+branching
+commit standards
+migration rules
+testing rules
+security rules
+review rules
+documentation rules
+failure handling
+logging rules
+observability requirements
+deployment rules
+rollback rules
+
+============================================================
+25. ARCHITECTURE ARTIFACTS
+============================================================
+
+At the end of the documentation set produce:
+
+A. System Architecture Diagram
+B. Domain Dependency Graph
+C. AWS Infrastructure Diagram
+D. Database ERD
+E. Command/Query Matrix
+F. Capability Matrix
+G. Failure Mode Matrix
+H. Security Threat Model
+I. Deployment Strategy
+J. Backup/DR Strategy
+K. Observability Strategy
+L. Cost/Complexity Assessment
+M. Known Risks
+N. Deferred Decisions
+O. Explicit Assumptions
+
+Use Mermaid where appropriate.
+
+============================================================
+26. COST / COMPLEXITY
+============================================================
+
+Estimate infrastructure complexity and major AWS cost drivers.
+
+Do not optimize prematurely.
+
+Explicitly identify:
+
+- mandatory services
+- optional services
+- future services
+- services intentionally rejected
+
+Prefer the simplest architecture that satisfies the invariants.
+
+============================================================
+27. CONTRADICTION REGISTER
+============================================================
+
+Create a contradiction register.
+
+| Source | Contradiction | Risk | Decision | Reason |
+
+Examples:
+
+frontend contract vs handoff document
+handoff vs actual implementation
+architecture freeze vs current code
+PRD vs TRD
+TRD vs AWS design
+
+No contradiction may be silently ignored.
+
+============================================================
+28. FINAL BALCONY REVIEW
+============================================================
+
+After the documents are produced, perform a final adversarial review.
+
+Attempt to BREAK the architecture.
+
+Look specifically for:
+
+hidden SPOFs
+trust-boundary violations
+frontend-authoritative state
+organization escape
+seller escape
+financial inconsistency
+duplicate execution
+replay
+stale configuration
+deployment incompatibility
+event loss
+worker duplication
+partial transactions
+security bypasses
+unbounded costs
+unnecessary AWS services
+backup failure
+restore failure
+DNS failure
+certificate failure
+queue failure
+database failure
+payment provider failure
+shipping provider failure
+S3 failure
+authentication provider failure
+compromised credentials
+
+For every discovered weakness:
+
+1. State the failure.
+2. Explain the exploit/failure path.
+3. Explain the impact.
+4. Propose mitigation.
+5. Explain residual risk.
+6. Decide whether implementation must block until fixed.
+
+============================================================
+29. FINAL OUTPUT
+============================================================
+
+Create:
+
+BACKEND_PRD.md
+BACKEND_TRD.md
+BACKEND_PLAN.md
+BACKEND_INSTRUCTIONS.md
+ARCHITECTURE_DECISIONS.md
+
+Also create if useful:
+
+CONTRACT_INVENTORY.md
+CONTRADICTION_REGISTER.md
+BACKEND_HANDOFF_GAPS.md
+
+Do NOT duplicate entire sections unnecessarily.
+
+Cross-reference documents instead.
+
+At the very end provide:
+
+BALCONY VERDICT:
+
+GREEN
+YELLOW
+RED
+
+with:
+
+- blocking issues
+- non-blocking issues
+- unresolved decisions
+- assumptions
+- recommended next action
+
+Do NOT declare GREEN simply because the documents are complete.
+
+GREEN means the architecture survived adversarial review and has no known
+blocking architectural defects.
+
+YELLOW means implementation can proceed only with explicitly identified
+risks.
+
+RED means architecture must be redesigned before implementation.
+
+ONLY AFTER THE DOCUMENT SET HAS BEEN REVIEWED AND APPROVED MAY CODING BEGIN.

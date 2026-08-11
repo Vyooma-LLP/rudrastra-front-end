@@ -90,7 +90,7 @@ export default async function SubcategoryPage({ params }: { params: Promise<{ ca
               <div className="w-full py-2 bg-[var(--primary)] text-black border border-orange-500">Expected thrust</div>
             </div>
 
-            <Link href="/engineering/calculators" className="w-full inline-flex justify-center items-center gap-2 bg-white text-black font-sans font-bold px-4 py-3 hover:bg-[var(--primary)] hover:text-white transition-colors duration-fast">
+            <Link href="/engineering/calculator" className="w-full inline-flex justify-center items-center gap-2 bg-white text-black font-sans font-bold px-4 py-3 hover:bg-[var(--primary)] hover:text-white transition-colors duration-fast">
               Open Propulsion Calculator
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />

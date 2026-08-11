@@ -11,7 +11,7 @@ This file (`.agents/AGENTS.md`) defines the mandatory architectural commandments
 ## 1. Project Identity & Scope
 
 * **System Identity**: We are building India's canonical **Technical B2B Marketplace + Product Information System (PIM) + Engineering Discovery Engine** for Drone Hardware (**Rudrastra**).
-* **Product Requirements**: Sourced from [`PRD.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/PRD.md) (FROZEN v1.0).
+* **Product Requirements**: Sourced from [`extras/historical/PRD.md`](file:///Users/praneeth/Downloads/antigravity/rudhastra%20ecomm/extras/historical/PRD.md) (FROZEN v1.0).
 * **Core Moat**: A structured technical catalog and engineering compatibility graph—not just an attractive storefront. Multi-vendor commerce is the monetization layer built on top of authoritative engineering data.
 * **Dual User Experience**:
   * **Consumer-Facing**: Uncover-inspired, minimal, high-performance, visually premium.
@@ -226,3 +226,13 @@ For every prompt and task execution, the agent MUST:
    * **`dependency-management` (Zero-Bloat):** Leverage native platform APIs and existing tools first. Do not introduce new npm packages unless explicitly approved.
 2. Track any **Contextual Skills** (from the skill deck, e.g. `taste`, `ui-ux-pro`, `impeccable`, `seo`, `postgres`, `performance`, `webapp-testing`) that were utilized to complete the prompt's specific requirement.
 3. Conclude every response with a structured **Skill Deployment & Verification Report** confirming compliance.
+
+---
+
+## 9. Zero-Tolerance Anti-Rogue Actions (The "Listen & Obey" Directive)
+
+Agents are strictly forbidden from committing the following rogue actions due to past systemic failures:
+1. **No Unauthorized Code "Fixes"**: If a user asks *only* for an explanation, root cause, or debugging analysis (e.g., "why are you failing?"), the agent MUST NOT push code changes, format fixes, or "extras". Do exactly what is asked and stop.
+2. **No Bypassing UI Governance**: All pixel-perfect styling and layout tasks MUST be routed through the established `taste` -> `ui-ux-pro` -> `impeccable` hierarchy. Agents must never cowboy-code responsive tailwind hacks based on a visual hallucination of a cropped screenshot.
+3. **Strict Context Adherence**: The agent cannot ignore Section 8 (Skill Stack Governance) during heated or rapid-fire conversation. Every turn must execute the Mandatory Prompt-Level Verification Pipeline without fail, regardless of the prompt's tone.
+4. **No Responsive Hallucinations**: When provided with screenshots that show cropped or wrapped text, agents must recognize viewport constraints instead of incorrectly assuming the user wants to hardcode extreme responsive breakages (e.g., arbitrarily injecting `vw` units to force line breaks).
