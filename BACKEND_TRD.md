@@ -101,21 +101,25 @@ Immutable configuration versions. Active configuration propagated to instances.
 Structured JSON logging. `requestId`, `commandId`, `idempotencyKey` propagated across execution context.
 
 ## Z. AWS Infrastructure
-- **ECS/Fargate**: Mandatory. Serverless compute for modular monolith.
+- **ECS/Fargate**: Mandatory. Serverless compute for NestJS backend API.
 - **RDS PostgreSQL**: Mandatory. Transactional authority.
-- **S3**: Mandatory. File storage.
-- **SQS**: Mandatory. Async processing.
-- **CloudFront / ALB**: Mandatory. Edge routing.
+- **S3**: Mandatory. File storage (CAD models, datasheets, firmware).
+- **SQS**: Mandatory. Asynchronous queues and worker processing.
+- **ALB (Application Load Balancer)**: Entry point for backend API traffic.
 - *EKS, Kafka, Microservices*: **REJECTED** (Unjustified complexity).
 
 ## AA. Deployment
-CI/CD via GitHub Actions. Immutable Docker images. Blue/Green deployments.
+- **Frontend**: Next.js deployed on **Vercel** for automatic edge rendering, static optimization, and global delivery.
+- **Backend API**: Deployed on **AWS ECS Fargate** with Blue/Green deployments using GitHub Actions.
 
-## AB. DNS
-GoDaddy (DNS) -> AWS ALB. (Migration to Route 53 is OPTIONAL).
+## AB. DNS & Routing
+- **DNS Provider**: **GoDaddy DNS** (Migration to AWS Route 53 is optional but not required initially).
+- **Routing Rules**:
+  - `rudrastra.com` and `www.rudrastra.com` $\rightarrow$ Pointed to **Vercel** CNAME for the frontend app.
+  - `api.rudrastra.com` $\rightarrow$ Pointed to **AWS ALB / CloudFront** for backend API commands and query endpoints.
 
 ## AC. Secrets
-AWS Secrets Manager. Never injected directly into frontend build.
+- **AWS Secrets Manager**: Stores backend API keys, DB passwords, and provider credentials. Vercel environment variables store frontend API client keys. Never expose backend DB credentials to the frontend build.
 
 ## AD. Backup & AE. Disaster Recovery
 RDS Automated Backups + PITR. S3 cross-region replication for critical engineering assets. RPO < 5m.
