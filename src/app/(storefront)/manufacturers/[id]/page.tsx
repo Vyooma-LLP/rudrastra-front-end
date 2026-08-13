@@ -5,10 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
-import { MockGetManufacturerProductsAdapter } from "@/modules/catalog/frontend-contracts/MockManufacturerAdapter";
+import { SupabaseGetManufacturerProductsAdapter } from "@/modules/catalog/frontend-contracts/SupabaseManufacturerAdapter";
 import { ManufacturerProduct } from "@/modules/catalog/frontend-contracts/ManufacturerContract";
 
-const getProductsQuery = new MockGetManufacturerProductsAdapter();
+// In MVP, we might fetch from real DB instead of Mock
+const getProductsQuery = new SupabaseGetManufacturerProductsAdapter();
 
 export default function ManufacturerDetailPage() {
   const params = useParams();

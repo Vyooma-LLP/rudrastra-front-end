@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
-import { MockListOrdersAdapter } from '@/modules/orders/frontend-contracts/MockOrderAdapter';
+import { SupabaseListOrdersAdapter } from '@/modules/orders/frontend-contracts/SupabaseOrderAdapter';
 import { Order } from '@/modules/orders/frontend-contracts/OrderContract';
 import { formatMoney } from '@/utils/money';
 
-const listOrdersQuery = new MockListOrdersAdapter();
+const listOrdersQuery = new SupabaseListOrdersAdapter();
 
 export default function AccountOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);

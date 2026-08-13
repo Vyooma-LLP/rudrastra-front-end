@@ -1,10 +1,57 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { UserPlus, Mail, Lock, Building2, ShieldCheck, ArrowRight, Store } from 'lucide-react';
+import { UserPlus, Mail, Lock, Building2, ShieldCheck, ArrowRight, Store, AlertCircle } from 'lucide-react';
 
 export default function SignupPage() {
+  const router = useRouter();
+  
+  const [role, setRole] = useState<"CUSTOMER" | "SELLER">("CUSTOMER");
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [gstin, setGstin] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          role,
+          companyName,
+          gstin: gstin || undefined,
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Signup failed");
+      }
+
+      router.push("/login?registered=true");
+    } catch (err: any) {
+      setError(err.message);
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F5F5] text-[#111111] font-sans flex flex-col">
       <Navbar />
@@ -23,13 +70,17 @@ export default function SignupPage() {
 
           {/* Account Type Selection */}
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="border-2 border-[#111111] bg-[#F5F5F5] p-3 rounded cursor-pointer space-y-1">
+            <div 
+              onClick={() => setRole("CUSTOMER")}
+              className={`border-2 p-3 rounded cursor-pointer space-y-1 ${role === "CUSTOMER" ? "border-[#111111] bg-[#F5F5F5]" : "border-[#E5E5E5] bg-white hover:border-[#111111]"}`}>
               <div className="flex items-center gap-2 font-bold text-[#111111]">
                 <Building2 className="w-4 h-4 text-[#F35C27]" /> Customer / Buyer
               </div>
               <div className="text-[10px] text-[#777777]">Drone manufacturers, defense labs, engineering teams</div>
             </div>
-            <div className="border border-[#E5E5E5] bg-white p-3 rounded cursor-pointer hover:border-[#138808] space-y-1">
+            <div 
+              onClick={() => setRole("SELLER")}
+              className={`border-2 p-3 rounded cursor-pointer space-y-1 ${role === "SELLER" ? "border-[#138808] bg-[#F5F5F5]" : "border-[#E5E5E5] bg-white hover:border-[#138808]"}`}>
               <div className="flex items-center gap-2 font-bold text-[#111111]">
                 <Store className="w-4 h-4 text-[#138808]" /> Seller Merchant
               </div>
@@ -38,7 +89,13 @@ export default function SignupPage() {
           </div>
 
           {/* Registration Form */}
-          <form className="space-y-4 text-xs" action="/account">
+          <form className="space-y-4 text-xs" onSubmit={handleSignup}>
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 flex items-start gap-2 rounded">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[#777777] font-semibold mb-1 block">Full Name</label>
@@ -46,6 +103,9 @@ export default function SignupPage() {
                   type="text" 
                   placeholder="Praneeth Kumar" 
                   required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={isSubmitting}
                   className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded p-2.5 text-[#111111] font-medium focus:outline-none focus:border-[#111111]"
                 />
               </div>
@@ -55,6 +115,9 @@ export default function SignupPage() {
                   type="text" 
                   placeholder="Vyooma Technologies Pvt Ltd" 
                   required
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  disabled={isSubmitting}
                   className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded p-2.5 text-[#111111] font-medium focus:outline-none focus:border-[#111111]"
                 />
               </div>
@@ -69,6 +132,9 @@ export default function SignupPage() {
                     type="email" 
                     placeholder="engineer@company.com" 
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSubmitting}
                     className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded p-2.5 pl-9 text-[#111111] font-medium focus:outline-none focus:border-[#111111]"
                   />
                 </div>
@@ -78,6 +144,9 @@ export default function SignupPage() {
                 <input 
                   type="text" 
                   placeholder="36AAACV9981K1Z9" 
+                  value={gstin}
+                  onChange={(e) => setGstin(e.target.value)}
+                  disabled={isSubmitting}
                   className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded p-2.5 text-[#111111] font-mono focus:outline-none focus:border-[#111111]"
                 />
               </div>
@@ -91,6 +160,9 @@ export default function SignupPage() {
                   type="password" 
                   placeholder="Minimum 8 characters with numbers & symbols" 
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
                   className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded p-2.5 pl-9 text-[#111111] font-mono focus:outline-none focus:border-[#111111]"
                 />
               </div>
@@ -105,10 +177,20 @@ export default function SignupPage() {
 
             <button 
               type="submit" 
-              className="w-full py-3 bg-[#111111] hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors uppercase tracking-wider mt-2"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-[#111111] hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors uppercase tracking-wider mt-2 disabled:opacity-50"
             >
-              <span>Create Account & Continue</span>
-              <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <>
+                  <span>Create Account & Continue</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 

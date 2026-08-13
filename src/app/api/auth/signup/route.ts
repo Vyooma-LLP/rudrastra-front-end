@@ -1,11 +1,11 @@
 import { createClient } from "../../../../../utils/supabase/server";
 import { db } from "@/db/index";
-import { users } from "@/db/schema";
+import { users, sellers } from "@/db/schema";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
     try {
-        const { email, password, role } = await request.json();
+        const { email, password, role, fullName, companyName, gstin } = await request.json();
         const supabase = await createClient();
 
         // 1. Create User in Supabase Auth
@@ -19,14 +19,23 @@ export async function POST(request: Request) {
         }
 
         if (authData.user) {
-            // 2. Insert corresponding record into PostgreSQL via Drizzle
             const [newUser] = await db
                 .insert(users)
                 .values({
                     email: authData.user.email!,
+                    fullName,
+                    companyName,
+                    gstin,
                     role: role || "BUYER",
                 })
                 .returning();
+
+            if (newUser.role === "SELLER") {
+                await db.insert(sellers).values({
+                    userId: newUser.id,
+                    storeName: companyName || fullName,
+                });
+            }
 
             return NextResponse.json({ user: newUser }, { status: 201 });
         }

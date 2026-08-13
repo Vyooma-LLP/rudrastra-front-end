@@ -3,18 +3,18 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { SessionContext, SessionRole } from '../../modules/auth/frontend-contracts/AuthContract';
 import { 
-  MockGetSessionContextAdapter,
-  MockAuthenticateUserAdapter,
-  MockSwitchRoleAdapter,
-  MockSignOutAdapter
-} from '../../modules/auth/frontend-contracts/MockAuthAdapter';
+  SupabaseGetSessionContextAdapter,
+  SupabaseAuthAdapter,
+  SupabaseSwitchRoleAdapter,
+  SupabaseSignOutAdapter
+} from '../../modules/auth/frontend-contracts/SupabaseAuthAdapter';
 import { CommandContext } from '../../contracts/base';
 
 // Instantiate the adapters (In a real app, you might use dependency injection here)
-const getSessionQuery = new MockGetSessionContextAdapter();
-const authCommand = new MockAuthenticateUserAdapter();
-const switchRoleCommand = new MockSwitchRoleAdapter();
-const signOutCommand = new MockSignOutAdapter();
+const getSessionQuery = new SupabaseGetSessionContextAdapter();
+const authCommand = new SupabaseAuthAdapter();
+const switchRoleCommand = new SupabaseSwitchRoleAdapter();
+const signOutCommand = new SupabaseSignOutAdapter();
 
 interface AuthContextValue {
   session: SessionContext | null;

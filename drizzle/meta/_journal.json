@@ -8,6 +8,41 @@
       "when": 1786541519539,
       "tag": "0000_old_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786551362261,
+      "tag": "0001_curved_yellow_claw",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786552351844,
+      "tag": "0002_powerful_supernaut",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786553776053,
+      "tag": "0003_wakeful_blur",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786612441612,
+      "tag": "0004_happy_stephen_strange",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786617430131,
+      "tag": "0005_overjoyed_lila_cheney",
+      "breakpoints": true
     }
   ]
 }

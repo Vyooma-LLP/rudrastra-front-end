@@ -12,7 +12,8 @@ export default function LoginPage() {
   const router = useRouter();
   const { authenticate } = useAuth();
   
-  const [email, setEmail] = useState("praneeth@vyooma.tech");
+  const [email, setEmail] = useState("rudrastra15@gmail.com");
+  const [password, setPassword] = useState("Rudrastra@1947");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,7 +87,8 @@ export default function LoginPage() {
                   placeholder="••••••••••••" 
                   required
                   disabled={isSubmitting}
-                  defaultValue="password123"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded p-2.5 pl-9 text-[#111111] font-mono focus:outline-none focus:border-[#111111] disabled:opacity-50"
                 />
               </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
@@ -7,6 +7,14 @@ import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/products').then(res => res.json()).then(data => {
+      if (data.products) setProducts(data.products);
+    }).catch(console.error);
+  }, []);
+
   return (
     <CapabilityGuard featureKey="catalog.products">
       <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
@@ -139,68 +147,7 @@ export default function ProductsPage() {
 
           {/* Product Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {[
-              {
-                mfg: "T-Motor",
-                mpn: "MN4014",
-                id: "RUD-MOT-MN4014",
-                desc: "400KV Brushless Motor",
-                specs: [{ label: "Voltage", val: "6S-12S" }, { label: "KV", val: "400KV" }, { label: "Max thrust", val: "8.2kg" }],
-                price: "₹12,450",
-                sellers: 3,
-                img: "/images/products/rudrastra_motor_1785921295587.png"
-              },
-              {
-                mfg: "Holybro",
-                mpn: "Pixhawk 6X",
-                id: "RUD-FC-PX6X",
-                desc: "Pro Autopilot Controller",
-                specs: [{ label: "MCU", val: "STM32H753" }, { label: "IMU", val: "Triple" }],
-                price: "₹18,200",
-                sellers: 2,
-                img: "/images/products/rudrastra_fc_1785921305227.png"
-              },
-              {
-                mfg: "Hobbywing",
-                mpn: "XRotor 40A",
-                id: "RUD-ESC-XR40",
-                desc: "4-in-1 BLHeli_32 ESC",
-                specs: [{ label: "Cont.", val: "40A" }, { label: "Input", val: "3-6S LiPo" }],
-                price: "₹6,800",
-                sellers: 4,
-                img: "/images/products/rudrastra_esc_1785921326270.png"
-              },
-              {
-                mfg: "T-Motor",
-                mpn: "MN3510",
-                id: "RUD-MOT-MN3510",
-                desc: "360KV Navigator Series",
-                specs: [{ label: "Voltage", val: "6S-8S" }, { label: "KV", val: "360KV" }, { label: "Max thrust", val: "4.5kg" }],
-                price: "₹8,900",
-                sellers: 2,
-                img: "/images/products/rudrastra_motor_1785921295587.png"
-              },
-              {
-                mfg: "Holybro",
-                mpn: "M10 GPS",
-                id: "RUD-NAV-M10",
-                desc: "M10 GNSS Module",
-                specs: [{ label: "Protocol", val: "UART" }, { label: "Constellation", val: "Multi" }],
-                price: "₹3,400",
-                sellers: 5,
-                img: "/images/products/rudrastra_gps_1785921355597.png"
-              },
-              {
-                mfg: "Tattu",
-                mpn: "6S 5000mAh",
-                id: "RUD-PWR-6S5K",
-                desc: "6S 5000mAh 60C LiPo",
-                specs: [{ label: "Voltage", val: "22.2V" }, { label: "Capacity", val: "5000mAh" }],
-                price: "₹9,200",
-                sellers: 1,
-                img: "/images/products/rudrastra_battery_1785921378157.png"
-              }
-            ].map((prod, i) => (
+            {products.map((prod: any, i: number) => (
               <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative h-full">
                 
                 {/* COMPARE CHECKBOX HOVER */}
@@ -212,8 +159,8 @@ export default function ProductsPage() {
                 {/* IMAGE */}
                 <div className="w-full h-[240px] bg-white flex items-center justify-center p-6 overflow-hidden relative border-b border-[var(--border)]">
                   <Image 
-                    src={prod.img} 
-                    alt={`${prod.mfg} ${prod.mpn}`} 
+                    src={prod.imageUrl || "/images/products/rudrastra_motor_1785921295587.png"} 
+                    alt={`${prod.title} ${prod.mpn || ''}`} 
                     width={200} 
                     height={200} 
                     className="object-contain transform group-hover:scale-[1.03] transition-transform duration-slow ease-uncover"
@@ -222,32 +169,22 @@ export default function ProductsPage() {
 
                 {/* METADATA */}
                 <div className="p-5 flex flex-col flex-1 transform group-hover:-translate-y-1 transition-transform duration-normal ease-uncover z-10 bg-white">
-                  <span className="font-sans text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-1 px-2 py-0.5 bg-[#F5F5F5] self-start">{prod.mfg}</span>
+                  <span className="font-sans text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-1 px-2 py-0.5 bg-[#F5F5F5] self-start">{prod.category}</span>
                   
                   <div className="flex justify-between items-start mt-2 mb-1">
-                    <h3 className="font-heading font-bold text-[18px] text-[var(--foreground)]">{prod.mpn}</h3>
+                    <h3 className="font-heading font-bold text-[18px] text-[var(--foreground)]">{prod.mpn || prod.title}</h3>
                     <svg className="w-5 h-5 text-[var(--primary)] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </div>
                   
-                  <p className="font-sans text-[13px] text-[var(--muted-foreground)] mb-4">{prod.desc}</p>
-                  
-                  {/* Specs Grid */}
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 mb-5">
-                    {prod.specs.map((spec, idx) => (
-                      <div key={idx} className="flex flex-col">
-                        <span className="font-sans text-[11px] text-[var(--muted-foreground)] uppercase">{spec.label}</span>
-                        <span className="font-sans text-[13px] font-medium">{spec.val}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="font-sans text-[13px] text-[var(--muted-foreground)] mb-4">{prod.description}</p>
                   
                   {/* Price & Commercials */}
                   <div className="mt-auto pt-4 border-t border-[var(--border)] flex justify-between items-end">
                     <div>
-                      <div className="font-heading font-bold text-[18px] leading-none mb-1">{prod.price}</div>
-                      <div className="font-sans text-[11px] text-[var(--muted-foreground)]">{prod.sellers} verified sellers</div>
+                      <div className="font-heading font-bold text-[18px] leading-none mb-1">{(prod.price/100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</div>
+                      <div className="font-sans text-[11px] text-[var(--muted-foreground)]">3 verified sellers</div>
                     </div>
                     <div className="flex items-center gap-1.5 font-sans text-[11px] font-semibold text-green-600">
                       <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>

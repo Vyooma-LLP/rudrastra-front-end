@@ -9,19 +9,19 @@ import {
   SetProjectContextInput
 } from '../../modules/commerce/frontend-contracts/CartContract';
 import { 
-  MockGetCartAdapter, 
-  MockAddToCartAdapter,
-  MockRemoveFromCartAdapter,
-  MockUpdateCartItemAdapter,
-  MockSetProjectContextAdapter
-} from '../../modules/commerce/frontend-contracts/MockCartAdapter';
+  SupabaseGetCartAdapter,
+  SupabaseAddToCartAdapter,
+  SupabaseRemoveFromCartAdapter,
+  SupabaseUpdateCartItemAdapter,
+  SupabaseSetProjectContextAdapter
+} from '../../modules/commerce/frontend-contracts/SupabaseCartAdapter';
 import { CommandContext } from '../../contracts/base';
 
-const getCartQuery = new MockGetCartAdapter();
-const addToCartCommand = new MockAddToCartAdapter();
-const removeFromCartCommand = new MockRemoveFromCartAdapter();
-const updateCartItemCommand = new MockUpdateCartItemAdapter();
-const setProjectContextCommand = new MockSetProjectContextAdapter();
+const getCartQuery = new SupabaseGetCartAdapter();
+const addToCartCommand = new SupabaseAddToCartAdapter();
+const removeFromCartCommand = new SupabaseRemoveFromCartAdapter();
+const updateCartItemCommand = new SupabaseUpdateCartItemAdapter();
+const setProjectContextCommand = new SupabaseSetProjectContextAdapter();
 
 interface CartContextValue {
   cartState: CartState | null;

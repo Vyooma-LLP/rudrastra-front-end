@@ -32,7 +32,7 @@ async function seedHomepage() {
             title: "MN4014 Brushless Motor",
             mpn: "MN4014-400KV",
             description: "400 KV | 6S-12S | 8.2kg thrust",
-            price: "8450.00",
+            price: 8450.00,
             stockQty: 100,
         },
         {
@@ -40,7 +40,7 @@ async function seedHomepage() {
             title: "H7 Pro Autopilot",
             mpn: "DM-FC-H7-PRO",
             description: "STM32H7 | Triple IMU | CAN",
-            price: "28500.00",
+            price: 28500.00,
             stockQty: 45,
         },
         {
@@ -48,7 +48,7 @@ async function seedHomepage() {
             title: "XRotor 40A 4-in-1 ESC",
             mpn: "XR-40A-G2",
             description: "40A Cont. | 3-6S LiPo | DSHOT600",
-            price: "5100.00",
+            price: 5100.00,
             stockQty: 80,
         },
     ]);

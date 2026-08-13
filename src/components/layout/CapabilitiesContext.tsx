@@ -2,11 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { CapabilitiesMap } from '../../modules/capabilities/frontend-contracts/CapabilitiesContract';
-import { MockGetCapabilitiesAdapter, MockToggleCapabilityAdapter } from '../../modules/capabilities/frontend-contracts/MockCapabilitiesAdapter';
+import { SupabaseGetCapabilitiesAdapter, SupabaseToggleCapabilityAdapter } from '../../modules/capabilities/frontend-contracts/SupabaseCapabilitiesAdapter';
 import { CommandContext } from '../../contracts/base';
 
-const getCapabilitiesQuery = new MockGetCapabilitiesAdapter();
-const toggleCapabilityCommand = new MockToggleCapabilityAdapter();
+const getCapabilitiesQuery = new SupabaseGetCapabilitiesAdapter();
+const toggleCapabilityCommand = new SupabaseToggleCapabilityAdapter();
 
 interface CapabilitiesContextValue {
   capabilitiesState: CapabilitiesMap;
@@ -33,7 +33,6 @@ export function CapabilitiesProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshCapabilities();
   }, []);
 

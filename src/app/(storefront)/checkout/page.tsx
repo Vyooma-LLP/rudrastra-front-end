@@ -7,11 +7,13 @@ import { CreditCard, Building2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 import { useCartContext } from '@/components/commerce/CartContext';
 import { useCommand } from '@/hooks/useCommand';
-import { MockPlaceOrderAdapter } from '@/modules/commerce/frontend-contracts/MockCheckoutAdapter';
+import { SupabaseGetCartAdapter } from '@/modules/commerce/frontend-contracts/SupabaseCartAdapter';
+import { SupabasePlaceOrderAdapter } from '@/modules/commerce/frontend-contracts/SupabaseCheckoutAdapter';
 import { CheckoutState } from '@/modules/commerce/frontend-contracts/CheckoutContract';
 import { formatMoney } from '@/utils/money';
 
-const placeOrderCommand = new MockPlaceOrderAdapter();
+const getCartQuery = new SupabaseGetCartAdapter();
+const placeOrderCommand = new SupabasePlaceOrderAdapter();
 
 export default function CheckoutPage() {
   const router = useRouter();

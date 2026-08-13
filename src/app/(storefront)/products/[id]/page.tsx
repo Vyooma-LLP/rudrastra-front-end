@@ -12,46 +12,58 @@ import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 export default function ProductDetailPage({ params }: { params: React.Usable<{ id: string }> }) {
   const resolvedParams = React.use(params);
   const [activeTab, setActiveTab] = useState<'overview' | 'specifications' | 'compatibility' | 'sellers'>('overview');
-  // Mock data for the demonstration
-  const product = {
-    mfg: "T-Motor",
-    mpn: "MN4014",
-    id: "RUD-MOT-MN4014",
-    desc: "400KV Brushless Motor",
-    img: "/images/products/rudrastra_motor_1785921295587.png",
-    aggPrice: "₹12,450",
-    sellers: 3,
-    overview: "The MN4014 is a highly efficient propulsion motor designed for professional aerial photography and industrial applications. Features extreme reliability and minimal vibration.",
-    specs: {
-      electrical: [
-        { label: "KV Rating", val: "400" },
-        { label: "Operating Voltage", val: "6S-12S LiPo" },
-        { label: "Max Continuous Current (180S)", val: "30A" },
-        { label: "Max Continuous Power (180S)", val: "900W" },
-        { label: "Internal Resistance", val: "67mΩ" },
-        { label: "Idle Current (10V)", val: "1.1A" }
-      ],
-      mechanical: [
-        { label: "Stator Size", val: "40x14 mm" },
-        { label: "Motor Dimensions", val: "Φ44.8 x 34.5 mm" },
-        { label: "Weight", val: "168g" },
-        { label: "Shaft Diameter", val: "4.0 mm" },
-        { label: "Mounting Pattern", val: "25x25mm, M3" },
-        { label: "Bearing", val: "EZO 694ZZ" }
-      ]
-    },
-    compatibility: [
-      { type: "ESC", status: "match", text: "Hobbywing X8 ESC" },
-      { type: "ESC", status: "match", text: "80A ESC" },
-      { type: "Battery", status: "match", text: "6S–12S LiPo" },
-      { type: "Propeller", status: "warning", text: "15×5 propeller" }
-    ],
-    offers: [
-      { name: "Aero Components India", verified: true, price: "₹12,450", moq: 1, lead: "2 days", stock: true },
-      { name: "DroneTech Supply", verified: true, price: "₹11,980", moq: 5, lead: "5 days", stock: true },
-      { name: "Indie UAV Parts", verified: true, price: "₹11,600", moq: 20, lead: "8 days", stock: false }
-    ]
-  };
+  const [product, setProduct] = useState<any>(null);
+
+  React.useEffect(() => {
+    fetch(`/api/products/${resolvedParams.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.product) {
+          // Merge API data with mock specs for UI presentation
+          setProduct({
+            ...data.product,
+            mfg: "Verified Manufacturer",
+            desc: data.product.description,
+            img: data.product.imageUrl || "/images/products/rudrastra_motor_1785921295587.png",
+            aggPrice: (data.product.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
+            sellers: 3,
+            overview: data.product.description,
+            specs: {
+              electrical: [
+                { label: "KV Rating", val: "400" },
+                { label: "Operating Voltage", val: "6S-12S LiPo" },
+                { label: "Max Continuous Current (180S)", val: "30A" },
+                { label: "Max Continuous Power (180S)", val: "900W" },
+                { label: "Internal Resistance", val: "67mΩ" },
+                { label: "Idle Current (10V)", val: "1.1A" }
+              ],
+              mechanical: [
+                { label: "Stator Size", val: "40x14 mm" },
+                { label: "Motor Dimensions", val: "Φ44.8 x 34.5 mm" },
+                { label: "Weight", val: "168g" },
+                { label: "Shaft Diameter", val: "4.0 mm" },
+                { label: "Mounting Pattern", val: "25x25mm, M3" },
+                { label: "Bearing", val: "EZO 694ZZ" }
+              ]
+            },
+            compatibility: [
+              { type: "ESC", status: "match", text: "Hobbywing X8 ESC" },
+              { type: "ESC", status: "match", text: "80A ESC" },
+              { type: "Battery", status: "match", text: "6S–12S LiPo" },
+              { type: "Propeller", status: "warning", text: "15×5 propeller" }
+            ],
+            offers: [
+              { name: "Aero Components India", verified: true, price: (data.product.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }), moq: 1, lead: "2 days", stock: true },
+              { name: "DroneTech Supply", verified: true, price: "₹11,980", moq: 5, lead: "5 days", stock: true },
+              { name: "Indie UAV Parts", verified: true, price: "₹11,600", moq: 20, lead: "8 days", stock: false }
+            ]
+          });
+        }
+      })
+      .catch(console.error);
+  }, [resolvedParams.id]);
+
+  if (!product) return <div className="p-10">Loading product...</div>;
 
   return (
     <CapabilityGuard featureKey="catalog.products">
@@ -187,7 +199,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
                 <div>
                   <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Electrical</h4>
                   <div className="flex flex-col">
-                    {product.specs.electrical.map((s, i) => (
+                    {product.specs.electrical.map((s: any, i: number) => (
                       <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
                         <span className="text-[var(--muted-foreground)]">{s.label}</span>
                         <span className="font-semibold text-right">{s.val}</span>
@@ -200,7 +212,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
                 <div>
                   <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2">Mechanical</h4>
                   <div className="flex flex-col">
-                    {product.specs.mechanical.map((s, i) => (
+                    {product.specs.mechanical.map((s: any, i: number) => (
                       <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
                         <span className="text-[var(--muted-foreground)]">{s.label}</span>
                         <span className="font-semibold text-right">{s.val}</span>
@@ -224,7 +236,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             <div className="font-mono text-[14px] bg-[#FAFAFA] border border-[var(--border)] p-6 mb-8">
               <div className="font-bold text-[var(--foreground)] mb-2">{product.mpn}</div>
               <div className="ml-2 border-l border-[var(--border)] pl-4 flex flex-col gap-3 relative py-2">
-                {product.compatibility.map((item, i) => (
+                {product.compatibility.map((item: any, i: number) => (
                   <div key={i} className="flex items-center gap-3 relative">
                     {/* Horizontal connector line */}
                     <div className="absolute -left-4 w-4 h-px bg-[var(--border)] top-1/2"></div>
@@ -262,7 +274,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
-                  {product.offers.map((offer, i) => (
+                  {product.offers.map((offer: any, i: number) => (
                     <tr
                       key={i}
                       onClick={() => window.location.href = `/rfq?mpn=${product.mpn}&seller=${encodeURIComponent(offer.name)}`}
