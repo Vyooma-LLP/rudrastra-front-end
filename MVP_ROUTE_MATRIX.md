@@ -1,0 +1,95 @@
+# MVP_ROUTE_MATRIX
+
+## API Routes
+- `src/app/api/account/profile/route.ts`: GET, PUT
+- `src/app/api/admin/products/[id]/route.ts`: PUT
+- `src/app/api/admin/products/route.ts`: POST
+- `src/app/api/admin/quotes/[id]/route.ts`: GET, PATCH
+- `src/app/api/admin/quotes/route.ts`: GET
+- `src/app/api/auth/login/route.ts`: POST
+- `src/app/api/auth/logout/route.ts`: POST
+- `src/app/api/auth/session/route.ts`: GET
+- `src/app/api/auth/signup/route.ts`: POST
+- `src/app/api/capabilities/route.ts`: GET, POST
+- `src/app/api/cart/route.ts`: GET, POST
+- `src/app/api/checkout/route.ts`: POST
+- `src/app/api/orders/route.ts`: GET
+- `src/app/api/products/[id]/route.ts`: GET
+- `src/app/api/products/route.ts`: GET
+- `src/app/api/quotes/[id]/route.ts`: GET
+- `src/app/api/quotes/route.ts`: GET, POST
+
+## Frontend Routes
+- `src/app/(auth)/login/page.tsx`
+- `src/app/(auth)/signup/page.tsx`
+- `src/app/(storefront)/bom/page.tsx`
+- `src/app/(storefront)/cart/page.tsx`
+- `src/app/(storefront)/categories/[category]/page.tsx`
+- `src/app/(storefront)/categories/page.tsx`
+- `src/app/(storefront)/checkout/page.tsx`
+- `src/app/(storefront)/checkout/success/page.tsx`
+- `src/app/(storefront)/compare/page.tsx`
+- `src/app/(storefront)/compatibility/page.tsx`
+- `src/app/(storefront)/engineering/architectures/[slug]/page.tsx`
+- `src/app/(storefront)/engineering/architectures/page.tsx`
+- `src/app/(storefront)/engineering/page.tsx`
+- `src/app/(storefront)/manufacturers/[id]/page.tsx`
+- `src/app/(storefront)/manufacturers/page.tsx`
+- `src/app/(storefront)/page.tsx`
+- `src/app/(storefront)/products/[id]/page.tsx`
+- `src/app/(storefront)/products/page.tsx`
+- `src/app/(storefront)/quote-request/page.tsx`
+- `src/app/(storefront)/quote-request/success/page.tsx`
+- `src/app/(storefront)/rfq/page.tsx`
+- `src/app/(storefront)/sell/page.tsx`
+- `src/app/(storefront)/support/page.tsx`
+- `src/app/account/orders/[id]/page.tsx`
+- `src/app/account/orders/page.tsx`
+- `src/app/account/page.tsx`
+- `src/app/account/profile/page.tsx`
+- `src/app/account/quotes/[id]/page.tsx`
+- `src/app/account/quotes/page.tsx`
+- `src/app/account/rma/page.tsx`
+- `src/app/account/tickets/page.tsx`
+- `src/app/account/warranties/page.tsx`
+- `src/app/engineering/calculator/page.tsx`
+- `src/app/ops/audit-logs/page.tsx`
+- `src/app/ops/catalog/mpn-resolution/page.tsx`
+- `src/app/ops/catalog/page.tsx`
+- `src/app/ops/catalog/products/[id]/edit/page.tsx`
+- `src/app/ops/catalog/products/new/page.tsx`
+- `src/app/ops/catalog/products/page.tsx`
+- `src/app/ops/catalog/specifications/page.tsx`
+- `src/app/ops/control-center/[featureKey]/page.tsx`
+- `src/app/ops/control-center/page.tsx`
+- `src/app/ops/disputes/page.tsx`
+- `src/app/ops/finance/invoices/page.tsx`
+- `src/app/ops/finance/ledger/page.tsx`
+- `src/app/ops/finance/payouts/page.tsx`
+- `src/app/ops/finance/reports/page.tsx`
+- `src/app/ops/fulfillment/page.tsx`
+- `src/app/ops/incidents/page.tsx`
+- `src/app/ops/page.tsx`
+- `src/app/ops/platform/notifications/page.tsx`
+- `src/app/ops/platform/rbac/page.tsx`
+- `src/app/ops/quotes/[id]/page.tsx`
+- `src/app/ops/quotes/page.tsx`
+- `src/app/ops/reconciliation/page.tsx`
+- `src/app/ops/rma/page.tsx`
+- `src/app/ops/tickets/page.tsx`
+- `src/app/organization/dashboard/page.tsx`
+- `src/app/organization/members/page.tsx`
+- `src/app/organization/procurement/approvals/page.tsx`
+- `src/app/organization/procurement/history/page.tsx`
+- `src/app/organization/procurement/page.tsx`
+- `src/app/organization/procurement/purchase-orders/page.tsx`
+- `src/app/organization/procurement/suppliers/page.tsx`
+- `src/app/organization/projects/page.tsx`
+- `src/app/seller/analytics/page.tsx`
+- `src/app/seller/catalog/page.tsx`
+- `src/app/seller/dashboard/page.tsx`
+- `src/app/seller/inventory/page.tsx`
+- `src/app/seller/offers/page.tsx`
+- `src/app/seller/orders/page.tsx`
+- `src/app/seller/payouts/page.tsx`
+- `src/app/seller/returns/page.tsx`

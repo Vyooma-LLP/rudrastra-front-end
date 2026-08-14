@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 
 /**
  * P0: Manufacturers Directory
@@ -26,7 +25,7 @@ export default function ManufacturersPage() {
   ];
 
   return (
-    <CapabilityGuard featureKey="catalog.manufacturers">
+    
 
     <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
       
@@ -119,7 +118,7 @@ export default function ManufacturersPage() {
           <div className="text-center mb-12">
             <h2 className="font-heading font-bold text-[32px] md:text-[48px] tracking-tight mb-6">Are you an OEM Manufacturer?</h2>
             <p className="font-sans text-[16px] text-white/70 max-w-2xl mx-auto">
-              Join the Rudrastra canonical supply chain. To guarantee authenticity and performance, all manufacturers must undergo physical product testing. Please fill out the details below and prepare to send your demo units for verification.
+              Join the Rudraastra canonical supply chain. To guarantee authenticity and performance, all manufacturers must undergo physical product testing. Please fill out the details below and prepare to send your demo units for verification.
             </p>
           </div>
           
@@ -174,6 +173,6 @@ export default function ManufacturersPage() {
       </section>
     </div>
   
-    </CapabilityGuard>
+    
 );
 }

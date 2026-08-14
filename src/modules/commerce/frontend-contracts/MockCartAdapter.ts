@@ -92,7 +92,7 @@ export class MockAddToCartAdapter implements AddToCartCommand {
       id: `item-${Date.now()}`,
       mpn: input.mpn,
       name: `Mocked Product ${input.mpn}`,
-      sellerId: input.sellerId,
+      sellerId: input.sellerId ?? '',
       sellerName: 'Mock Seller',
       unitPrice: { amountMinor: toMinor(5000), currency: 'INR' },
       quantity: input.quantity,

@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { products, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { isFeatureEnabled } from "@/lib/features";
-import { createClient } from "../../../../../utils/supabase/server";
+import { createClient } from '@/utils/supabase/server';
 
 async function verifyAdmin() {
     const supabase = await createClient();
@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     const [newProduct] = await db.insert(products).values({
       title: data.title,
       mpn: data.mpn,
+      sku: data.sku,
       description: data.description,
       price: data.price,
       currency: data.currency || "INR",

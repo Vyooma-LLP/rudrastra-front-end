@@ -4,7 +4,7 @@ import { CAPABILITIES } from '@/features/registry/capabilities';
 import { db } from '@/db';
 import { featureFlags, featureFlagAudit } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { createClient } from '../../../../utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET() {
   const capabilitiesMap: Record<string, 'ACTIVE' | 'EMERGENCY_KILLED' | 'DISABLED'> = {};
@@ -52,8 +52,23 @@ export async function GET() {
 
     return NextResponse.json(capabilitiesMap);
   } catch (error) {
-    console.error('[Capabilities API] Error', error);
-    return NextResponse.json({}, { status: 500 });
+    console.error('[Capabilities API] Error — returning MVP defaults', error);
+    // Return hardcoded MVP defaults so the storefront never breaks on a failed capabilities fetch
+    const mvpDefaults: Record<string, 'ACTIVE' | 'EMERGENCY_KILLED' | 'DISABLED'> = {
+      'auth.login': 'ACTIVE',
+      'auth.signup': 'ACTIVE',
+      'auth.session': 'ACTIVE',
+      'catalog.products': 'ACTIVE',
+      'catalog.categories': 'ACTIVE',
+      'catalog.search': 'ACTIVE',
+      'catalog.specifications': 'ACTIVE',
+      'commerce.cart': 'ACTIVE',
+      'commerce.checkout': 'ACTIVE',
+      'commerce.orders': 'ACTIVE',
+      'ops.control_center': 'ACTIVE',
+      'ops.catalog': 'ACTIVE',
+    };
+    return NextResponse.json(mvpDefaults);
   }
 }
 

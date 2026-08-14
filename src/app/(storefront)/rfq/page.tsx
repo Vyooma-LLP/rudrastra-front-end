@@ -1,7 +1,6 @@
 "use client";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 import { useCommand } from '@/hooks/useCommand';
 import { MockSubmitRfqAdapter } from '@/modules/procurement/frontend-contracts/MockRfqAdapter';
 import { SubmitRfqResult } from '@/modules/procurement/frontend-contracts/RfqContract';
@@ -140,7 +139,7 @@ function RfqFormContent() {
 
 export default function RfqPage() {
   return (
-    <CapabilityGuard featureKey="procurement.rfq">
+    
 <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5] pb-24">
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16 mb-12 text-center flex flex-col items-center">
@@ -158,6 +157,6 @@ export default function RfqPage() {
         </Suspense>
       </div>
     </div>
-    </CapabilityGuard>
+    
   );
 }

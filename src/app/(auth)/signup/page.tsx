@@ -26,6 +26,34 @@ export default function SignupPage() {
     setIsSubmitting(true);
     setError(null);
 
+    // 1. Validate Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address (e.g., name@gmail.com or name@company.com).");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 2. Validate Password
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 3. Validate Names
+    if (fullName.trim().length < 2) {
+      setError("Please enter your full name.");
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (companyName.trim().length < 2) {
+      setError("Please enter your company or entity name.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -42,7 +70,7 @@ export default function SignupPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Signup failed");
+        throw new Error(data.message || data.error || "Signup failed");
       }
 
       router.push("/login?registered=true");
@@ -64,7 +92,7 @@ export default function SignupPage() {
             <div className="w-12 h-12 bg-[#F35C27]/10 border border-[#F35C27]/30 text-[#F35C27] rounded-full flex items-center justify-center mx-auto">
               <UserPlus className="w-6 h-6" />
             </div>
-            <h1 className="font-heading text-2xl font-bold tracking-tight text-[#111111]">Create Rudrastra Account</h1>
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-[#111111]">Create Rudraastra Account</h1>
             <p className="text-xs text-[#777777]">Join India&apos;s canonical B2B Marketplace & Engineering Discovery Engine.</p>
           </div>
 
@@ -101,6 +129,7 @@ export default function SignupPage() {
                 <label className="text-[#777777] font-semibold mb-1 block">Full Name</label>
                 <input 
                   type="text" 
+                  name="fullName"
                   placeholder="Praneeth Kumar" 
                   required
                   value={fullName}
@@ -113,6 +142,7 @@ export default function SignupPage() {
                 <label className="text-[#777777] font-semibold mb-1 block">Company / Entity Name</label>
                 <input 
                   type="text" 
+                  name="companyName"
                   placeholder="Vyooma Technologies Pvt Ltd" 
                   required
                   value={companyName}
@@ -130,6 +160,7 @@ export default function SignupPage() {
                   <Mail className="w-4 h-4 text-[#777777] absolute left-3 top-3" />
                   <input 
                     type="email" 
+                    name="email"
                     placeholder="engineer@company.com" 
                     required
                     value={email}
@@ -143,6 +174,7 @@ export default function SignupPage() {
                 <label className="text-[#777777] font-semibold mb-1 block">GSTIN (Optional for Individuals)</label>
                 <input 
                   type="text" 
+                  name="gstin"
                   placeholder="36AAACV9981K1Z9" 
                   value={gstin}
                   onChange={(e) => setGstin(e.target.value)}
@@ -158,6 +190,7 @@ export default function SignupPage() {
                 <Lock className="w-4 h-4 text-[#777777] absolute left-3 top-3" />
                 <input 
                   type="password" 
+                  name="password"
                   placeholder="Minimum 8 characters with numbers & symbols" 
                   required
                   value={password}

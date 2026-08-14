@@ -250,6 +250,72 @@ export function Navbar() {
 
 ---
 
-## 6. Backend Domain Execution Roadmap (Phases 5 → 15)
+## 6. MVP Execution Roadmap & Current Status
 
-Frontend UI is 100% complete with authentication screens, fixed user session roles, and exclusive developer testing controls for `praneeth@vyooma.tech`. Next steps involve building out backend domain handlers in `src/modules/` following the 16-step Definition of Done (DoD).
+The architecture originally spanned 40+ pages. However, the **LAUNCH-CRITICAL CUSTOMER MVP** has been narrowed down to strictly focus on the core procurement flow.
+
+### Customer MVP Scope & Pixel-Perfect UI/UX Specifications (Must work 100%)
+
+The following outlines exact layouts, states, interactions, and data requirements for the 6 core features. Any agent building these must adhere strictly to these pixel-level definitions.
+
+#### 1. Create Account / Login (`/login`, `/signup`)
+- **Layout**: `min-h-screen flex flex-col bg-[#F5F5F5]`. Top universal `Navbar`. Center aligned auth container.
+- **Card UI**: `w-full max-w-xl bg-white border border-[#E5E5E5] p-8 shadow-sm`.
+- **Typography**: Header uses `font-heading font-bold text-2xl text-[#111111]`. Subtext `text-xs text-[#777777]`.
+- **Inputs**: `bg-[#F5F5F5] border border-[#E5E5E5] rounded p-2.5 text-[#111111] font-medium focus:outline-none focus:border-[#111111]`.
+- **Buttons**: Primary CTA is `bg-[#111111] text-white hover:bg-[#333333] transition-colors w-full py-3`.
+- **Interactions & States**:
+  - **Loading**: Forms disable, CTA opacity drops to 50%, button text changes to "Processing...".
+  - **Validation**: Client-side regex for email, min-length 6 for password, required checks for Name/Company.
+  - **Errors**: Displayed via a red alert box above the form (`bg-red-50 border-red-200 text-red-700`) and the `toast()` system.
+
+#### 2. Build Profile (`/account/profile` or inside `/account`)
+- **Layout**: Two-column dashboard. Left: `w-64` Sidebar with navigation tabs. Right: Main content area `flex-1 bg-white border border-[#E5E5E5] p-6`.
+- **Form Grid**: `grid grid-cols-1 md:grid-cols-2 gap-6`.
+- **Fields Required**: Full Name, Phone Number, Company/Entity Name, GSTIN, Complete Address (Street, City, State, Pincode).
+- **Data Flow**: Pre-filled from `public.users` via Supabase server-side fetch. 
+- **Interactions**: "Save Profile" button sticks to bottom right of the form. Triggers `toast("Profile updated successfully")` on 200 OK.
+
+#### 3. Browse (Categories, Products, PDP, Engineering, Manufacturers)
+- **Catalog Grid (`/products`)**:
+  - Container: `max-w-7xl mx-auto px-6`.
+  - Grid: `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6`.
+  - Product Card: `group bg-white border border-[#E5E5E5] hover:border-[#111111] transition-colors relative flex flex-col overflow-hidden`.
+  - Card Image: `aspect-square bg-[#F5F5F5] p-4 flex items-center justify-center`. Image scales up slightly on group hover (`group-hover:scale-105 transition-transform`).
+  - Card Text: Manufacturer `text-[10px] text-[#777]`, MPN `font-bold text-[14px] text-[#111]`, Price `font-mono font-bold text-[#111]`.
+- **Product Detail Page (PDP) (`/products/[id]`)**:
+  - Two-column split: `grid md:grid-cols-2 gap-10`.
+  - Left Column: Sticky image gallery container `bg-[#F5F5F5] border border-[#E5E5E5] p-10`.
+  - Right Column: Title block, Specs Table (`border-collapse border border-[#E5E5E5] text-xs`, striped rows), Price block, and sticky "Add to Cart" action bar.
+  - Cart Action: Includes a numeric stepper (+ / - buttons `w-10 h-10 border flex items-center justify-center hover:bg-[#F5F5F5]`) next to a massive "Add to Cart" block button.
+
+#### 4. Cart (`/cart`)
+- **Layout**: 70/30 split. 
+  - Left (70%): Cart items list.
+  - Right (30%): Sticky Order Summary box.
+- **Cart Item Row**: `flex items-center gap-4 py-6 border-b border-[#E5E5E5]`. Contains 80x80 thumbnail, Item Name & MPN, Quantity Stepper, and Line Total (`font-mono`).
+- **Order Summary**: `bg-[#F5F5F5] border border-[#E5E5E5] p-6 space-y-4`. Includes Subtotal, estimated GST (18%), and Grand Total (`font-heading font-bold text-xl`).
+- **CTA**: "Proceed to Request Quote" button (`bg-[#111111] text-white w-full py-3 hover:bg-[#F35C27] transition-colors`).
+
+#### 5. Request Quote (`/quote-request` or `/checkout`)
+- **Layout**: Single column, centered, max-width `max-w-3xl`. Stepper or stacked sections.
+- **Section 1: Cart Snapshot**: Read-only dense table `border border-[#E5E5E5]` showing items and quantities locked in.
+- **Section 2: Company Profile**: Auto-populated from the user's Profile (Name, Email, GSTIN, Billing Address). Fields are disabled/read-only with an explicit link to "Edit in Profile" to ensure data consistency.
+- **Section 3: Requirements**: `textarea` for Project notes, target lead times, or specific batch requirements (`min-h-[120px] bg-white border border-[#E5E5E5] p-3 text-sm`).
+- **Submit Action**: Large, distinct button. On success, transitions to a confirmation screen (`/quote-request/success`) displaying a confirmation ID (e.g., `RFQ-10294`) and triggers a confimration email logic.
+
+#### 6. Account Dashboard (`/account`)
+- **Navigation**: Sidebar styling with active state highlighting (`bg-[#111111] text-white` for active, `text-[#777] hover:bg-[#F5F5F5]` for inactive).
+- **Quote History Table**: `w-full text-left text-sm border-collapse`. Headers `bg-[#F5F5F5] font-bold text-xs uppercase p-3`. Rows have `border-b border-[#E5E5E5] p-3`.
+- **Status Badges**:
+  - Pending: `bg-amber-100 text-amber-800 px-2 py-1 rounded text-[10px] font-bold uppercase`
+  - Quoted: `bg-blue-100 text-blue-800 ...`
+  - Approved/Ordered: `bg-green-100 text-green-800 ...`
+- **Quote Details View**: Clicking a row opens the RFQ detail page showing the PDF generated quote (if applicable), pricing breakdown provided by sales, and an "Accept & Place Order" button.
+
+#### 7. Non-MVP Features (Strict Guardrails)
+- All out-of-scope tools (e.g., BOM Procurement, System Calculators, Seller Dashboards, RMA) MUST remain in the UI to demonstrate scale to investors.
+- **Rule**: They do **not** navigate to broken/empty pages. `Link` wrappers must be replaced with `<span onClick={() => toast("Feature Name — Coming Soon")} className="cursor-pointer">`.
+- **Visuals**: Add `opacity-50` or a tiny `[Coming Soon]` badge next to these items if they appear in main navigation grids.
+
+Frontend UI is actively being aligned to this MVP scope. Next steps involve building out the focused backend domain handlers (Supabase PostgreSQL, Typesense) required to strictly support this procurement journey.

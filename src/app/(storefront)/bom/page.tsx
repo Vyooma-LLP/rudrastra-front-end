@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 import Link from "next/link";
 import { useCommand } from "@/hooks/useCommand";
 import { MockProcessBomAdapter } from "@/modules/bom/frontend-contracts/MockBomAdapter";
@@ -37,7 +36,7 @@ export default function BomPage() {
   };
 
   return (
-    <CapabilityGuard featureKey="procurement.bom">
+    
     <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
@@ -45,7 +44,7 @@ export default function BomPage() {
           Turn your <span className="text-[var(--primary)]">BOM</span> into a procurement plan.
         </h1>
         <p className="font-sans text-[16px] text-[var(--muted-foreground)] max-w-2xl mb-8">
-          Upload your drone&apos;s bill of materials. Rudrastra identifies components, matches suppliers and highlights procurement risks.
+          Upload your drone&apos;s bill of materials. Rudraastra identifies components, matches suppliers and highlights procurement risks.
         </p>
         <div className="flex items-center gap-4">
           <button
@@ -258,6 +257,6 @@ export default function BomPage() {
         </div>
       </section>
     </div>
-    </CapabilityGuard>
+    
   );
 }

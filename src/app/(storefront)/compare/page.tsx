@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 
 /**
  * P0: Compare Components
@@ -79,7 +78,7 @@ function CompareTool() {
   const available = CATALOG_POOL.filter((p) => !selected.find((s) => s.id === p.id));
 
   return (
-    <CapabilityGuard featureKey="engineering.compare">
+    
       <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
         {/* HERO */}
         <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
@@ -244,7 +243,7 @@ function CompareTool() {
           )}
         </section>
       </div>
-    </CapabilityGuard>
+    
   );
 }
 

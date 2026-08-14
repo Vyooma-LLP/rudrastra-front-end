@@ -1,11 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { Headphones, ShieldCheck, Wrench, ArrowRight } from 'lucide-react';
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 
 export default function SupportPage() {
   return (
-    <CapabilityGuard featureKey="operations.customer-support">
+    
 <div className="min-h-screen bg-[#F5F5F5] text-[#111111] py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
         
@@ -58,6 +57,6 @@ export default function SupportPage() {
 
       </div>
     </div>
-    </CapabilityGuard>
+    
   );
 }

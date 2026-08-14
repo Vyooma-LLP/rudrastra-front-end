@@ -31,9 +31,21 @@ export class SupabaseAuthAdapter implements AuthenticateUserCommand {
 
 export class SupabaseSwitchRoleAdapter implements SwitchRoleCommand {
   async execute(input: SwitchRoleInput, context: CommandContext): Promise<CommandResult<SessionContext>> {
-    // For now, mock role switching or ignore it since roles are tied to the DB user table
-    // A proper implementation would require regenerating JWTs or session state
-    return { status: 'ERROR', error: { code: "UNAUTHORIZED", message: 'Role switching is not supported yet' } };
+    try {
+      const response = await fetch('/api/auth/switch-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input)
+      });
+      const result = await response.json();
+      
+      if (!response.ok) {
+        return { status: 'ERROR', error: { code: 'UNAUTHORIZED', message: result.error || 'Role switch failed' } };
+      }
+      return { status: 'SUCCESS', data: result.session };
+    } catch (e: any) {
+      return { status: 'ERROR', error: { code: 'INTERNAL_ERROR', message: e.message } };
+    }
   }
 }
 

@@ -8,6 +8,12 @@ export const users = pgTable("users", {
     fullName: text("full_name").notNull(),
     companyName: text("company_name"),
     gstin: text("gstin"),
+    phone: text("phone"),
+    addressLine1: text("address_line1"),
+    addressLine2: text("address_line2"),
+    city: text("city"),
+    state: text("state"),
+    pincode: text("pincode"),
     role: text("role").default("USER").notNull(), // 'USER' | 'ADMIN'
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -129,5 +135,54 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
     return {
         // Enforce uniqueness for idempotent keys per user and operation
         uniqueKey: unique("unique_idempotency_key").on(table.userId, table.operation, table.idempotencyKey)
+    }
+});
+
+// 10. Quote Requests Table (B2B Procurement MVP)
+export const quoteRequests = pgTable("quote_requests", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    quoteNumber: text("quote_number").notNull().unique(), // e.g. QR-2026-0001
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    status: text("status").notNull(), // 'NEW', 'REVIEWING', 'QUOTED', 'ACCEPTED', 'CLOSED'
+    
+    // Customer Snapshot
+    customerName: text("customer_name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull(),
+    companyName: text("company_name"),
+    
+    // Shipping Snapshot
+    shippingAddressLine1: text("shipping_address_line1").notNull(),
+    shippingAddressLine2: text("shipping_address_line2"),
+    shippingCity: text("shipping_city").notNull(),
+    shippingState: text("shipping_state").notNull(),
+    shippingPincode: text("shipping_pincode").notNull(),
+    
+    notes: text("notes"),
+    estimatedSubtotal: integer("estimated_subtotal").notNull(), // Minor units
+    
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+    return {
+        subtotalCheck: check("quote_requests_subtotal_check", sql`estimated_subtotal >= 0`)
+    }
+});
+
+// 11. Quote Request Items Table
+export const quoteRequestItems = pgTable("quote_request_items", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    quoteRequestId: uuid("quote_request_id").references(() => quoteRequests.id, { onDelete: "cascade" }).notNull(),
+    productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }), // Keep if product deleted
+    
+    productNameSnapshot: text("product_name_snapshot").notNull(),
+    priceSnapshot: integer("price_snapshot").notNull(), // Minor units
+    quantity: integer("quantity").notNull(),
+    
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+    return {
+        quantityCheck: check("quote_request_items_quantity_check", sql`quantity > 0`),
+        priceCheck: check("quote_request_items_price_check", sql`price_snapshot >= 0`)
     }
 });

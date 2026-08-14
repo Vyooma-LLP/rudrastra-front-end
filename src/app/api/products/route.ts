@@ -17,7 +17,12 @@ export async function GET(req: NextRequest) {
 
     let conditions = [];
     if (category) {
-      conditions.push(eq(products.category, category));
+      conditions.push(
+        or(
+          eq(products.category, category),
+          ilike(products.category, `${category} > %`)
+        )
+      );
     }
     if (q) {
       conditions.push(

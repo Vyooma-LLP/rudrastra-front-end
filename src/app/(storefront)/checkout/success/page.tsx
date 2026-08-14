@@ -1,11 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { CheckCircle, ArrowRight } from 'lucide-react';
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 
 export default function OrderSuccessPage() {
   return (
-    <CapabilityGuard featureKey="commerce.checkout">
+    
 <div className="min-h-screen bg-[#F5F5F5] text-[#111111] py-16 px-4 font-sans flex items-center justify-center">
       <div className="max-w-xl w-full bg-white border border-[#E5E5E5] p-8 shadow-sm text-center space-y-6">
         <div className="w-16 h-16 bg-[#138808]/10 text-[#138808] border border-[#138808]/30 rounded-full flex items-center justify-center mx-auto">
@@ -46,6 +45,6 @@ export default function OrderSuccessPage() {
         </div>
       </div>
     </div>
-    </CapabilityGuard>
+    
   );
 }

@@ -11,9 +11,10 @@ import { useAuth } from '@/components/layout/AuthContext';
 import { useCapability } from '@/hooks/useCapability';
 import { useCapabilitiesContext } from '@/components/layout/CapabilitiesContext';
 
-export default function CapabilityInspectPage({ params }: { params: { featureKey: string } }) {
+export default function CapabilityInspectPage({ params }: { params: React.Usable<{ featureKey: string }> }) {
+  const resolvedParams = React.use(params);
   const { capabilitiesState, toggleCapability } = useCapabilitiesContext();
-  const featureKey = params.featureKey as FeatureKey;
+  const featureKey = resolvedParams.featureKey as FeatureKey;
   const capability = CAPABILITIES.find(c => c.key === featureKey);
   
   if (!capability) {

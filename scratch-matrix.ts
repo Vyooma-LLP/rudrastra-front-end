@@ -1,37 +1,42 @@
 import fs from 'fs';
 import path from 'path';
 
-// Read existing file
-let content = fs.readFileSync('FEATURE_INVENTORY.md', 'utf-8');
+const walkSync = (dir: string, filelist: string[] = []) => {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const dirFile = path.join(dir, file);
+    const dirent = fs.statSync(dirFile);
+    if (dirent.isDirectory()) {
+      if (!dirFile.includes('node_modules') && !dirFile.includes('.git') && !dirFile.includes('.next')) {
+        filelist = walkSync(dirFile, filelist);
+      }
+    } else {
+      if (dirFile.endsWith('page.tsx') || dirFile.endsWith('route.ts')) {
+        filelist.push(dirFile);
+      }
+    }
+  }
+  return filelist;
+};
 
-// Find the matrix and replace it
-const matrixTemplate = `
-## 12. Feature Matrix
+const files = walkSync('./src/app');
+const routes = files.map(f => {
+  let route = f.replace('./src/app', '').replace('/page.tsx', '').replace('/route.ts', '');
+  if (route === '') route = '/';
+  
+  // Clean up route groups like (storefront)
+  route = route.replace(/\/\([^)]+\)/g, '');
+  if (route === '') route = '/';
+  
+  return { file: f, route };
+});
 
-| Feature | MVP | Normal User | Owner Preview | Admin | Emergency Kill | Current Implementation |
-|---------|-----|-------------|---------------|-------|----------------|-------------------------|
-| Authentication | YES | Available | Available | Available | - | REAL |
-| Product Catalog | YES | Available | Available | Available | Overrides | REAL |
-| Search/Filters | YES | Available | Available | Available | Overrides | UI-ONLY |
-| Cart | YES | Available | Available | Available | Overrides | REAL |
-| Checkout | YES | Available | Available | Available | Overrides | REAL |
-| Order History | YES | Available | Available | Available | Overrides | REAL |
-| Control Center | YES | Hidden | Available | Available | - | REAL (Flags) / UI (Dashboard) |
-| Admin Catalog Mgmt | YES | Hidden | Available | Available | Overrides | REAL |
-| Basic Product Specs | YES | Available | Available | Available | Overrides | MOCK |
-| RFQ | NO | Coming Soon | Available | Coming Soon | Overrides | MOCK |
-| BOM Upload & Parsing | NO | Coming Soon | Available | Coming Soon | Overrides | MOCK |
-| Compatibility Engine | NO | Coming Soon | Available | Coming Soon | Overrides | MOCK |
-| Multi-Seller Offers | NO | Coming Soon | Available | Coming Soon | Overrides | MOCK |
-| Seller Dashboard | NO | Coming Soon | Available | Coming Soon | Overrides | MOCK |
-| B2B Procurement | NO | Coming Soon | Available | Coming Soon | Overrides | UI-ONLY |
-| Finance / Ledger | NO | Coming Soon | Available | Coming Soon | Overrides | UI-ONLY |
-| Warranties / RMA | NO | Coming Soon | Available | Coming Soon | Overrides | UI-ONLY |
-| Tickets / Support | NO | Coming Soon | Available | Coming Soon | Overrides | UI-ONLY |
-| Engineering Search | NO | Coming Soon | Available | Coming Soon | Overrides | MOCK |
-| Engineering Compare | NO | Coming Soon | Available | Coming Soon | Overrides | UI-ONLY |
+const content = `# MVP_ROUTE_MATRIX.md
+
+| Filesystem Route | Web Route | Type | Note |
+|---|---|---|---|
+${routes.map(r => `| \`${r.file}\` | \`${r.route}\` | ${r.file.endsWith('route.ts') ? 'API' : 'Page'} | |`).join('\n')}
 `;
 
-content = content.replace(/## 12\. Product Owner Decision Matrix[\s\S]*/, matrixTemplate);
-
-fs.writeFileSync('FEATURE_INVENTORY.md', content);
+fs.writeFileSync('MVP_ROUTE_MATRIX.md', content);
+console.log('Created MVP_ROUTE_MATRIX.md');

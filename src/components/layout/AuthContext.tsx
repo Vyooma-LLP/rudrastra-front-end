@@ -9,6 +9,7 @@ import {
   SupabaseSignOutAdapter
 } from '../../modules/auth/frontend-contracts/SupabaseAuthAdapter';
 import { CommandContext } from '../../contracts/base';
+import { generateUUID } from '../../utils/uuid';
 
 // Instantiate the adapters (In a real app, you might use dependency injection here)
 const getSessionQuery = new SupabaseGetSessionContextAdapter();
@@ -19,7 +20,7 @@ const signOutCommand = new SupabaseSignOutAdapter();
 interface AuthContextValue {
   session: SessionContext | null;
   isLoading: boolean;
-  authenticate: (email: string) => Promise<void>;
+  authenticate: (email: string, password?: string) => Promise<void>;
   switchRole: (role: SessionRole) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -47,9 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshSession();
   }, []);
 
-  const authenticate = async (email: string) => {
-    const ctx: CommandContext = { metadata: { requestId: crypto.randomUUID(), commandId: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() }, channel: 'web' };
-    const res = await authCommand.execute({ email }, ctx);
+  const authenticate = async (email: string, password?: string) => {
+    const ctx: CommandContext = { metadata: { requestId: generateUUID(), commandId: generateUUID(), idempotencyKey: generateUUID() }, channel: 'web' };
+    const res = await authCommand.execute({ email, password }, ctx);
     if (res.status === 'SUCCESS' && res.data) {
       setSession(res.data);
     } else {
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const switchRole = async (role: SessionRole) => {
-    const ctx: CommandContext = { metadata: { requestId: crypto.randomUUID(), commandId: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() }, channel: 'web' };
+    const ctx: CommandContext = { metadata: { requestId: generateUUID(), commandId: generateUUID(), idempotencyKey: generateUUID() }, channel: 'web' };
     const res = await switchRoleCommand.execute({ role }, ctx);
     if (res.status === 'SUCCESS' && res.data) {
       setSession(res.data);
@@ -68,9 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    const ctx: CommandContext = { metadata: { requestId: crypto.randomUUID(), commandId: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() }, channel: 'web' };
+    const ctx: CommandContext = { metadata: { requestId: generateUUID(), commandId: generateUUID(), idempotencyKey: generateUUID() }, channel: 'web' };
     await signOutCommand.execute(undefined, ctx);
-    await refreshSession();
+    setSession(null);
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   };
 
   return (

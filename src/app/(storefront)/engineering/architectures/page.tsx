@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 
 const architectures = [
   {
@@ -37,7 +36,7 @@ const architectures = [
 
 export default function ArchitectureListPage() {
   return (
-    <CapabilityGuard featureKey="engineering.search">
+    
       <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
         {/* HERO */}
         <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
@@ -104,6 +103,6 @@ export default function ArchitectureListPage() {
           </div>
         </section>
       </div>
-    </CapabilityGuard>
+    
   );
 }

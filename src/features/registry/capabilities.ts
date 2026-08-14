@@ -641,7 +641,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   {
     key: 'operations.fulfillment',
     name: 'Platform Fulfillment',
-    description: 'Rudrastra-managed fulfillment',
+    description: 'Rudraastra-managed fulfillment',
     type: 'OPERATIONS',
     lifecycle: 'PLANNED',
     dependencies: ['operations.shipping'],

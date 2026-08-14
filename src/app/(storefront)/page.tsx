@@ -1,13 +1,27 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { InfiniteMarquee } from "@/components/ui/InfiniteMarquee";
+import { toast } from "@/components/ui/Toast";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [subEmail, setSubEmail] = useState('');
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (data.products) {
+          setDbProducts(data.products);
+        }
+      })
+      .catch(console.error);
+  }, []);
   return (
     <div className="w-full flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
       
@@ -162,6 +176,7 @@ export default function HomePage() {
               mfg: "T-Motor",
               mpn: "MN4014-400KV",
               id: "RUD-MOT-MN4014",
+              dbMpn: "MN4014",
               desc: "MN4014 Brushless Motor",
               specs: ["400 KV", "6S-12S", "8.2kg thrust"],
               img: "/images/products/rudrastra_motor_1785921295587.png",
@@ -172,6 +187,7 @@ export default function HomePage() {
               mfg: "Darkmatter",
               mpn: "DM-FC-H7-PRO",
               id: "RUD-FC-DM-H7",
+              dbMpn: "DM-FC-H7-PRO",
               desc: "H7 Pro Autopilot",
               specs: ["STM32H7", "Triple IMU", "CAN"],
               img: "/images/products/rudrastra_fc_1785921305227.png",
@@ -182,14 +198,20 @@ export default function HomePage() {
               mfg: "Hobbywing",
               mpn: "XR-40A-G2",
               id: "RUD-ESC-XR40",
+              dbMpn: "XRotor 40A",
               desc: "XRotor 40A 4-in-1 ESC",
               specs: ["40A Cont.", "3-6S LiPo", "DSHOT600"],
               img: "/images/products/rudrastra_esc_1785921326270.png",
               price: "₹5,100",
               isIndian: false
             }
-          ].map((prod, i) => (
-            <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative">
+          ].map((prod) => {
+            const dbMatch = dbProducts.find(dp => dp.mpn?.toLowerCase() === prod.dbMpn.toLowerCase());
+            const resolvedId = dbMatch ? dbMatch.id : prod.id;
+            const resolvedPrice = dbMatch ? `₹${(dbMatch.price / 100).toLocaleString('en-IN')}` : prod.price;
+            return { ...prod, id: resolvedId, price: resolvedPrice };
+          }).map((prod, i) => (
+            <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative" title={`View ${prod.mpn} in catalog`}>
               
               <div className="absolute top-0 left-0 bg-[var(--primary)] text-white font-sans font-bold text-[10px] tracking-widest px-3 py-1.5 z-20 flex items-center gap-2">
                 <span>✓ VERIFIED SPEC</span>
@@ -275,7 +297,12 @@ export default function HomePage() {
         </div>
         
         <div className="mt-16 flex justify-center relative z-10">
-          <Link href="/bom" className="group inline-flex items-center gap-2 bg-[var(--foreground)] text-white font-sans font-bold px-8 py-4 hover:bg-[var(--primary)] transition-all duration-fast relative overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toast('BOM Procurement — Coming Soon')}
+            title="Coming Soon"
+            className="group inline-flex items-center gap-2 bg-[var(--foreground)] text-white font-sans font-bold px-8 py-4 hover:bg-[var(--primary)] transition-all duration-fast relative overflow-hidden cursor-pointer"
+          >
             <span className="absolute inset-0 w-full h-full bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-fast"></span>
             <span className="relative z-10 flex items-center gap-2">
               Upload BOM (CSV)
@@ -283,7 +310,7 @@ export default function HomePage() {
                 <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </span>
-          </Link>
+          </button>
         </div>
       </section>
 
@@ -301,12 +328,17 @@ export default function HomePage() {
             <p className="font-sans text-[16px] text-[#A0A0A0] leading-relaxed max-w-lg mb-10">
               Check electrical bounds, mechanical mounts, and protocol compatibility across your entire component stack instantly.
             </p>
-            <Link href="/compatibility" className="group inline-flex items-center gap-3 bg-white text-black font-sans font-bold px-7 py-3.5 hover:bg-[var(--primary)] hover:text-white transition-colors duration-fast">
+            <button
+              type="button"
+              onClick={() => toast('Compatibility Engine — Coming Soon')}
+              title="Coming Soon"
+              className="group inline-flex items-center gap-3 bg-white text-black font-sans font-bold px-7 py-3.5 hover:bg-[var(--primary)] hover:text-white transition-colors duration-fast cursor-pointer"
+            >
               Check compatibility
               <svg className="w-4 h-4 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
-            </Link>
+            </button>
           </div>
 
           {/* Interactive Tree Graph Mock */}
@@ -416,7 +448,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center mb-16 px-6">
           <h2 className="font-heading font-extrabold text-[36px] tracking-tight mb-4 text-[var(--foreground)]">Every Component Has a <span className="text-[var(--primary)]">Source</span>.</h2>
           <p className="font-sans text-[16px] text-[var(--muted-foreground)]">
-            Rudrastra is built on a unified engineering schema. We connect you directly with authorized distributors and OEMs.
+            Rudraastra is built on a unified engineering schema. We connect you directly with authorized distributors and OEMs.
           </p>
         </div>
 
@@ -455,11 +487,16 @@ export default function HomePage() {
               Stop guessing. Input your drone&apos;s parameters, and our engineering configurator will filter the canonical graph to find compatible propulsion systems, power distribution, and flight controllers.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-              <Link href="/configurator" className="bg-[var(--foreground)] text-white font-sans font-bold px-8 py-4 text-center hover:bg-[var(--primary)] transition-colors duration-fast w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => toast('Engineering Configurator — Coming Soon')}
+                title="Coming Soon"
+                className="bg-[var(--foreground)] text-white font-sans font-bold px-8 py-4 text-center hover:bg-[var(--primary)] transition-colors duration-fast w-full sm:w-auto cursor-pointer"
+              >
                 Launch Configurator
-              </Link>
-              <Link href="/search" className="border border-[var(--border)] bg-[#FAFAFA] text-[var(--foreground)] font-sans font-bold px-8 py-4 text-center hover:border-[#111] hover:bg-white transition-colors duration-fast w-full sm:w-auto">
-                Browse Directory
+              </button>
+              <Link href="/products" className="border border-[var(--border)] bg-[#FAFAFA] text-[var(--foreground)] font-sans font-bold px-8 py-4 text-center hover:border-[#111] hover:bg-white transition-colors duration-fast w-full sm:w-auto">
+                Browse Catalog
               </Link>
             </div>
           </div>
@@ -578,9 +615,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. FOOTER */}
-      <footer className="w-full bg-[#111] text-white">
-        <div className="px-6 lg:px-10 py-20 flex flex-col items-center text-center border-b border-[#222]">
+      {/* 8. NEWSLETTER STRIP */}
+      <section className="w-full bg-[#111] text-white">
+        <div className="px-6 lg:px-10 py-20 flex flex-col items-center text-center">
           <h2 className="font-heading font-bold text-[32px] tracking-tight mb-4">Stay ahead of the <span className="text-[var(--accent)]">hardware stack.</span></h2>
           <p className="font-sans text-[15px] text-[#A0A0A0] max-w-md mb-8">
             Weekly updates on new canonical components, firmware compatibility notes, and supply chain lead times.
@@ -606,66 +643,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-
-        <div className="px-6 lg:px-10 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 max-w-7xl mx-auto">
-          <div className="col-span-1">
-            <Link href="/" className="font-heading font-bold text-[24px] tracking-tight mb-4 block">
-              RUDR<span className="text-[var(--primary)]">ASTRA</span>
-            </Link>
-            <p className="font-sans text-[13px] text-[#A0A0A0] leading-relaxed mb-6">
-              India&apos;s canonical drone hardware marketplace and engineering discovery engine.
-            </p>
-            <div className="flex gap-4">
-              <span className="w-8 h-8 rounded-full bg-[#222] flex items-center justify-center hover:bg-[#333] transition-colors cursor-pointer">
-                <span className="text-[12px]">𝕏</span>
-              </span>
-              <span className="w-8 h-8 rounded-full bg-[#222] flex items-center justify-center hover:bg-[#333] transition-colors cursor-pointer">
-                <span className="text-[12px] font-bold">in</span>
-              </span>
-            </div>
-          </div>
-          
-          <div>
-            <h4 className="font-sans text-[12px] font-bold text-white uppercase tracking-wider mb-6">Directory</h4>
-            <ul className="flex flex-col gap-3 font-sans text-[14px] text-[#888]">
-              <li><Link href="/categories" className="hover:text-white transition-colors">Categories</Link></li>
-              <li><Link href="/manufacturers" className="hover:text-white transition-colors">Manufacturers</Link></li>
-              <li><Link href="/search" className="hover:text-white transition-colors">Component Search</Link></li>
-              <li><Link href="/bom" className="hover:text-white transition-colors">BOM Procurement</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-sans text-[12px] font-bold text-white uppercase tracking-wider mb-6">Engineering</h4>
-            <ul className="flex flex-col gap-3 font-sans text-[14px] text-[#888]">
-              <li><Link href="/engineering/calculators" className="hover:text-white transition-colors">System Calculators</Link></li>
-              <li><Link href="/engineering/compatibility" className="hover:text-white transition-colors">Compatibility Matrix</Link></li>
-              <li><Link href="/engineering/cad" className="hover:text-white transition-colors">CAD Library</Link></li>
-              <li><Link href="/engineering/api" className="hover:text-white transition-colors">Developer API</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-sans text-[12px] font-bold text-white uppercase tracking-wider mb-6">Company</h4>
-            <ul className="flex flex-col gap-3 font-sans text-[14px] text-[#888]">
-              <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="/sell" className="hover:text-white transition-colors">Become a Seller</Link></li>
-              <li><Link href="/defense" className="hover:text-white transition-colors">Defense & Govt</Link></li>
-              <li><Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
-            </ul>
-          </div>
-        </div>
-        
-        <div className="px-6 lg:px-10 py-6 border-t border-[#222] flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left max-w-7xl mx-auto">
-          <p className="font-sans text-[12px] text-[#666]">
-            © {new Date().getFullYear()} Rudrastra Technologies. All rights reserved.
-          </p>
-          <div className="flex gap-6 font-sans text-[12px] text-[#666]">
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-          </div>
-        </div>
-      </footer>
+      </section>
       
     </div>
   );

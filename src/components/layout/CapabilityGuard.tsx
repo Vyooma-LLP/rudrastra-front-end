@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { toast } from "@/components/ui/Toast";
 import { useCapabilitiesContext } from './CapabilitiesContext';
 
 interface CapabilityGuardProps {
@@ -8,6 +9,7 @@ interface CapabilityGuardProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   hideCompletely?: boolean;
+  inline?: boolean;
 }
 
 /**
@@ -15,14 +17,13 @@ interface CapabilityGuardProps {
  * Re-purposed for the MVP to keep future features visually present but 
  * block interaction.
  */
-export function CapabilityGuard({ featureKey, children, fallback, hideCompletely }: CapabilityGuardProps) {
+export function CapabilityGuard({ featureKey, children, fallback, hideCompletely, inline = false }: CapabilityGuardProps) {
   const { capabilitiesState, isLoading } = useCapabilitiesContext();
   
   // By default during loading, assume it's disabled to prevent flicker of sensitive UI.
-  // Except if you want it visually present anyway, it's fine.
   const isEnabled = capabilitiesState[featureKey] === 'ACTIVE';
 
-  if (isLoading && hideCompletely) return null; // Or skeleton
+  if (isLoading && hideCompletely) return null;
 
   if (hideCompletely && !isEnabled) return null;
   if (fallback && !isEnabled) return <>{fallback}</>;
@@ -30,15 +31,15 @@ export function CapabilityGuard({ featureKey, children, fallback, hideCompletely
   if (!isEnabled) {
     return (
       <div 
-          style={{ display: "contents" }} 
+          className={`relative ${inline ? 'inline-block' : 'block w-full'}`}
+          title="Coming Soon"
           onClickCapture={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              // Standard UX feedback for blocked MVP features
-              alert("Feature disabled: Coming Soon in future architecture phase.");
+              toast("Coming Soon");
           }}
       >
-        <div style={{ opacity: 0.7, pointerEvents: "none", display: "contents" }}>
+        <div className="opacity-50 pointer-events-none cursor-not-allowed">
             {children}
         </div>
       </div>

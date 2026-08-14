@@ -182,5 +182,9 @@
     }
   },
   "active": "459fd96157872581",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "node_modules/@base-ui/react/docs/index.md",
+    "node_modules/ms/license.md",
+    "node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md"
+  ]
 }

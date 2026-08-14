@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 
 /**
  * P0: Categories (Engineering Taxonomy)
@@ -18,7 +17,7 @@ export default function CategoriesPage() {
   ];
 
   return (
-    <CapabilityGuard featureKey="catalog.categories">
+    
 
     <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
       
@@ -65,6 +64,6 @@ export default function CategoriesPage() {
       </section>
     </div>
   
-    </CapabilityGuard>
+    
 );
 }

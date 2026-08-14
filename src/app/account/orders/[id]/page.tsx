@@ -7,6 +7,7 @@ import { Package, Truck, CheckCircle, Clock, Download, ArrowLeft } from 'lucide-
 import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 import { MockGetOrderDetailsAdapter } from '@/modules/orders/frontend-contracts/MockOrderAdapter';
 import { Order } from '@/modules/orders/frontend-contracts/OrderContract';
+import { toast } from '@/components/ui/Toast';
 
 const getOrderDetailsQuery = new MockGetOrderDetailsAdapter();
 
@@ -63,7 +64,7 @@ export default function OrderDetailsPage() {
             </h1>
             <p className="text-xs text-[#777777]">Placed on {order.placedOn} • Razorpay Txn: {order.transactionId || 'N/A'}</p>
           </div>
-          <button onClick={() => alert('GST Invoice PDF will be generated when the backend invoicing service is connected')} className="px-4 py-2 border border-[#111111] bg-[#111111] text-white hover:bg-black text-xs font-semibold flex items-center gap-2">
+          <button onClick={() => toast('GST Invoice PDF will be generated when the backend invoicing service is connected')} className="px-4 py-2 border border-[#111111] bg-[#111111] text-white hover:bg-black text-xs font-semibold flex items-center gap-2">
             <Download className="w-4 h-4" /> Download GST Invoice
           </button>
         </div>

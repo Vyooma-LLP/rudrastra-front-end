@@ -12,6 +12,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
 
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: "BAD_REQUEST", message: "Invalid product ID format" }, { status: 400 });
+    }
+
     const [product] = await db.select().from(products).where(eq(products.id, id));
 
     if (!product) {
@@ -21,6 +27,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ product });
   } catch (error: any) {
     console.error("Error fetching product:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR", message: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
   }
 }

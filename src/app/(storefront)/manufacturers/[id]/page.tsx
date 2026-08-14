@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 import { SupabaseGetManufacturerProductsAdapter } from "@/modules/catalog/frontend-contracts/SupabaseManufacturerAdapter";
 import { ManufacturerProduct } from "@/modules/catalog/frontend-contracts/ManufacturerContract";
 
@@ -39,7 +38,7 @@ export default function ManufacturerDetailPage() {
     : "Manufacturer";
 
   return (
-    <CapabilityGuard featureKey="catalog.products">
+    
       <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5] font-sans">
         {/* HERO */}
         <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
@@ -121,6 +120,6 @@ export default function ManufacturerDetailPage() {
           )}
         </section>
       </div>
-    </CapabilityGuard>
+    
   );
 }

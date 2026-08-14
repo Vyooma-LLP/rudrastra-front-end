@@ -3,8 +3,26 @@ import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Package, Wrench, ShieldCheck, Headphones, User, Building2, Store, ShieldAlert } from 'lucide-react';
+import { createClient } from '@/utils/supabase/server';
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
-export default function AccountLayout({ children }: { children: React.ReactNode }) {
+export default async function AccountLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+
+  let userProfile = null;
+  if (authUser && authUser.email) {
+    const [profile] = await db.select().from(users).where(eq(users.email, authUser.email));
+    userProfile = profile;
+  }
+
+  const fullName = userProfile?.fullName || 'User';
+  const companyName = userProfile?.companyName || 'No Company';
+  const initials = fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
+  const role = userProfile?.role || 'CUSTOMER';
+
   return (
     <div className="min-h-screen bg-[#F5F5F5] text-[#111111] font-sans flex flex-col">
       <Navbar />
@@ -18,11 +36,11 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             <div className="space-y-3 pb-4 border-b border-[#E5E5E5]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[#111111] text-white font-bold text-sm rounded-full flex items-center justify-center">
-                  PK
+                  {initials}
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold text-[#111111] text-sm">Praneeth Kumar</h3>
-                  <p className="text-[11px] text-[#777777]">Vyooma Technologies</p>
+                  <h3 className="font-heading font-bold text-[#111111] text-sm">{fullName}</h3>
+                  <p className="text-[11px] text-[#777777]">{companyName}</p>
                 </div>
               </div>
             </div>
@@ -62,20 +80,19 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             </nav>
           </div>
 
-          <div className="pt-4 border-t border-[#E5E5E5] text-[11px] space-y-2">
-            <div className="text-[#777777] font-semibold uppercase tracking-wider text-[10px]">Switch Portal Context</div>
-            <div className="space-y-1">
-              <Link href="/organization/dashboard" className="flex items-center gap-1.5 text-[#305CDE] font-semibold hover:underline">
-                <Building2 className="w-3.5 h-3.5" /> Organization Workspace
-              </Link>
-              <Link href="/seller/dashboard" className="flex items-center gap-1.5 text-[#138808] font-semibold hover:underline">
-                <Store className="w-3.5 h-3.5" /> Seller Merchant Portal
-              </Link>
-              <Link href="/ops" className="flex items-center gap-1.5 text-rose-600 font-semibold hover:underline">
-                <ShieldAlert className="w-3.5 h-3.5" /> Ops Mission Control
-              </Link>
+          {role === 'ADMIN' && (
+            <div className="pt-4 border-t border-[#E5E5E5] text-[11px] space-y-2">
+              <div className="text-[#777777] font-semibold uppercase tracking-wider text-[10px]">Switch Portal Context</div>
+              <div className="space-y-1">
+                <Link href="/organization/dashboard" className="flex items-center gap-1.5 text-[#305CDE] font-semibold hover:underline">
+                  <Building2 className="w-3.5 h-3.5" /> Organization Workspace
+                </Link>
+                <Link href="/ops" className="flex items-center gap-1.5 text-rose-600 font-semibold hover:underline">
+                  <ShieldAlert className="w-3.5 h-3.5" /> Ops Mission Control
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
         </aside>
 
         {/* Expansive Main Workspace Area */}

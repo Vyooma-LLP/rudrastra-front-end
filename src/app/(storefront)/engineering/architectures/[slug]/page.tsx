@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 
 type BomItem = {
   position: string;
@@ -93,7 +92,7 @@ export default function ArchitectureDetailPage() {
   }
 
   return (
-    <CapabilityGuard featureKey="engineering.search">
+    
       <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
         {/* HERO */}
         <section className="w-full bg-[#111111] text-white px-6 lg:px-10 py-16 relative overflow-hidden">
@@ -214,6 +213,6 @@ export default function ArchitectureDetailPage() {
           </div>
         </section>
       </div>
-    </CapabilityGuard>
+    
   );
 }

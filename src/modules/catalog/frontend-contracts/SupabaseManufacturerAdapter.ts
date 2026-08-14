@@ -1,5 +1,7 @@
 import { GetManufacturerProductsQuery, GetManufacturerProductsInput, ManufacturerProduct } from './ManufacturerContract';
 
+import { getProductImage } from '../../../utils/image';
+
 export class SupabaseGetManufacturerProductsAdapter implements GetManufacturerProductsQuery {
   async execute(input: GetManufacturerProductsInput): Promise<ManufacturerProduct[]> {
     // For MVP, since we don't have a manufacturers table with relationships,
@@ -16,7 +18,7 @@ export class SupabaseGetManufacturerProductsAdapter implements GetManufacturerPr
       mpn: p.mpn || p.title,
       category: p.category,
       price: (p.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
-      img: p.imageUrl || '/images/products/rudrastra_motor_1785921295587.png'
+      img: getProductImage(p.imageUrl, '/images/products/rudrastra_motor_1785921295587.png')
     }));
   }
 }

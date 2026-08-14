@@ -74,7 +74,7 @@ export class SupabaseAddToCartAdapter implements AddToCartCommand {
       const res = await fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ADD', payload: { mpn: input.mpn, sellerId: input.sellerId, quantity: input.quantity } })
+        body: JSON.stringify({ action: 'ADD', payload: { mpn: input.mpn, sellerId: input.sellerId, productId: input.productId, quantity: input.quantity } })
       });
       // NOTE: Our backend expects productId. For this MVP, if the frontend sends mpn as productId it might fail if they are UUIDs. 
       // If the cart add sends a product UUID, it works.

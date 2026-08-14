@@ -1,4 +1,4 @@
-import { createClient } from "../../../../utils/supabase/server";
+import { createClient } from '@/utils/supabase/server';
 import { db } from "@/db/index";
 import { cartItems, products, sellers, users, orders, orderItems, idempotencyKeys } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";

@@ -1,4 +1,4 @@
-import { createClient } from "../../../../utils/supabase/server";
+import { createClient } from '@/utils/supabase/server';
 import { db } from "@/db/index";
 import { cartItems, products, sellers, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
             })
             .from(cartItems)
             .innerJoin(products, eq(cartItems.productId, products.id))
-            .innerJoin(sellers, eq(products.sellerId, sellers.id))
+            .leftJoin(sellers, eq(products.sellerId, sellers.id))
             .where(eq(cartItems.userId, userId));
 
         // Server-side authoritative calculation

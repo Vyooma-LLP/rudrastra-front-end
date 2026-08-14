@@ -1,23 +1,42 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
+import { useSearchParams } from "next/navigation";
+import { getProductImage } from "@/utils/image";
 
-export default function ProductsPage() {
-  const [searchQuery, setSearchQuery] = useState('');
+function ProductsPageContent() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get('category') || '';
+  const q = searchParams.get('q') || '';
+
+  const [searchQuery, setSearchQuery] = useState(q);
   const [currentPage, setCurrentPage] = useState(1);
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/products').then(res => res.json()).then(data => {
-      if (data.products) setProducts(data.products);
-    }).catch(console.error);
-  }, []);
+    let url = '/api/products';
+    const params = [];
+    if (category) params.push(`category=${encodeURIComponent(category)}`);
+    if (q) params.push(`q=${encodeURIComponent(q)}`);
+    if (params.length > 0) {
+      url += '?' + params.join('&');
+    }
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data.products) setProducts(data.products);
+      })
+      .catch(console.error);
+  }, [category, q]);
+
+  useEffect(() => {
+    setSearchQuery(q);
+  }, [q]);
 
   return (
-    <CapabilityGuard featureKey="catalog.products">
-      <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
+    <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
       {/* 1. HERO & SEARCH */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
         <span className="font-sans text-[12px] font-bold tracking-[0.15em] uppercase text-[var(--muted-foreground)] mb-4 block">
@@ -31,79 +50,82 @@ export default function ProductsPage() {
         </p>
 
         {/* Large Search Input */}
-        <CapabilityGuard featureKey="engineering.search" hideCompletely>
-          <div className="w-full max-w-4xl relative flex items-center group">
-            <svg className="absolute left-5 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--primary)] transition-colors duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="square" strokeLinejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <div className="w-full max-w-4xl relative flex items-center group">
+          <svg className="absolute left-5 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--primary)] transition-colors duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="square" strokeLinejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && searchQuery.trim()) window.location.href = `/products?q=${encodeURIComponent(searchQuery.trim())}`; }}
+            placeholder="Search MPN, manufacturer, KV, voltage, protocol..."
+            className="w-full h-[64px] pl-14 pr-[120px] bg-white border border-[var(--border)] font-sans text-[16px] focus:outline-none focus:border-[var(--foreground)] transition-colors duration-fast placeholder:text-[var(--muted-foreground)] focus:placeholder:opacity-50"
+          />
+          <button
+            onClick={() => { if (searchQuery.trim()) window.location.href = `/products?q=${encodeURIComponent(searchQuery.trim())}`; }}
+            className="absolute right-2 top-2 bottom-2 bg-[var(--foreground)] text-white font-sans font-semibold text-[14px] px-8 hover:bg-[var(--primary)] transition-colors duration-fast flex items-center gap-2 group/btn"
+          >
+            Search
+            <svg className="w-4 h-4 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && searchQuery.trim()) window.location.href = `/products?q=${encodeURIComponent(searchQuery.trim())}`; }}
-              placeholder="Search MPN, manufacturer, KV, voltage, protocol..."
-              className="w-full h-[64px] pl-14 pr-[120px] bg-white border border-[var(--border)] font-sans text-[16px] focus:outline-none focus:border-[var(--foreground)] transition-colors duration-fast placeholder:text-[var(--muted-foreground)] focus:placeholder:opacity-50"
-            />
-            <button
-              onClick={() => { if (searchQuery.trim()) window.location.href = `/products?q=${encodeURIComponent(searchQuery.trim())}`; }}
-              className="absolute right-2 top-2 bottom-2 bg-[var(--foreground)] text-white font-sans font-semibold text-[14px] px-8 hover:bg-[var(--primary)] transition-colors duration-fast flex items-center gap-2 group/btn"
-            >
-              Search
-              <svg className="w-4 h-4 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </div>
-        </CapabilityGuard>
+          </button>
+        </div>
 
         {/* Popular Tags */}
         <div className="mt-4 flex flex-wrap items-center gap-3 text-[13px] font-sans text-[var(--muted-foreground)]">
           <span className="font-semibold text-[var(--foreground)]">Popular:</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">MN4014</span>
+          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast" onClick={() => window.location.href = '/products?q=MN4014'}>MN4014</span>
           <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">Pixhawk 6X</span>
+          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast" onClick={() => window.location.href = '/products?q=Pixhawk%206X'}>Pixhawk 6X</span>
           <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">45A ESC</span>
+          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast" onClick={() => window.location.href = '/products?q=45A%20ESC'}>45A ESC</span>
           <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">M10 GNSS</span>
+          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast" onClick={() => window.location.href = '/products?q=M10%20GNSS'}>M10 GNSS</span>
           <span>·</span>
-          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast">6S LiPo</span>
+          <span className="hover:text-[var(--primary)] cursor-pointer transition-colors duration-fast" onClick={() => window.location.href = '/products?q=6S%20LiPo'}>6S LiPo</span>
         </div>
       </section>
 
       {/* 2. MAIN CATALOG LAYOUT */}
       <section className="w-full px-6 lg:px-10 py-12 flex flex-col md:flex-row gap-10">
-        
         {/* LEFT: ENGINEERING FILTERS */}
-        <CapabilityGuard featureKey="engineering.search" fallback={<aside className="w-full md:w-[280px] shrink-0 p-4 border border-red-200 bg-red-50 text-red-600 rounded text-sm font-bold">Engineering Search Filters Offline</aside>}>
-          <aside className="w-full md:w-[280px] shrink-0">
-            <h2 className="font-heading font-bold text-[18px] mb-6">Filters</h2>
+        <aside className="w-full md:w-[280px] shrink-0">
+          <h2 className="font-heading font-bold text-[18px] mb-6">Filters</h2>
 
-            {/* Category Filter */}
-            <div className="mb-8">
-              <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Category</h3>
-              <div className="flex flex-wrap gap-2">
-                {["Propulsion", "Flight Control", "Power", "Compute & AI", "Airframe", "Communication"].map((item, i) => (
-                  <label key={i} className={`flex items-center px-3 py-1.5 cursor-pointer border transition-colors duration-fast ${i === 0 ? 'bg-black text-white border-black' : 'bg-white border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5]'}`}>
+          {/* Category Filter */}
+          <div className="mb-8">
+            <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Category</h3>
+            <div className="flex flex-wrap gap-2">
+              {["Propulsion", "Flight Control", "Power", "Compute & AI", "Communication", "Navigation", "Airframe", "Payload"].map((item, i) => {
+                const isActive = category === item || category.startsWith(item + ' > ');
+                return (
+                  <Link 
+                    key={i} 
+                    href={`/products?category=${encodeURIComponent(item)}`}
+                    className={`flex items-center px-3 py-1.5 cursor-pointer border transition-colors duration-fast ${isActive ? 'bg-black text-white border-black' : 'bg-white border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5]'}`}
+                  >
                     <span className="font-sans text-[13px] font-medium">{item}</span>
-                  </label>
-                ))}
-              </div>
+                  </Link>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Electrical Filter */}
-            <div className="mb-8 border-t border-[var(--border)] pt-6">
-              <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Electrical</h3>
-              <div className="flex flex-wrap gap-2">
-                {["Voltage", "Current", "KV", "Power", "Capacity"].map((item, i) => (
-                  <label key={i} className="flex items-center px-3 py-1.5 cursor-pointer bg-white border border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5] transition-colors duration-fast">
-                    <span className="font-sans text-[13px] font-medium">{item}</span>
-                  </label>
-                ))}
-              </div>
+          {/* Electrical Filter */}
+          <div className="mb-8 border-t border-[var(--border)] pt-6">
+            <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Electrical</h3>
+            <div className="flex flex-wrap gap-2">
+              {["Voltage", "Current", "KV", "Power", "Capacity"].map((item, i) => (
+                <label key={i} className="flex items-center px-3 py-1.5 cursor-pointer bg-white border border-[var(--border)] text-[var(--foreground)] hover:bg-[#F5F5F5] transition-colors duration-fast">
+                  <span className="font-sans text-[13px] font-medium">{item}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            {/* Interface Filter */}
+          {/* Interface Filter */}
             <div className="mb-8 border-t border-[var(--border)] pt-6">
               <h3 className="font-sans text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">Interface</h3>
               <div className="flex flex-wrap gap-2">
@@ -127,7 +149,7 @@ export default function ProductsPage() {
               </div>
             </div>
           </aside>
-        </CapabilityGuard>
+        
 
         {/* RIGHT: RESULTS GRID */}
         <div className="flex-1">
@@ -159,7 +181,7 @@ export default function ProductsPage() {
                 {/* IMAGE */}
                 <div className="w-full h-[240px] bg-white flex items-center justify-center p-6 overflow-hidden relative border-b border-[var(--border)]">
                   <Image 
-                    src={prod.imageUrl || "/images/products/rudrastra_motor_1785921295587.png"} 
+                    src={getProductImage(prod.imageUrl)} 
                     alt={`${prod.title} ${prod.mpn || ''}`} 
                     width={200} 
                     height={200} 
@@ -230,7 +252,15 @@ export default function ProductsPage() {
           </div>
         </div>
       </section>
-      </div>
-    </CapabilityGuard>
+    </div>
+
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-sm font-sans">Loading Catalog...</div>}>
+      <ProductsPageContent />
+    </Suspense>
   );
 }

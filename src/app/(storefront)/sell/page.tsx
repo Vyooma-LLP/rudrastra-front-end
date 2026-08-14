@@ -1,11 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { Store, ShieldCheck, ArrowRight, Layers, Landmark } from 'lucide-react';
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 
 export default function BecomeSellerPage() {
   return (
-    <CapabilityGuard featureKey="seller.onboarding">
+    
 <div className="min-h-screen bg-[#F5F5F5] text-[#111111] py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
         
@@ -13,7 +12,7 @@ export default function BecomeSellerPage() {
           <div className="w-12 h-12 bg-[#138808]/10 border border-[#138808]/30 text-[#138808] rounded-full flex items-center justify-center mx-auto">
             <Store className="w-6 h-6" />
           </div>
-          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-[#111111]">Become a Verified Seller on Rudrastra</h1>
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-[#111111]">Become a Verified Seller on Rudraastra</h1>
           <p className="text-xs text-[#777777] max-w-xl mx-auto">
             Sell drone components directly to India&apos;s top defense contractors, UAV manufacturers, and robotics labs with automated Razorpay Route split payouts.
           </p>
@@ -61,6 +60,6 @@ export default function BecomeSellerPage() {
 
       </div>
     </div>
-    </CapabilityGuard>
+    
   );
 }

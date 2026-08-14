@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { orders, orderItems, users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { isFeatureEnabled } from "@/lib/features";
-import { createClient } from "../../../../utils/supabase/server";
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(req: NextRequest) {
   try {

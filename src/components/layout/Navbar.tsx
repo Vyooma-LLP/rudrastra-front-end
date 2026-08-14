@@ -11,6 +11,7 @@ import {
 import { useAuth } from "./AuthContext";
 import { SessionRole } from "../../modules/auth/frontend-contracts/AuthContract";
 import { useCartContext } from "../commerce/CartContext";
+import { CapabilityGuard } from "./CapabilityGuard";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -72,7 +73,7 @@ export function Navbar() {
             <path d="M0 0L12 14L0 28H6L18 14L6 0H0Z" fill="currentColor" />
             <path d="M14 0L26 14L14 28H20L32 14L20 0H14Z" fill="currentColor" />
           </svg>
-          <span className="font-heading font-bold text-[16px] tracking-tight ml-2">RUDRASTRA</span>
+          <span className="font-heading font-bold text-[16px] tracking-tight ml-2">RUDRAASTRA</span>
         </Link>
 
         {/* Center Navigation Links */}
@@ -111,7 +112,7 @@ export function Navbar() {
           </Link>
 
           <Link
-            href="/rfq"
+            href="/quote-request"
             className="hidden md:inline-flex px-5 py-2.5 bg-[#111111] text-white border border-[#111111] hover:bg-black text-[13px] font-sans font-semibold transition-colors duration-fast shrink-0"
           >
             Request Quote
@@ -121,7 +122,7 @@ export function Navbar() {
           {isLoading ? (
             <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-slate-800 animate-spin" />
           ) : sessionRole === "logged_out" ? (
-            <div className="hidden sm:flex items-center gap-2 text-xs font-semibold">
+            <div className="flex items-center gap-2 text-xs font-semibold">
               <Link 
                 href="/login" 
                 className="px-3.5 py-2 text-[#111111] hover:bg-slate-100 rounded transition-colors flex items-center gap-1.5"
@@ -130,7 +131,7 @@ export function Navbar() {
               </Link>
               <Link 
                 href="/signup" 
-                className="px-4 py-2 border border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-white transition-colors flex items-center gap-1.5"
+                className="hidden sm:flex px-4 py-2 border border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-white transition-colors items-center gap-1.5"
               >
                 <UserPlus className="w-4 h-4" /> Create Account
               </Link>
@@ -164,7 +165,7 @@ export function Navbar() {
                     <div className="text-[11px] text-slate-500">{userEmail}</div>
                   </div>
 
-                  {true && (
+                  {session?.isSystemAdmin && (
                     <div className="bg-amber-50 border border-amber-200 p-2 rounded-lg mb-3 space-y-2 text-[10px]">
                       <div className="flex items-center justify-between font-bold text-amber-800 uppercase tracking-wider text-[9px]">
                         <span className="flex items-center gap-1"><Code2 className="w-3 h-3" /> Dev Context Panel</span>
@@ -190,22 +191,22 @@ export function Navbar() {
                           <button 
                             disabled={isSwitching}
                             onClick={() => handleRoleChange("owner")} 
-                            className={`py-1 rounded transition-all disabled:opacity-50 ${sessionRole === "owner" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
+                            className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "owner" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >Owner</button>
                           <button 
                             disabled={isSwitching}
                             onClick={() => handleRoleChange("customer")} 
-                            className={`py-1 rounded transition-all disabled:opacity-50 ${sessionRole === "customer" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
+                            className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "customer" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >Customer</button>
                           <button 
                             disabled={isSwitching}
                             onClick={() => handleRoleChange("seller")} 
-                            className={`py-1 rounded transition-all disabled:opacity-50 ${sessionRole === "seller" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
+                            className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "seller" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >Seller</button>
                           <button 
                             disabled={isSwitching}
                             onClick={() => handleRoleChange("ops")} 
-                            className={`py-1 rounded transition-all disabled:opacity-50 ${sessionRole === "ops" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
+                            className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "ops" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >
                             Ops
                           </button>
@@ -228,104 +229,110 @@ export function Navbar() {
                           <div className="text-[10px] text-slate-500">Orders, RMA & Warranties</div>
                         </div>
                       </Link>
-                      <Link
-                        href="/account/orders"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
-                      >
-                        <Package className="w-4 h-4 text-slate-600" />
-                        <div>
-                          <div className="font-semibold">Orders & Tracking</div>
-                          <div className="text-[10px] text-slate-500">View status & invoices</div>
-                        </div>
-                      </Link>
-                      <Link
-                        href="/account/rma"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
-                      >
-                        <Wrench className="w-4 h-4 text-slate-600" />
-                        <div>
-                          <div className="font-semibold">Technical RMA & Returns</div>
-                          <div className="text-[10px] text-slate-500">Hardware return diagnostics</div>
-                        </div>
-                      </Link>
-                      <Link
-                        href="/organization/dashboard"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-blue-700 transition-colors border-t border-slate-100 mt-1 pt-2"
-                      >
-                        <Building2 className="w-4 h-4 text-blue-600" />
-                        <div>
-                          <div className="font-semibold">Organization Workspace</div>
-                          <div className="text-[10px] text-slate-500">B2B Projects & PO Approvals</div>
-                        </div>
-                      </Link>
-                      <Link
-                        href="/sell"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-emerald-50 text-emerald-700 transition-colors"
-                      >
-                        <Store className="w-4 h-4 text-emerald-600" />
-                        <div>
-                          <div className="font-semibold">Become a Seller</div>
-                          <div className="text-[10px] text-emerald-600">Register merchant account</div>
-                        </div>
-                      </Link>
+                      
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/account/orders"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                        >
+                          <Package className="w-4 h-4 text-slate-600" />
+                          <div>
+                            <div className="font-semibold">Orders & Tracking</div>
+                            <div className="text-[10px] text-slate-500">View status & invoices</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
+
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/account/rma"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                        >
+                          <Wrench className="w-4 h-4 text-slate-600" />
+                          <div>
+                            <div className="font-semibold">Technical RMA & Returns</div>
+                            <div className="text-[10px] text-slate-500">Hardware return diagnostics</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
+
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/organization/dashboard"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-blue-700 transition-colors border-t border-slate-100 mt-1 pt-2 w-full"
+                        >
+                          <Building2 className="w-4 h-4 text-blue-600" />
+                          <div>
+                            <div className="font-semibold">Organization Workspace</div>
+                            <div className="text-[10px] text-slate-500">B2B Projects & PO Approvals</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
                     </div>
                   )}
 
                   {sessionRole === "seller" && (
                     <div className="space-y-1">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 px-2 py-1">Seller Merchant Hub</div>
-                      <Link
-                        href="/seller/dashboard"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
-                      >
-                        <Store className="w-4 h-4 text-emerald-600" />
-                        <div>
-                          <div className="font-semibold">Seller Dashboard</div>
-                          <div className="text-[10px] text-slate-500">Sales & fulfillment overview</div>
-                        </div>
-                      </Link>
-                      <Link
-                        href="/seller/offers"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
-                      >
-                        <Tag className="w-4 h-4 text-emerald-600" />
-                        <div>
-                          <div className="font-semibold">Offers & SKU Mapping</div>
-                          <div className="text-[10px] text-slate-500">Pricing & GST HSN rates</div>
-                        </div>
-                      </Link>
-                      <Link
-                        href="/seller/inventory"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
-                      >
-                        <Layers className="w-4 h-4 text-emerald-600" />
-                        <div>
-                          <div className="font-semibold">Inventory Ledger</div>
-                          <div className="text-[10px] text-slate-500">On-hand & reserved stock</div>
-                        </div>
-                      </Link>
-                      <Link
-                        href="/seller/payouts"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
-                      >
-                        <Landmark className="w-4 h-4 text-emerald-600" />
-                        <div>
-                          <div className="font-semibold">Razorpay Payouts</div>
-                          <div className="text-[10px] text-slate-500">Bank settlements</div>
-                        </div>
-                      </Link>
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/seller/dashboard"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                        >
+                          <Store className="w-4 h-4 text-emerald-600" />
+                          <div>
+                            <div className="font-semibold">Seller Dashboard</div>
+                            <div className="text-[10px] text-slate-500">Sales & fulfillment overview</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/seller/offers"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                        >
+                          <Tag className="w-4 h-4 text-emerald-600" />
+                          <div>
+                            <div className="font-semibold">Offers & SKU Mapping</div>
+                            <div className="text-[10px] text-slate-500">Pricing & GST HSN rates</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/seller/inventory"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                        >
+                          <Layers className="w-4 h-4 text-emerald-600" />
+                          <div>
+                            <div className="font-semibold">Inventory Ledger</div>
+                            <div className="text-[10px] text-slate-500">On-hand & reserved stock</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/seller/payouts"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                        >
+                          <Landmark className="w-4 h-4 text-emerald-600" />
+                          <div>
+                            <div className="font-semibold">Razorpay Payouts</div>
+                            <div className="text-[10px] text-slate-500">Bank settlements</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
                     </div>
                   )}
 
-                  {sessionRole === "ops" && (
+                  {session?.isSystemAdmin && (
                     <div className="space-y-1">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-rose-600 px-2 py-1">Ops Mission Control</div>
                       <Link
@@ -340,27 +347,29 @@ export function Navbar() {
                         </div>
                       </Link>
                       <Link
-                        href="/ops/catalog"
+                        href="/ops/catalog/products"
                         onClick={() => setIsProfileOpen(false)}
                         className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
                       >
                         <Layers className="w-4 h-4 text-rose-600" />
                         <div>
-                          <div className="font-semibold">PIM Verification Desk</div>
-                          <div className="text-[10px] text-slate-500">Approve MPN specs</div>
+                          <div className="font-semibold">Catalog Management</div>
+                          <div className="text-[10px] text-slate-500">Add and edit products</div>
                         </div>
                       </Link>
-                      <Link
-                        href="/ops/audit-logs"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors"
-                      >
-                        <ShieldCheck className="w-4 h-4 text-rose-600" />
-                        <div>
-                          <div className="font-semibold">System Audit Trail</div>
-                          <div className="text-[10px] text-slate-500">Security audit logs</div>
-                        </div>
-                      </Link>
+                      <CapabilityGuard featureKey="coming.soon">
+                        <Link
+                          href="/ops/audit-logs"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-rose-600" />
+                          <div>
+                            <div className="font-semibold">System Audit Trail</div>
+                            <div className="text-[10px] text-slate-500">Security audit logs</div>
+                          </div>
+                        </Link>
+                      </CapabilityGuard>
                     </div>
                   )}
 

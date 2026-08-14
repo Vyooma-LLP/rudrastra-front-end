@@ -28,7 +28,8 @@ export interface CartState {
 
 export interface AddToCartInput {
   mpn: string;
-  sellerId: string;
+  sellerId: string | null;
+  productId?: string;
   quantity: number;
 }
 

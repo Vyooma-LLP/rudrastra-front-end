@@ -8,6 +8,7 @@ export interface SessionContext {
   userName: string;
   organizationId?: string;
   userId?: string;
+  isSystemAdmin?: boolean;
 }
 
 export interface AuthenticateUserInput {

@@ -16,6 +16,7 @@ import {
   SupabaseSetProjectContextAdapter
 } from '../../modules/commerce/frontend-contracts/SupabaseCartAdapter';
 import { CommandContext } from '../../contracts/base';
+import { generateUUID } from '../../utils/uuid';
 
 const getCartQuery = new SupabaseGetCartAdapter();
 const addToCartCommand = new SupabaseAddToCartAdapter();
@@ -30,13 +31,21 @@ interface CartContextValue {
   removeFromCart: (input: RemoveFromCartInput) => Promise<void>;
   updateQuantity: (input: UpdateCartItemInput) => Promise<void>;
   setProjectContext: (input: SetProjectContextInput) => Promise<void>;
+  refreshCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
+interface CartProviderProps {
+  children: ReactNode;
+  /** Pass userId from auth — cart only fetches if user is authenticated */
+  userId?: string | null;
+}
+
+export function CartProvider({ children, userId }: CartProviderProps) {
   const [cartState, setCartState] = useState<CartState | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Start not loading — only flip to true when we actually fetch
+  const [isLoading, setIsLoading] = useState(false);
 
   const refreshCart = async () => {
     setIsLoading(true);
@@ -44,19 +53,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const data = await getCartQuery.execute();
       setCartState(data);
     } catch (e) {
-      console.error(e);
+      console.error('[Cart] fetch failed:', e);
+      // Don't clear cartState on refetch failure — keep stale data
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refreshCart();
-  }, []);
+    // Only fetch cart if we have a confirmed authenticated user.
+    // This skips the DB roundtrip on anonymous visits entirely.
+    if (userId) {
+      refreshCart();
+    } else {
+      setCartState(null);
+    }
+  }, [userId]);
 
   const addToCart = async (input: AddToCartInput) => {
-    const ctx: CommandContext = { metadata: { requestId: crypto.randomUUID(), commandId: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() }, channel: 'web' };
+    const ctx: CommandContext = { metadata: { requestId: generateUUID(), commandId: generateUUID(), idempotencyKey: generateUUID() }, channel: 'web' };
     const res = await addToCartCommand.execute(input, ctx);
     if (res.status === 'SUCCESS' && res.data) {
       setCartState(res.data);
@@ -66,7 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = async (input: RemoveFromCartInput) => {
-    const ctx: CommandContext = { metadata: { requestId: crypto.randomUUID(), commandId: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() }, channel: 'web' };
+    const ctx: CommandContext = { metadata: { requestId: generateUUID(), commandId: generateUUID(), idempotencyKey: generateUUID() }, channel: 'web' };
     const res = await removeFromCartCommand.execute(input, ctx);
     if (res.status === 'SUCCESS' && res.data) {
       setCartState(res.data);
@@ -76,7 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = async (input: UpdateCartItemInput) => {
-    const ctx: CommandContext = { metadata: { requestId: crypto.randomUUID(), commandId: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() }, channel: 'web' };
+    const ctx: CommandContext = { metadata: { requestId: generateUUID(), commandId: generateUUID(), idempotencyKey: generateUUID() }, channel: 'web' };
     const res = await updateCartItemCommand.execute(input, ctx);
     if (res.status === 'SUCCESS' && res.data) {
       setCartState(res.data);
@@ -86,7 +101,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const setProjectContext = async (input: SetProjectContextInput) => {
-    const ctx: CommandContext = { metadata: { requestId: crypto.randomUUID(), commandId: crypto.randomUUID(), idempotencyKey: crypto.randomUUID() }, channel: 'web' };
+    const ctx: CommandContext = { metadata: { requestId: generateUUID(), commandId: generateUUID(), idempotencyKey: generateUUID() }, channel: 'web' };
     const res = await setProjectContextCommand.execute(input, ctx);
     if (res.status === 'SUCCESS' && res.data) {
       setCartState(res.data);
@@ -96,7 +111,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <CartContext.Provider value={{ cartState, isLoading, addToCart, removeFromCart, updateQuantity, setProjectContext }}>
+    <CartContext.Provider value={{ cartState, isLoading, addToCart, removeFromCart, updateQuantity, setProjectContext, refreshCart }}>
       {children}
     </CartContext.Provider>
   );

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CreditCard, Building2, ShieldCheck, ArrowRight } from 'lucide-react';
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 import { useCartContext } from '@/components/commerce/CartContext';
 import { useCommand } from '@/hooks/useCommand';
 import { SupabaseGetCartAdapter } from '@/modules/commerce/frontend-contracts/SupabaseCartAdapter';
@@ -43,7 +42,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <CapabilityGuard featureKey="commerce.checkout">
+    
       <div className="min-h-screen bg-[#F5F5F5] text-[#111111] py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         
@@ -155,6 +154,6 @@ export default function CheckoutPage() {
         </div>
       </div>
       </div>
-    </CapabilityGuard>
+    
   );
 }

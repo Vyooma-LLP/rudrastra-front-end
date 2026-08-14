@@ -21,7 +21,7 @@ export function Ticker() {
             </span>
             <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full"></span>
             <span className="font-heading font-bold text-[10px] uppercase tracking-wider mx-8 text-[var(--primary)]">
-              RUDRASTRA
+              RUDRAASTRA
             </span>
             <span className="w-1.5 h-1.5 bg-[var(--accent)] rounded-full"></span>
             <span className="font-heading font-bold text-[10px] uppercase tracking-wider mx-8 text-[var(--accent)]">

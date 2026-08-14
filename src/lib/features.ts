@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { featureFlags } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { createClient } from "../../utils/supabase/server";
+import { createClient } from '@/utils/supabase/server';
 
 export const DEVELOPER_EMAIL = "neethk2003@gmail.com";
 

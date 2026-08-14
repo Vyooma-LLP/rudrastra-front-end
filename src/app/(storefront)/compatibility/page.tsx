@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
 import Link from "next/link";
 import { useCommand } from "@/hooks/useCommand";
 import { MockCheckCompatibilityAdapter } from "@/modules/compatibility/frontend-contracts/MockCompatibilityAdapter";
@@ -36,7 +35,7 @@ export default function CompatibilityPage() {
   };
 
   return (
-    <CapabilityGuard featureKey="engineering.compatibility">
+    
     <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
       {/* HERO */}
       <section className="w-full bg-white border-b border-[var(--border)] px-6 lg:px-10 py-16">
@@ -153,6 +152,6 @@ export default function CompatibilityPage() {
         </div>
       </section>
     </div>
-    </CapabilityGuard>
+    
   );
 }

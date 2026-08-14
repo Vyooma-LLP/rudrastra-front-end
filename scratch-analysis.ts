@@ -1,24 +1,39 @@
 import fs from 'fs';
 import path from 'path';
 
-function walk(dir: string, fileList: string[] = []) {
-  if (!fs.existsSync(dir)) return fileList;
+const walkSync = (dir: string, filelist: string[] = []) => {
   const files = fs.readdirSync(dir);
   for (const file of files) {
-    const stat = fs.statSync(path.join(dir, file));
-    if (stat.isDirectory()) {
-      fileList = walk(path.join(dir, file), fileList);
+    const dirFile = path.join(dir, file);
+    const dirent = fs.statSync(dirFile);
+    if (dirent.isDirectory()) {
+      if (!dirFile.includes('node_modules') && !dirFile.includes('.git') && !dirFile.includes('.next')) {
+        filelist = walkSync(dirFile, filelist);
+      }
     } else {
-      fileList.push(path.join(dir, file));
+      if (dirFile.endsWith('.tsx') || dirFile.endsWith('.ts')) {
+        filelist.push(dirFile);
+      }
     }
   }
-  return fileList;
+  return filelist;
+};
+
+const files = walkSync('./src/app');
+let routes = [];
+let buttons = [];
+
+for (const file of files) {
+  const content = fs.readFileSync(file, 'utf8');
+  if (file.endsWith('page.tsx')) {
+    routes.push(file);
+  }
+  
+  const buttonMatches = content.match(/<Button[\s\S]*?>/g);
+  if (buttonMatches) {
+    buttons.push({ file, count: buttonMatches.length });
+  }
 }
 
-const adapters = walk('src/modules').filter(f => f.includes('Adapter.ts'));
-console.log("Adapters:", adapters);
-
-const schemaFile = fs.readFileSync('src/db/schema.ts', 'utf-8');
-const tables = [...schemaFile.matchAll(/export const ([a-zA-Z0-9_]+) = pgTable/g)].map(m => m[1]);
-console.log("Tables:", tables);
-
+console.log('Total routes:', routes.length);
+console.log('Files with buttons:', buttons.length);

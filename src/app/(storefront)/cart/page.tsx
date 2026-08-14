@@ -6,15 +6,15 @@ import {
   ShoppingBag, Trash2, ArrowRight, ShieldCheck, 
   Cpu, FolderGit2, CheckCircle, AlertCircle
 } from 'lucide-react';
-import { CapabilityGuard } from '@/components/layout/CapabilityGuard';
 import { useCartContext } from '@/components/commerce/CartContext';
 import { formatMoney } from '@/utils/money';
+import { toast } from '@/components/ui/Toast';
 
 export default function CartPage() {
-  const { cartState, isLoading, removeFromCart, setProjectContext } = useCartContext();
+  const { cartState, isLoading, removeFromCart, updateQuantity, setProjectContext } = useCartContext();
   
   return (
-    <CapabilityGuard featureKey="commerce.cart">
+    
       <div className="min-h-screen bg-[#F5F5F5] text-[#111111] py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         
@@ -30,8 +30,7 @@ export default function CartPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 bg-white border border-[#E5E5E5] rounded px-3 py-1.5 text-xs text-[#111111]">
-            <ShieldCheck className="w-4 h-4 text-[#138808]" />
-            <span className="font-semibold">10-Minute Inventory Reservation Guaranteed Upon Checkout</span>
+            <span className="font-semibold text-gray-500">Quote Request Cart</span>
           </div>
         </div>
 
@@ -107,13 +106,40 @@ export default function CartPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
-                    <div className="text-right">
+                    <div className="flex items-center gap-1 border border-[#E5E5E5] bg-[#F5F5F5] rounded">
+                      <button 
+                        onClick={() => {
+                          if (item.quantity > 1) {
+                            updateQuantity({ itemId: item.id, quantity: item.quantity - 1 });
+                          }
+                        }}
+                        disabled={item.quantity <= 1}
+                        className="px-2.5 py-1 text-xs font-bold text-gray-600 hover:text-black hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent"
+                      >
+                        -
+                      </button>
+                      <span className="font-mono font-bold text-xs px-1 text-gray-800">{item.quantity}</span>
+                      <button 
+                        onClick={() => {
+                          if (item.quantity < item.stockAvailable) {
+                            updateQuantity({ itemId: item.id, quantity: item.quantity + 1 });
+                          } else {
+                            toast("Cannot exceed available stock");
+                          }
+                        }}
+                        disabled={item.quantity >= item.stockAvailable}
+                        className="px-2.5 py-1 text-xs font-bold text-gray-600 hover:text-black hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="text-right min-w-[80px]">
                       <div className="font-mono font-bold text-[#111111] text-sm">₹{formatMoney(item.unitPrice)}</div>
-                      <div className="text-[10px] text-[#777777]">Qty: {item.quantity}× (₹{(parseInt(item.unitPrice.amountMinor) / 100 * item.quantity).toFixed(2)})</div>
+                      <div className="text-[10px] text-[#777777] font-mono">Total: ₹{((parseInt(item.unitPrice.amountMinor) / 100) * item.quantity).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
                     </div>
                     <button 
                       onClick={() => removeFromCart({ itemId: item.id })}
-                      className="text-rose-600 hover:text-rose-800"
+                      className="text-rose-600 hover:text-rose-800 p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -133,41 +159,46 @@ export default function CartPage() {
           <div className="space-y-6">
             <div className="bg-white border border-[#E5E5E5] p-6 space-y-6 shadow-sm text-xs">
               <h2 className="font-heading text-base font-bold text-[#111111] border-b border-[#E5E5E5] pb-3">
-                Order Financial Breakdown
+                Estimated Cart Value
               </h2>
 
               <div className="space-y-3 font-mono">
                 <div className="flex justify-between text-[#777777]">
-                  <span>Subtotal (excl. GST)</span>
+                  <span>Subtotal</span>
                   <span className="text-[#111111] font-semibold">₹{formatMoney(cartState?.summary.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-[#777777]">
-                  <span>Estimated GST (18%)</span>
-                  <span className="text-[#138808] font-semibold">+₹{formatMoney(cartState?.summary.gstAmount)}</span>
-                </div>
-                <div className="flex justify-between text-[#777777]">
-                  <span>Insured Express Shipping</span>
-                  <span className="text-[#138808] font-semibold">FREE</span>
-                </div>
                 <div className="border-t border-[#E5E5E5] pt-3 flex justify-between text-sm font-extrabold text-[#111111]">
-                  <span>Total (incl. GST)</span>
-                  <span className="text-[#F35C27]">₹{formatMoney(cartState?.summary.total)}</span>
+                  <span>Estimated Cart Value</span>
+                  <span className="text-[#F35C27]">₹{formatMoney(cartState?.summary.subtotal)}</span>
+                </div>
+                <div className="text-[10px] text-[#777777] italic mt-2">
+                  * Final pricing will be confirmed after your quote request.
                 </div>
               </div>
 
-              <Link
-                href="/checkout"
-                className="w-full py-3.5 bg-[#111111] hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors uppercase tracking-wider"
-              >
-                <span>Proceed to B2B Checkout</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {cartState?.items && cartState.items.length > 0 ? (
+                <Link
+                  href="/quote-request"
+                  className="w-full py-3.5 bg-[#111111] hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors uppercase tracking-wider text-center"
+                >
+                  <span>Request Quote</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <button
+                  disabled
+                  className="w-full py-3.5 bg-[#E5E5E5] text-gray-400 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed uppercase tracking-wider"
+                >
+                  <span>Request Quote</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
         </div>
       </div>
       </div>
-    </CapabilityGuard>
+    
   );
 }
