@@ -286,7 +286,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             )}
             
             {/* Main Image */}
-            <div className="w-full order-1 lg:order-2 bg-[#F3F3F3] aspect-square flex items-center justify-center relative p-8">
+            <div className="flex-1 min-w-0 order-1 lg:order-2 bg-[#F3F3F3] aspect-square flex items-center justify-center relative p-8">
               <button className="absolute bottom-4 right-4 text-black">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
               </button>
