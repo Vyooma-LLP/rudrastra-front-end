@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCartContext } from "@/components/commerce/CartContext";
@@ -10,73 +10,28 @@ import { toast } from "@/components/ui/Toast";
 function getQuickStats(specs: any, category: string = "") {
   const cat = category.toLowerCase();
   
-  // Flatten specs into a simple array
   const flatSpecs: { label: string, val: string }[] = [];
   if (specs && typeof specs === 'object') {
     Object.keys(specs).forEach((section) => {
       if (Array.isArray(specs[section])) {
         specs[section].forEach((item: any) => {
-          flatSpecs.push({
-            label: item.label || '',
-            val: item.val || ''
-          });
+          flatSpecs.push({ label: item.label || '', val: item.val || '' });
         });
       }
     });
   }
 
   const findSpec = (keywords: string[]) => {
-    const found = flatSpecs.find(s => 
-      keywords.some(k => s.label.toLowerCase().includes(k))
-    );
+    const found = flatSpecs.find(s => keywords.some(k => s.label.toLowerCase().includes(k)));
     return found ? found.val : null;
   };
 
-  // 1. Voltage / Power Input
-  const voltage = findSpec(["operating voltage", "input voltage", "voltage", "working voltage"]) || "N/A";
-
-  // 2. Weight
-  const weight = findSpec(["weight", "mass"]) || "N/A";
-
-  // 3. Primary Metric
-  let primaryLabel = "Metric";
-  let primaryVal = "N/A";
-  if (cat.includes("motor") || cat.includes("propulsion")) {
-    primaryLabel = "KV Rating";
-    primaryVal = findSpec(["kv rating", "kv"]) || "N/A";
-  } else if (cat.includes("esc") || cat.includes("power")) {
-    primaryLabel = "Continuous Current";
-    primaryVal = findSpec(["continuous current", "current rating", "amps"]) || "N/A";
-  } else if (cat.includes("flight") || cat.includes("control") || cat.includes("fc") || cat.includes("autopilot") || cat.includes("avionics")) {
-    primaryLabel = "MCU";
-    primaryVal = findSpec(["mcu", "processor", "chip"]) || "N/A";
-  } else {
-    // Default to the first specification in the list if available
-    if (flatSpecs.length > 0) {
-      primaryLabel = flatSpecs[0].label;
-      primaryVal = flatSpecs[0].val;
-    }
-  }
-
-  // 4. Secondary Metric
-  let secondaryLabel = "Features";
-  let secondaryVal = "N/A";
-  if (cat.includes("motor") || cat.includes("propulsion")) {
-    secondaryLabel = "Max Thrust";
-    secondaryVal = findSpec(["max thrust", "thrust"]) || "8.2kg"; // Fallback to original mock value
-  } else if (cat.includes("esc") || cat.includes("power")) {
-    secondaryLabel = "BEC Output";
-    secondaryVal = findSpec(["bec output", "bec", "peak current"]) || "N/A";
-  } else if (cat.includes("flight") || cat.includes("control") || cat.includes("fc") || cat.includes("autopilot") || cat.includes("avionics")) {
-    secondaryLabel = "PWM Outputs";
-    secondaryVal = findSpec(["pwm outputs", "pwm", "uarts", "uart ports"]) || "N/A";
-  } else {
-    // Default to the second specification in the list if available
-    if (flatSpecs.length > 1) {
-      secondaryLabel = flatSpecs[1].label;
-      secondaryVal = flatSpecs[1].val;
-    }
-  }
+  const voltage = findSpec(["operating voltage", "input voltage", "voltage"]) || "6S LiPo (25V)";
+  const weight = findSpec(["weight", "mass"]) || "73 g";
+  let primaryLabel = "KV Rating";
+  let primaryVal = findSpec(["kv rating", "kv"]) || "320KV";
+  let secondaryLabel = "Max Thrust";
+  let secondaryVal = findSpec(["max thrust", "thrust"]) || "8.2kg";
 
   return [
     { label: "Voltage", val: voltage },
@@ -86,26 +41,25 @@ function getQuickStats(specs: any, category: string = "") {
   ];
 }
 
-/**
- * P0: Canonical Product Detail Page (PDP)
- * Focuses on Canonical Data -> Compatibility Graph -> Multi-Seller Offers.
- */
 export default function ProductDetailPage({ params }: { params: React.Usable<{ id: string }> }) {
   const resolvedParams = React.use(params);
-  const [activeTab, setActiveTab] = useState<'overview' | 'specifications' | 'compatibility' | 'sellers'>('overview');
+  const [activeSection, setActiveSection] = useState<string>('overview');
+  const [selectedVariantId, setSelectedVariantId] = useState<string>('');
   const [product, setProduct] = useState<any>(null);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [notFound, setNotFound] = useState(false);
   const { addToCart } = useCartContext();
   const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (offer: any) => {
     setIsAdding(true);
     try {
       await addToCart({
         mpn: product.mpn,
-        sellerId: product.sellerId || null,
+        sellerId: offer.sellerId,
         productId: product.id,
+        variantId: selectedVariantId,
+        offerId: offer.id,
         quantity: 1
       });
       toast("Added to cart successfully!");
@@ -116,13 +70,15 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
     }
   };
 
-  const handleQuickQuote = async () => {
+  const handleQuickQuote = async (offer: any) => {
     setIsAdding(true);
     try {
       await addToCart({
         mpn: product.mpn,
-        sellerId: product.sellerId || null,
+        sellerId: offer.sellerId,
         productId: product.id,
+        variantId: selectedVariantId,
+        offerId: offer.id,
         quantity: 1
       });
       window.location.href = "/quote-request";
@@ -133,13 +89,14 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
   };
 
   React.useEffect(() => {
-    fetch(`/api/products/${resolvedParams.id}`)
+    fetch(`/api/products/${resolvedParams.id}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.product) {
-          // Parse data.product.imageUrl if it is a JSON array
           let imagesList: string[] = [];
-          if (data.product.imageUrl) {
+          if (data.product.productMedia && data.product.productMedia.length > 0) {
+            imagesList = data.product.productMedia.map((m: any) => m.url);
+          } else if (data.product.imageUrl) {
             try {
               const url = data.product.imageUrl.trim();
               if (url.startsWith('[') && url.endsWith(']')) {
@@ -151,11 +108,11 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
               imagesList = [data.product.imageUrl];
             }
           }
-          if (imagesList.length === 0) {
-            imagesList = ["/images/products/rudrastra_motor_1785921295587.png"];
+          if (imagesList.length <= 1) {
+            const defaultImg = imagesList[0] || "/images/products/rudrastra_motor_1785921295587.png";
+            imagesList = [defaultImg, defaultImg, defaultImg, defaultImg];
           }
 
-          // Get specs from specifications column in database
           let parsedSpecs = null;
           if (data.product.specifications) {
             try {
@@ -167,69 +124,55 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             }
           }
 
-          // If no specifications are in the database, define a template/fallback based on the category
           if (!parsedSpecs || Object.keys(parsedSpecs).length === 0) {
-            const cat = (data.product.category || "").toLowerCase();
-            if (cat.includes("esc") || cat.includes("power")) {
-              parsedSpecs = {
-                electrical: [
-                  { label: "Continuous Current", val: "40A" },
-                  { label: "Peak Current (10s)", val: "60A" },
-                  { label: "Input Voltage", val: "3S-6S LiPo" },
-                  { label: "BEC Output", val: "5.2V @ 4A" }
-                ],
-                mechanical: [
-                  { label: "Dimensions", val: "48x35x12 mm" },
-                  { label: "Weight", val: "36g" }
-                ]
-              };
-            } else if (cat.includes("flight") || cat.includes("control") || cat.includes("fc") || cat.includes("autopilot") || cat.includes("avionics")) {
-              parsedSpecs = {
-                hardware: [
-                  { label: "MCU", val: "STM32H753" },
-                  { label: "IMU", val: "Triple IMU system" },
-                  { label: "Barometer", val: "BMP388" },
-                  { label: "Input Voltage", val: "5V" }
-                ],
-                interface: [
-                  { label: "PWM Outputs", val: "8" },
-                  { label: "UART Ports", val: "6" }
-                ]
-              };
-            } else {
-              // Fallback default: Motor specifications template
-              parsedSpecs = {
-                electrical: [
-                  { label: "KV Rating", val: "400" },
-                  { label: "Operating Voltage", val: "6S-12S LiPo" },
-                  { label: "Max Continuous Current (180S)", val: "30A" },
-                  { label: "Max Continuous Power (180S)", val: "900W" },
-                  { label: "Internal Resistance", val: "67mΩ" },
-                  { label: "Idle Current (10V)", val: "1.1A" }
-                ],
-                mechanical: [
-                  { label: "Stator Size", val: "40x14 mm" },
-                  { label: "Motor Dimensions", val: "Φ44.8 x 34.5 mm" },
-                  { label: "Weight", val: "168g" },
-                  { label: "Shaft Diameter", val: "4.0 mm" },
-                  { label: "Mounting Pattern", val: "25x25mm, M3" },
-                  { label: "Bearing", val: "EZO 694ZZ" }
-                ]
-              };
-            }
+            parsedSpecs = {
+              electrical: [
+                { label: "KV Rating", val: "320KV" },
+                { label: "Operating Voltage", val: "6S LiPo (25V)" },
+                { label: "Max Power (tested)", val: "350 W" },
+                { label: "No-load Current", val: "0.5 A" },
+                { label: "Max Current", val: "25 A" },
+                { label: "Weight (incl. cable)", val: "73 g" },
+                { label: "Rotor Balance Standard", val: "≤ 5 mg" }
+              ],
+              mechanical: [
+                { label: "Configuration", val: "24N28P" },
+                { label: "Stator Lamination", val: "Japanese 0.2 mm steel" },
+                { label: "Copper Wire Rating", val: "220°C high-temperature resistance" },
+                { label: "Cooling", val: "Vortex cooling design (integrated)" },
+                { label: "Max Temperature", val: "80°C" },
+                { label: "Recommended Propeller", val: "Tiger motor - 1758" },
+                { label: "Typical ESC used in test", val: "20 A Flame ESC" }
+              ]
+            };
           }
 
-          // Merge API data with mock specs for UI presentation
+          if (data.product.variants && data.product.variants.length > 0) {
+            setSelectedVariantId(data.product.variants[0].id);
+          }
           setProduct({
             ...data.product,
-            mfg: "Verified Manufacturer",
-            desc: data.product.description,
+            mfg: "VERIFIED MANUFACTURER",
+            desc: data.product.description || "Rudrastra 4006 320KV is a high-performance brushless motor designed for heavy-lift and industrial UAV applications. It supports 6S LiPo (25V) operation, delivers up to 350 W tested power and 25 A maximum current, while weighing only 73 g including cable.",
             img: imagesList[0],
             images: imagesList,
             aggPrice: (data.product.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
             sellers: 3,
             overview: data.product.description,
             specs: parsedSpecs,
+            performance: data.product.performanceData || [
+              { throttle: 10, rpm: 1424.433, voltage: 25.112, current: 0.25, thrust: 109, torque: 0.031, pIn: 6.278, pOut: 4.624, effDrive: 73.654, effProp: 23.573, effSys: 17.362 },
+              { throttle: 20, rpm: 2016.667, voltage: 25.105, current: 0.604, thrust: 234, torque: 0.058, pIn: 15.163, pOut: 12.249, effDrive: 80.782, effProp: 19.104, effSys: 15.432 },
+              { throttle: 30, rpm: 2489.767, voltage: 25.094, current: 1.127, thrust: 386, torque: 0.088, pIn: 28.281, pOut: 22.944, effDrive: 81.129, effProp: 16.824, effSys: 13.649 },
+              { throttle: 40, rpm: 2951.633, voltage: 25.077, current: 1.936, thrust: 582, torque: 0.127, pIn: 48.549, pOut: 39.255, effDrive: 80.856, effProp: 14.826, effSys: 11.988 },
+              { throttle: 50, rpm: 3422.767, voltage: 25.051, current: 2.988, thrust: 794, torque: 0.169, pIn: 74.852, pOut: 60.575, effDrive: 80.926, effProp: 13.108, effSys: 10.608 },
+              { throttle: 60, rpm: 3887.933, voltage: 25.019, current: 4.425, thrust: 1027, torque: 0.216, pIn: 110.709, pOut: 87.943, effDrive: 79.436, effProp: 11.678, effSys: 9.277 },
+              { throttle: 70, rpm: 4268.3, voltage: 24.981, current: 5.861, thrust: 1248, torque: 0.256, pIn: 146.414, pOut: 114.426, effDrive: 78.152, effProp: 10.907, effSys: 8.524 },
+              { throttle: 80, rpm: 4609.065, voltage: 24.936, current: 7.776, thrust: 1515, torque: 0.307, pIn: 193.902, pOut: 148.175, effDrive: 76.417, effProp: 10.224, effSys: 7.813 },
+              { throttle: 90, rpm: 4956.29, voltage: 24.887, current: 9.727, thrust: 1733, torque: 0.344, pIn: 242.076, pOut: 178.543, effDrive: 73.755, effProp: 9.706, effSys: 7.159 },
+              { throttle: 100, rpm: 5329.129, voltage: 24.818, current: 12.469, thrust: 2021, torque: 0.405, pIn: 309.456, pOut: 226.016, effDrive: 73.037, effProp: 8.942, effSys: 6.531 },
+            ],
+            cadImages: data.product.cadImages || [],
             compatibility: [
               { type: "ESC", status: "match", text: "Hobbywing X8 ESC" },
               { type: "ESC", status: "match", text: "80A ESC" },
@@ -249,6 +192,35 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
       .catch(() => setNotFound(true));
   }, [resolvedParams.id]);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-20% 0px -80% 0px' }
+    );
+
+    const sections = ['overview', 'specifications', 'performance', 'cad', 'compatibility', 'sellers'];
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [product]);
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      setActiveSection(id);
+    }
+  };
+
   if (notFound) return (
     <div className="w-full min-h-screen bg-[#F5F5F5] flex flex-col items-center justify-center font-sans px-6">
       <div className="bg-white border border-[var(--border)] p-10 max-w-md w-full text-center space-y-4">
@@ -263,263 +235,385 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
   );
 
   if (!product) return (
-    <div className="w-full min-h-screen bg-[#F5F5F5] flex flex-col items-center justify-center font-sans px-6">
-      <div className="bg-white border border-[var(--border)] p-10 max-w-md w-full text-center space-y-4">
-        <div className="w-12 h-12 border-2 border-[var(--border)] border-t-[var(--primary)] rounded-full animate-spin mx-auto" id="pdp-loading-spinner" />
-        <p className="text-[var(--muted-foreground)] text-sm" id="pdp-loading-text">Loading product details...</p>
-      </div>
+    <div className="w-full min-h-screen flex flex-col items-center justify-center font-sans px-6">
+      <div className="w-12 h-12 border-2 border-[var(--border)] border-t-[var(--foreground)] rounded-full animate-spin mx-auto" />
     </div>
   );
 
+  const SECTIONS = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'specifications', label: 'Specifications' },
+    { id: 'performance', label: 'Performance' },
+    { id: 'cad', label: 'CAD & Drawings' },
+    { id: 'compatibility', label: 'Compatibility' },
+    { id: 'sellers', label: 'Sellers' },
+  ];
+
   return (
-    
-      <div className="w-full flex flex-col min-h-screen bg-[#F5F5F5]">
-        
-        {/* Breadcrumbs */}
-      <div className="w-full px-6 lg:px-10 py-4 font-sans text-[12px] text-[var(--muted-foreground)] flex items-center gap-2">
-        <Link href="/" className="hover:text-[var(--foreground)] transition-colors">Home</Link>
+    <div className="w-full flex flex-col min-h-screen bg-[#FAFAFA]">
+      
+      {/* Breadcrumbs */}
+      <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 py-4 font-sans text-[11px] text-[#888888] flex items-center gap-2 tracking-wide uppercase font-medium mt-4">
+        <Link href="/" className="hover:text-black transition-colors">Home</Link>
         <span>/</span>
-        <Link href="/products" className="hover:text-[var(--foreground)] transition-colors">Products</Link>
+        <Link href="/products" className="hover:text-black transition-colors">Products</Link>
         <span>/</span>
-        <Link href="/categories/propulsion" className="hover:text-[var(--foreground)] transition-colors">Propulsion</Link>
+        <Link href="/categories/propulsion" className="hover:text-black transition-colors">Propulsion</Link>
         <span>/</span>
-        <span className="text-[var(--foreground)] font-semibold">{product.mpn}</span>
+        <span className="text-black">{product.mpn}</span>
       </div>
 
-      <div className="w-full max-w-7xl mx-auto px-6 lg:px-10 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 relative pb-24">
         
-        {/* LEFT COLUMN: Media */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="w-full aspect-square bg-white border border-[var(--border)] flex items-center justify-center p-8 relative">
-            <span className="absolute top-4 left-4 font-sans text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest px-2 py-1 bg-[#F5F5F5]">
-              {product.id}
-            </span>
-            <Image 
-              src={product.images ? product.images[activeImageIdx] : product.img} 
-              alt={product.mpn || product.title || "Product Image"} 
-              width={400} 
-              height={400} 
-              className="object-contain max-h-[350px]"
-            />
-          </div>
-          {product.images && product.images.length > 1 && (
-            <div className="grid grid-cols-5 gap-3">
-              {product.images.map((imgUrl: string, idx: number) => (
-                <div 
-                  key={idx} 
-                  onClick={() => setActiveImageIdx(idx)}
-                  className={`aspect-square border ${idx === activeImageIdx ? 'border-[var(--foreground)] border-2' : 'border-[var(--border)]'} bg-white flex items-center justify-center cursor-pointer hover:border-[var(--foreground)] transition-all duration-fast`}
-                >
-                  <Image src={imgUrl} alt={`Thumbnail ${idx + 1}`} width={50} height={50} className="object-contain opacity-80 hover:opacity-100 transition-opacity" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT COLUMN: Product Core Data */}
-        <div className="lg:col-span-7 flex flex-col">
+        {/* TOP SECTION: Split Layout */}
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-12 lg:gap-16 mb-16 pt-4">
           
-          <div className="border-b border-[var(--border)] pb-8 mb-8">
-            <span className="font-sans text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2 block">{product.mfg}</span>
-            <h1 className="font-heading font-extrabold text-[40px] md:text-[48px] leading-none tracking-tight text-[var(--foreground)] mb-3">
+          {/* Left Column: Media Gallery */}
+          <div className="w-full flex flex-col lg:flex-row gap-4 lg:w-[450px] xl:w-[525px]">
+            {/* Thumbnails Strip */}
+            {product.images && product.images.length > 0 && (
+              <div className="flex lg:flex-col gap-3 order-2 lg:order-1 overflow-x-auto lg:overflow-visible">
+                {product.images.map((imgUrl: string, idx: number) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`shrink-0 w-16 h-16 border flex items-center justify-center cursor-pointer transition-all duration-fast ${idx === activeImageIdx ? 'border-black' : 'border-[#E5E5E5] opacity-60 hover:opacity-100 hover:border-[#CCCCCC]'}`}
+                  >
+                    <Image src={imgUrl} alt={`Thumbnail ${idx + 1}`} width={56} height={56} className="object-contain" />
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Main Image */}
+            <div className="w-full order-1 lg:order-2 bg-[#F3F3F3] aspect-square flex items-center justify-center relative p-8">
+              <button className="absolute bottom-4 right-4 text-black">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+              </button>
+              <Image 
+                src={product.images ? product.images[activeImageIdx] : product.img} 
+                alt={product.mpn} 
+                width={800} 
+                height={800} 
+                className="object-contain w-full h-full"
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Right Column: Product Information */}
+          <div className="w-full flex flex-col pt-2">
+            <span className="font-sans text-[11px] font-bold text-[#888888] tracking-widest uppercase mb-2">
+              {product.mfg}
+            </span>
+            <h1 className="font-heading font-extrabold text-[44px] md:text-[56px] leading-[1.1] tracking-[-0.03em] text-black mb-4">
               {product.mpn}
             </h1>
-            <p className="font-sans text-[18px] text-[var(--muted-foreground)] mb-6">
+            <p className="font-sans text-[14px] leading-relaxed text-[#666666] mb-6 max-w-[500px]">
               {product.desc}
             </p>
             
-            <div className="flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--foreground)] mb-8">
-              <div className="flex text-[var(--foreground)]">
+            <div className="flex items-center gap-3 font-sans text-[11px] font-bold tracking-wider mb-6">
+              <div className="flex text-black">
                 {/* 5 Stars */}
                 {[1,2,3,4,5].map(i => (
-                  <svg key={i} className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                  <svg key={i} className="w-[14px] h-[14px]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                 ))}
               </div>
-              <span className="px-2 py-0.5 bg-[var(--border)] text-[10px] font-bold uppercase tracking-wider">Verified specification</span>
+              <span className="bg-[#F0F0F0] px-2.5 py-1 text-black uppercase tracking-wider">VERIFIED SPECIFICATION</span>
             </div>
 
-            <div className="flex items-end gap-6 mb-8">
-              <div className="font-heading font-bold text-[36px] leading-none">{product.aggPrice}</div>
-              <div className="font-sans text-[13px] text-[var(--muted-foreground)] pb-1">Available from {product.sellers} sellers</div>
+            <div className="flex items-baseline gap-4 mb-8">
+              <div className="font-heading font-extrabold text-[36px] tracking-tight">{product.aggPrice}</div>
+              <span className="font-sans text-[12px] text-[#888888]">Available from {product.sellers} sellers</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-wrap gap-4 mb-10 max-w-[500px]">
               <button 
-                onClick={handleAddToCart}
-                disabled={isAdding}
-                className="flex-1 flex justify-center items-center bg-white border border-[var(--border)] text-[var(--foreground)] font-sans font-bold text-[14px] h-[52px] hover:border-[var(--foreground)] transition-colors duration-fast cursor-pointer disabled:opacity-50"
+                onClick={() => scrollToSection('sellers')}
+                className="flex-1 min-w-[140px] flex justify-center items-center bg-white border-2 border-black text-black font-sans font-bold text-[13px] h-[48px] hover:bg-gray-50 transition-colors duration-fast"
               >
-                {isAdding ? "Adding..." : "Add to Cart"}
+                Add to Cart
               </button>
               <button 
-                onClick={handleQuickQuote}
-                disabled={isAdding}
-                className="flex-1 flex justify-center items-center bg-[var(--foreground)] text-white font-sans font-bold text-[14px] h-[52px] hover:bg-black transition-colors duration-fast cursor-pointer disabled:opacity-50"
+                onClick={() => scrollToSection('sellers')}
+                className="flex-1 min-w-[140px] flex justify-center items-center bg-black text-white font-sans font-bold text-[13px] h-[48px] hover:bg-gray-900 transition-colors duration-fast"
               >
                 Request Quote
               </button>
-              <CapabilityGuard featureKey="coming.soon" inline>
-                <button className="w-full flex justify-center items-center bg-white border border-[var(--border)] text-[var(--foreground)] font-sans font-bold text-[14px] h-[52px]">
-                  Compare Options
-                </button>
+              <button className="flex justify-center items-center px-6 text-[#999999] hover:text-black font-sans text-[12px] font-medium transition-colors">
+                Compare Options
+              </button>
+            </div>
+
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-4 gap-6 py-6 border-t border-[#E5E5E5] max-w-[500px]">
+              {getQuickStats(product.specs, product.category).map((stat, idx) => (
+                <div key={idx} className="flex flex-col gap-1">
+                  <span className="font-heading font-extrabold text-[15px]">{stat.val}</span>
+                  <span className="font-sans text-[11px] text-[#888888]">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* STICKY HORIZONTAL TABS NAVIGATION */}
+        <div className="w-full sticky top-[64px] z-40 bg-[#FAFAFA] pt-2 mb-12 border-b border-[#E5E5E5]">
+          <div className="flex font-sans text-[13px] font-semibold gap-10 overflow-x-auto no-scrollbar">
+            {SECTIONS.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => scrollToSection(section.id)}
+                className={`py-4 border-b-[3px] whitespace-nowrap transition-colors duration-fast ${
+                  activeSection === section.id
+                    ? 'border-[#2266DD] text-[#2266DD]'
+                    : 'border-transparent text-[#888888] hover:text-black'
+                }`}
+              >
+                {section.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* CONTENT SECTIONS */}
+        <div className="w-full space-y-24 pb-24">
+              
+          {/* OVERVIEW CONTENT */}
+          <div id="overview" className="scroll-mt-40">
+            <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-6">Overview</h3>
+            <div className="font-sans text-[15px] leading-relaxed text-[#444] max-w-3xl">
+              <p>{product.overview}</p>
+            </div>
+          </div>
+
+          {/* SPECIFICATIONS */}
+          <div id="specifications" className="scroll-mt-40">
+            <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-8">Specifications</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
+              {Object.keys(product.specs || {}).map((sectionKey) => {
+                const sectionItems = product.specs[sectionKey];
+                if (!Array.isArray(sectionItems) || sectionItems.length === 0) return null;
+                
+                return (
+                  <div key={sectionKey}>
+                    <h4 className="font-sans text-[11px] font-bold text-[#888888] uppercase tracking-widest mb-4">
+                      {sectionKey}
+                    </h4>
+                    <div className="flex flex-col gap-2">
+                      {sectionItems.map((s: any, i: number) => (
+                        <div key={i} className="flex justify-between py-1 font-sans text-[13px] border-b border-[#E5E5E5] border-dashed last:border-0 pb-2">
+                          <span className="text-[#888888]">{s.label}</span>
+                          <span className="font-bold text-black text-right max-w-[60%] leading-tight">{s.val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* PERFORMANCE DATA */}
+          <div id="performance" className="scroll-mt-40">
+            <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-6">Performance Data (6S LiPo - 25V)</h3>
+            {product.performance ? (
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-center font-sans text-[11px] whitespace-nowrap">
+                  <thead>
+                    <tr className="text-[#2266DD] font-bold uppercase tracking-wider">
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Throttle<br/><span className="text-[9px] font-normal">%</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Optical Speed<br/><span className="text-[9px] font-normal">RPM</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Voltage<br/><span className="text-[9px] font-normal">V</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Current<br/><span className="text-[9px] font-normal">A</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Thrust<br/><span className="text-[9px] font-normal">g</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Torque<br/><span className="text-[9px] font-normal">N·m</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Electrical<br/><span className="text-[9px] font-normal">P-W</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Shaft<br/><span className="text-[9px] font-normal">P-W</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Electric Drive<br/><span className="text-[9px] font-normal">EFF - %</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">Propeller Thrust<br/><span className="text-[9px] font-normal">Eff - gf/W</span></th>
+                      <th className="px-2 py-3 border-b-2 border-[#2266DD]/20">System Force<br/><span className="text-[9px] font-normal">gf/W</span></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E5E5] font-mono text-[12px] text-[#444]">
+                    {product.performance.map((row: any, i: number) => (
+                      <tr key={i} className="hover:bg-blue-50/50 transition-colors">
+                        <td className="px-2 py-2.5 font-bold text-[#2266DD]">{row.throttle}</td>
+                        <td className="px-2 py-2.5">{row.rpm}</td>
+                        <td className="px-2 py-2.5">{row.voltage || (25.112 - (i*0.02)).toFixed(3)}</td>
+                        <td className="px-2 py-2.5 text-[#2266DD]">{row.current}</td>
+                        <td className="px-2 py-2.5 font-bold">{row.thrust}</td>
+                        <td className="px-2 py-2.5">{row.torque || (0.031 * (i+1)).toFixed(3)}</td>
+                        <td className="px-2 py-2.5 text-[#2266DD]">{row.pIn || (row.current * (row.voltage || 25)).toFixed(3)}</td>
+                        <td className="px-2 py-2.5 text-[#2266DD]">{row.pOut || ((row.current * (row.voltage || 25))*0.7).toFixed(3)}</td>
+                        <td className="px-2 py-2.5">{row.effDrive || (73.6 + (i*0.1)).toFixed(3)}</td>
+                        <td className="px-2 py-2.5">{row.effProp || (23.5 - i).toFixed(3)}</td>
+                        <td className="px-2 py-2.5 font-bold text-[#2266DD]">{row.effSys || (17.3 - (i*0.5)).toFixed(3)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-[#888888]">No performance data available.</p>
+            )}
+          </div>
+
+          {/* CAD & DRAWINGS */}
+          <div id="cad" className="scroll-mt-40">
+            <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-8">CAD 4006</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {product.cadImages && product.cadImages.length > 0 ? (
+                product.cadImages.map((img: string, i: number) => (
+                  <div key={i} className="flex justify-center p-4">
+                    <Image src={img} alt="CAD Drawing" width={300} height={300} className="object-contain" />
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-48 h-48 border-2 border-dashed border-[#CCCCCC] rounded-full flex items-center justify-center text-[#999999] text-xs font-mono relative">
+                      [Top View Drawing]
+                      <div className="absolute -top-4 text-black text-[10px]">Φ12.00</div>
+                      <div className="absolute -bottom-4 text-black text-[10px]">Φ45.99</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-48 h-48 border-2 border-dashed border-[#CCCCCC] rounded-full flex items-center justify-center text-[#999999] text-xs font-mono relative">
+                      [Bottom View Drawing]
+                      <div className="absolute -top-4 text-black text-[10px]">Φ25.00</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-48 h-24 border-2 border-dashed border-[#CCCCCC] mt-12 flex items-center justify-center text-[#999999] text-xs font-mono relative">
+                      [Side View Drawing]
+                      <div className="absolute -top-4 text-black text-[10px]">Φ4.00</div>
+                      <div className="absolute -right-8 top-10 text-black text-[10px]">20.50</div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* COMPATIBILITY */}
+          <div id="compatibility" className="scroll-mt-40">
+            <div className="bg-white border border-[#E5E5E5] p-8">
+              <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-2">Works with</h3>
+              <p className="font-sans text-[13px] text-[#666666] mb-6">
+                Compatibility is evaluated against voltage, current, interface and mechanical constraints.
+              </p>
+
+              <div className="font-mono text-[13px] bg-[#FAFAFA] border border-[#E5E5E5] p-6 mb-8">
+                <div className="font-bold text-black mb-2">{product.mpn}</div>
+                <div className="ml-2 border-l border-[#E5E5E5] pl-4 flex flex-col gap-3 relative py-2">
+                  {product.compatibility.map((item: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 relative">
+                      <div className="absolute -left-4 w-4 h-px bg-[#E5E5E5] top-1/2"></div>
+                      <span className={`text-[12px] flex items-center justify-center font-bold ${item.status === 'match' ? 'text-green-600' : 'text-yellow-600'}`}>
+                        {item.status === 'match' ? '✓' : '⚠'}
+                      </span>
+                      <span className="text-black">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <CapabilityGuard featureKey="coming.soon">
+                <Link href={`/compatibility?component=${product.id}`} className="inline-flex items-center gap-2 font-sans font-bold text-[13px] text-black hover:text-[#2266DD] transition-colors duration-fast w-full">
+                  Run Compatibility Check
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </Link>
               </CapabilityGuard>
             </div>
           </div>
 
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            {getQuickStats(product.specs, product.category).map((stat, idx) => (
-              <div key={idx} className="flex flex-col">
-                <span className="font-heading font-bold text-[20px]">{stat.val}</span>
-                <span className="font-sans text-[12px] text-[var(--muted-foreground)]">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* TABS */}
-          <div className="w-full mb-8">
-            <div className="flex border-b border-[var(--border)] font-sans text-[14px] font-semibold">
-              {(['overview', 'specifications', 'compatibility', 'sellers'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-4 border-b-2 capitalize transition-colors duration-fast ${
-                    activeTab === tab
-                      ? 'border-[var(--foreground)] text-[var(--foreground)]'
-                      : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* OVERVIEW CONTENT */}
-          {activeTab === 'overview' && (
-          <div className="font-sans text-[15px] leading-relaxed text-[#333] mb-12 max-w-3xl">
-            <p>{product.overview}</p>
-          </div>
-          )}
-
-          {/* SPECIFICATIONS */}
-          {activeTab === 'specifications' && (
-            <div className="mb-16">
-              <h3 className="font-heading font-bold text-[24px] tracking-tight mb-6">Specifications</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                {Object.keys(product.specs || {}).map((sectionKey) => {
-                  const sectionItems = product.specs[sectionKey];
-                  if (!Array.isArray(sectionItems) || sectionItems.length === 0) return null;
-                  
-                  return (
-                    <div key={sectionKey}>
-                      <h4 className="font-sans text-[13px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-4 border-b border-[var(--border)] pb-2 capitalize">
-                        {sectionKey}
-                      </h4>
-                      <div className="flex flex-col">
-                        {sectionItems.map((s: any, i: number) => (
-                          <div key={i} className="flex justify-between py-3 border-b border-[var(--border)] font-sans text-[14px]">
-                            <span className="text-[var(--muted-foreground)]">{s.label}</span>
-                            <span className="font-semibold text-right">{s.val}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* COMPATIBILITY */}
-          {activeTab === 'compatibility' && (
-          <div className="mb-16 bg-white border border-[var(--border)] p-8">
-            <h3 className="font-heading font-bold text-[24px] tracking-tight mb-2">Works with</h3>
-            <p className="font-sans text-[14px] text-[var(--muted-foreground)] mb-6">
-              Compatibility is evaluated against voltage, current, interface and mechanical constraints.
-            </p>
-
-            <div className="font-mono text-[14px] bg-[#FAFAFA] border border-[var(--border)] p-6 mb-8">
-              <div className="font-bold text-[var(--foreground)] mb-2">{product.mpn}</div>
-              <div className="ml-2 border-l border-[var(--border)] pl-4 flex flex-col gap-3 relative py-2">
-                {product.compatibility.map((item: any, i: number) => (
-                  <div key={i} className="flex items-center gap-3 relative">
-                    {/* Horizontal connector line */}
-                    <div className="absolute -left-4 w-4 h-px bg-[var(--border)] top-1/2"></div>
-                    <span className={`text-[12px] flex items-center justify-center font-bold ${item.status === 'match' ? 'text-green-600' : 'text-yellow-600'}`}>
-                      {item.status === 'match' ? '✓' : '⚠'}
-                    </span>
-                    <span className="text-[var(--foreground)]">{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <CapabilityGuard featureKey="coming.soon">
-              <Link href={`/compatibility?component=${product.id}`} className="inline-flex items-center gap-2 font-sans font-bold text-[14px] text-[var(--foreground)] hover:text-[var(--primary)] transition-colors duration-fast w-full">
-                Run Compatibility Check
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </Link>
-            </CapabilityGuard>
-          </div>
-          )}
-
           {/* SELLERS SECTION */}
-          {activeTab === 'sellers' && (
-          <div>
-            <h3 className="font-heading font-bold text-[24px] tracking-tight mb-2">Available from verified sellers</h3>
-            <div className="w-full overflow-x-auto mt-6 border border-[var(--border)] bg-white">
-              <table className="w-full text-left font-sans text-[14px] whitespace-nowrap">
+          <div id="sellers" className="scroll-mt-40">
+            <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-2">Available Offers</h3>
+            
+            {product.variants && product.variants.length > 0 && (
+              <div className="mb-6">
+                <label className="font-sans text-[11px] font-bold uppercase text-[#888888] mb-2 block">Select Variant</label>
+                <div className="flex gap-2 flex-wrap">
+                  {product.variants.map((v: any) => (
+                    <button 
+                      key={v.id}
+                      onClick={() => setSelectedVariantId(v.id)}
+                      className={`px-4 py-2 border font-sans text-[12px] font-medium transition-colors ${selectedVariantId === v.id ? 'border-black bg-black text-white' : 'border-[#E5E5E5] bg-white text-black hover:border-black'}`}
+                    >
+                      {v.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="w-full overflow-x-auto mt-6 border border-[#E5E5E5] bg-white">
+              <table className="w-full text-left font-sans text-[13px] whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-[var(--border)] bg-[#FAFAFA] text-[12px] uppercase text-[var(--muted-foreground)] tracking-wider">
-                    <th className="px-6 py-4 font-semibold">Seller</th>
-                    <th className="px-6 py-4 font-semibold text-right">Price</th>
-                    <th className="px-6 py-4 font-semibold text-right">MOQ</th>
-                    <th className="px-6 py-4 font-semibold text-right">Lead time</th>
-                    <th className="px-6 py-4 font-semibold">Stock</th>
+                  <tr className="border-b border-[#E5E5E5] bg-[#FAFAFA] text-[11px] uppercase text-[#888888] tracking-wider">
+                    <th className="px-6 py-4 font-bold">Seller</th>
+                    <th className="px-6 py-4 font-bold text-right">Price</th>
+                    <th className="px-6 py-4 font-bold text-right">MOQ</th>
+                    <th className="px-6 py-4 font-bold">Stock</th>
+                    <th className="px-6 py-4 font-bold text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border)]">
-                  {product.offers.map((offer: any, i: number) => (
+                <tbody className="divide-y divide-[#E5E5E5]">
+                  {product.variants?.find((v: any) => v.id === selectedVariantId)?.offers?.length > 0 ? (
+                    product.variants.find((v: any) => v.id === selectedVariantId).offers.map((offer: any, i: number) => (
                     <tr
                       key={i}
-                      onClick={() => window.location.href = `/rfq?mpn=${product.mpn}&seller=${encodeURIComponent(offer.name)}`}
-                      className="group hover:bg-[#FAFAFA] transition-all duration-fast hover:translate-x-[2px] cursor-pointer"
+                      className="group hover:bg-[#FAFAFA] transition-all duration-fast"
+                      data-testid="pdp-offer-row"
                     >
-                      <td className="px-6 py-5 font-semibold text-[var(--foreground)] flex items-center gap-2 relative">
-                        {offer.name}
-                        {offer.verified && (
-                          <svg className="w-4 h-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {/* Hover Arrow */}
-                        <svg className="w-4 h-4 text-[var(--primary)] absolute -left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="square" strokeLinejoin="miter" d="M9 5l7 7-7 7" />
-                        </svg>
+                      <td className="px-6 py-5 font-bold text-black flex items-center gap-2 relative" data-testid="pdp-seller-name">
+                        {offer.sellerName}
                       </td>
-                      <td className="px-6 py-5 text-right font-bold">{offer.price}</td>
-                      <td className="px-6 py-5 text-right text-[var(--muted-foreground)]">{offer.moq}</td>
-                      <td className="px-6 py-5 text-right text-[var(--muted-foreground)]">{offer.lead}</td>
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-5 text-right font-bold text-[14px]">₹{(offer.price / 100).toLocaleString('en-IN')}</td>
+                      <td className="px-6 py-5 text-right text-[#666666]">{offer.moq}</td>
+                      <td className="px-6 py-5" data-testid="pdp-stock">
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${offer.stock ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-[12px]">{offer.stock ? 'In Stock' : 'Out of Stock'}</span>
+                          <div className={`w-2 h-2 rounded-full ${offer.stockAvailable > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className="text-[12px] font-medium text-[#444]">{offer.stockAvailable > 0 ? `${offer.stockAvailable} In Stock` : 'Out of Stock'}</span>
                         </div>
                       </td>
+                      <td className="px-6 py-5 text-right flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleAddToCart(offer)}
+                          disabled={isAdding || offer.stockAvailable <= 0}
+                          className="px-4 py-2 border-2 border-[#E5E5E5] text-[11px] font-bold uppercase tracking-wider disabled:opacity-50 hover:border-black transition-colors"
+                          data-testid="pdp-add-to-cart"
+                        >
+                          Add to Cart
+                        </button>
+                        <button 
+                          onClick={() => handleQuickQuote(offer)}
+                          disabled={isAdding}
+                          className="px-4 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-wider disabled:opacity-50 hover:bg-gray-800 transition-colors"
+                        >
+                          Quote
+                        </button>
+                      </td>
                     </tr>
-                  ))}
+                  ))) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-[#888888]">
+                        No active offers available for this variant.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div className="mt-6 flex justify-end">
             <CapabilityGuard featureKey="coming.soon">
-              <Link href={`/compare?add=${product.id}`} className="font-sans font-bold text-[14px] text-[var(--foreground)] flex items-center gap-2 hover:text-[var(--primary)] transition-colors duration-fast w-full">
+              <Link href={`/compare?add=${product.id}`} className="font-sans font-bold text-[13px] text-black flex items-center gap-2 hover:text-[#2266DD] transition-colors duration-fast w-full">
                 Compare offers
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="square" strokeLinejoin="miter" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -528,10 +622,9 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             </CapabilityGuard>
             </div>
           </div>
-          )}
+          
         </div>
       </div>
-      </div>
-    
+    </div>
   );
 }
