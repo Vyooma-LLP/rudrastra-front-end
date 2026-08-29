@@ -8,7 +8,7 @@ import type { RealityGateRuntime } from './fixtures/reality-gate.fixture';
 // ─── Test Config ─────────────────────────────────────────────────────────────
 const RUN_PREFIX = 'RG-TEST-';
 const RUN_ID = `${RUN_PREFIX}${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const TEST_PASSWORD = 'Reality@Gate123!';
 
 const EMAILS = {
