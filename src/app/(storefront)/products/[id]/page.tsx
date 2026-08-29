@@ -266,10 +266,10 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
       <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 relative pb-24">
         
         {/* TOP SECTION: Split Layout */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-12 lg:gap-16 mb-16 pt-4">
+        <div className="w-full flex flex-col lg:flex-row gap-12 lg:gap-16 mb-16 pt-4">
           
           {/* Left Column: Media Gallery */}
-          <div className="w-full flex flex-col lg:flex-row gap-4 lg:w-[450px] xl:w-[525px]">
+          <div className="w-full lg:w-[45%] xl:w-[40%] flex flex-col lg:flex-row gap-4 shrink-0">
             {/* Thumbnails Strip */}
             {product.images && product.images.length > 0 && (
               <div className="flex lg:flex-col gap-3 order-2 lg:order-1 overflow-x-auto lg:overflow-visible">
@@ -302,7 +302,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
           </div>
 
           {/* Right Column: Product Information */}
-          <div className="w-full flex flex-col pt-2 min-w-0">
+          <div className="w-full flex-1 flex flex-col pt-2 min-w-0">
             <span className="font-sans text-[11px] font-bold text-[#888888] tracking-widest uppercase mb-2">
               {product.mfg}
             </span>
