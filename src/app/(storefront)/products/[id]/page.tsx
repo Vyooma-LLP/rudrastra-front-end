@@ -156,7 +156,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             desc: data.product.description || "Rudrastra 4006 320KV is a high-performance brushless motor designed for heavy-lift and industrial UAV applications. It supports 6S LiPo (25V) operation, delivers up to 350 W tested power and 25 A maximum current, while weighing only 73 g including cable.",
             img: imagesList[0],
             images: imagesList,
-            aggPrice: (data.product.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
+            aggPrice: data.product.price ? (data.product.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'Contact for Price',
             sellers: 3,
             overview: data.product.description,
             specs: parsedSpecs,
@@ -302,11 +302,11 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
           </div>
 
           {/* Right Column: Product Information */}
-          <div className="w-full flex flex-col pt-2">
+          <div className="w-full flex flex-col pt-2 min-w-0">
             <span className="font-sans text-[11px] font-bold text-[#888888] tracking-widest uppercase mb-2">
               {product.mfg}
             </span>
-            <h1 className="font-heading font-extrabold text-[44px] md:text-[56px] leading-[1.1] tracking-[-0.03em] text-black mb-4">
+            <h1 className="font-heading font-extrabold text-[44px] md:text-[56px] leading-[1.1] tracking-[-0.03em] text-black mb-4 break-words break-all">
               {product.mpn}
             </h1>
             <p className="font-sans text-[14px] leading-relaxed text-[#666666] mb-6 max-w-[500px]">
