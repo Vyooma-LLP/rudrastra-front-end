@@ -4,8 +4,12 @@ export function getProductImage(imageUrl: string | null | undefined, fallback = 
     const trimmed = imageUrl.trim();
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed[0] || fallback;
+      if (Array.isArray(parsed)) {
+        if (parsed.length > 0) {
+          return parsed[0] || fallback;
+        } else {
+          return fallback;
+        }
       }
     }
     return trimmed || fallback;

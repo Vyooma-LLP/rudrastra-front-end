@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/postgres-js";
+import * as schema from "./schema";
 import postgres from "postgres";
 import * as dotenv from "dotenv";
 
@@ -16,4 +17,4 @@ const client = postgres(connectionString, {
     ssl: "require",
 });
 
-export const db = drizzle(client);
+export const db = drizzle(client, { schema });

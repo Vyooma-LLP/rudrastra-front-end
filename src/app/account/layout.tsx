@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/server';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { isFeatureEnabled } from '@/lib/features';
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -45,7 +46,6 @@ export default async function AccountLayout({ children }: { children: React.Reac
               </div>
             </div>
 
-            {/* Navigation Links */}
             <nav className="space-y-1 text-xs font-medium">
               <Link 
                 href="/account" 
@@ -53,46 +53,56 @@ export default async function AccountLayout({ children }: { children: React.Reac
               >
                 <User className="w-4 h-4 text-[#F35C27]" /> Account Dashboard
               </Link>
+              {isFeatureEnabled('accountOrders') && (
+                <Link 
+                  href="/account/orders" 
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
+                >
+                  <Package className="w-4 h-4 text-[#F35C27]" /> Orders & Tracking
+                </Link>
+              )}
+              {isFeatureEnabled('accountRma') && (
+                <Link 
+                  href="/account/rma" 
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
+                >
+                  <Wrench className="w-4 h-4 text-[#F35C27]" /> Technical RMA & Returns
+                </Link>
+              )}
+              {isFeatureEnabled('accountWarranties') && (
+                <Link 
+                  href="/account/warranties" 
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
+                >
+                  <ShieldCheck className="w-4 h-4 text-[#F35C27]" /> Active Warranties
+                </Link>
+              )}
+              {isFeatureEnabled('accountTickets') && (
+                <Link 
+                  href="/account/tickets" 
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
+                >
+                  <Headphones className="w-4 h-4 text-[#F35C27]" /> Support Tickets & SLAs
+                </Link>
+              )}
               <Link 
-                href="/account/orders" 
+                href="/account/quotes" 
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
               >
-                <Package className="w-4 h-4 text-[#F35C27]" /> Orders & Tracking
-              </Link>
-              <Link 
-                href="/account/rma" 
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
-              >
-                <Wrench className="w-4 h-4 text-[#F35C27]" /> Technical RMA & Returns
-              </Link>
-              <Link 
-                href="/account/warranties" 
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
-              >
-                <ShieldCheck className="w-4 h-4 text-[#F35C27]" /> Active Warranties
-              </Link>
-              <Link 
-                href="/account/tickets" 
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] transition-colors"
-              >
-                <Headphones className="w-4 h-4 text-[#F35C27]" /> Support Tickets & SLAs
+                <ShieldAlert className="w-4 h-4 text-[#F35C27]" /> Quote Requests
               </Link>
             </nav>
           </div>
 
-          {role === 'ADMIN' && (
-            <div className="pt-4 border-t border-[#E5E5E5] text-[11px] space-y-2">
-              <div className="text-[#777777] font-semibold uppercase tracking-wider text-[10px]">Switch Portal Context</div>
-              <div className="space-y-1">
+          <div className="pt-4 border-t border-[#E5E5E5] text-[11px] space-y-2">
+            <div className="space-y-1">
+              {isFeatureEnabled('organizationDashboard') && (
                 <Link href="/organization/dashboard" className="flex items-center gap-1.5 text-[#305CDE] font-semibold hover:underline">
                   <Building2 className="w-3.5 h-3.5" /> Organization Workspace
                 </Link>
-                <Link href="/ops" className="flex items-center gap-1.5 text-rose-600 font-semibold hover:underline">
-                  <ShieldAlert className="w-3.5 h-3.5" /> Ops Mission Control
-                </Link>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </aside>
 
         {/* Expansive Main Workspace Area */}

@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { db } from "@/db/index";
-import { cartItems, products, users, quoteRequests, quoteRequestItems, idempotencyKeys } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { products, quoteRequests, quoteRequestItems, idempotencyKeys, cartItems, productVariants, users, sellerOffers } from "@/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { isFeatureEnabled } from "@/lib/features";
 import crypto from "crypto";
@@ -28,7 +28,7 @@ async function getUserId(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (!await isFeatureEnabled('commerce.checkout')) {
+        if (!isFeatureEnabled('storefrontQuoteRequest')) {
             return NextResponse.json({ error: "FEATURE_DISABLED" }, { status: 403 });
         }
 
@@ -64,13 +64,15 @@ export async function POST(request: Request) {
             const cart = await db
                 .select({
                     id: cartItems.id,
-                    productId: products.id,
+                    variantId: productVariants.id,
+                    offerId: cartItems.offerId,
                     quantity: cartItems.quantity,
-                    price: products.price,
-                    title: products.title,
+                    unitPriceSnapshot: sql<number>`COALESCE(${sellerOffers.price}, 0)`, 
+                    title: productVariants.name,
                 })
                 .from(cartItems)
-                .innerJoin(products, eq(cartItems.productId, products.id))
+                .innerJoin(productVariants, eq(cartItems.variantId, productVariants.id))
+                .leftJoin(sellerOffers, eq(cartItems.offerId, sellerOffers.id))
                 .where(eq(cartItems.userId, userId));
 
             if (cart.length === 0) {
@@ -79,7 +81,7 @@ export async function POST(request: Request) {
 
             let estimatedSubtotal = 0;
             for (const item of cart) {
-                estimatedSubtotal += (item.price || 0) * item.quantity;
+                estimatedSubtotal += (item.unitPriceSnapshot || 0) * item.quantity;
             }
 
             if (!customerInfo || !customerInfo.name || !customerInfo.email || !customerInfo.phone) {
@@ -130,9 +132,10 @@ export async function POST(request: Request) {
                 await tx.insert(quoteRequestItems).values(
                     cart.map(item => ({
                         quoteRequestId: quoteReq.id,
-                        productId: item.productId,
+                        variantId: item.variantId,
+                        offerId: item.offerId,
                         productNameSnapshot: item.title,
-                        priceSnapshot: item.price || 0,
+                        priceSnapshot: item.unitPriceSnapshot || 0,
                         quantity: item.quantity
                     }))
                 );

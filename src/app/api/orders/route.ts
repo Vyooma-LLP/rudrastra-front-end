@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/server';
 
 export async function GET(req: NextRequest) {
   try {
-    if (!await isFeatureEnabled('commerce.orders')) {
+    if (!isFeatureEnabled('accountOrders')) {
       return NextResponse.json({ error: "FEATURE_DISABLED" }, { status: 403 });
     }
 

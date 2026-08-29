@@ -93,11 +93,12 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label className="text-[#777777] font-semibold mb-1 block">Work / Corporate Email</label>
+                <label htmlFor="email" className="text-[#777777] font-semibold mb-1 block">Work / Corporate Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-[#777777] absolute left-3 top-3" />
                   <input 
                     type="email" 
+                    id="email"
                     name="email"
                     placeholder="engineer@company.com" 
                     required
@@ -111,13 +112,14 @@ export default function LoginPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-[#777777] font-semibold">Password</label>
+                  <label htmlFor="password" className="text-[#777777] font-semibold">Password</label>
                   <Link href="/forgot-password" className="text-[11px] text-[#F35C27] hover:underline">Forgot Password?</Link>
                 </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-[#777777] absolute left-3 top-3" />
                   <input 
                     type="password" 
+                    id="password"
                     name="password"
                     placeholder="••••••••••••" 
                     required

@@ -37,9 +37,6 @@ export default function EngineeringLayout({ children }: { children: React.ReactN
               <Link href="/account" className="flex items-center gap-1.5 text-[#F35C27] font-semibold hover:underline">
                 <User className="w-3.5 h-3.5" /> Customer Account
               </Link>
-              <Link href="/ops" className="flex items-center gap-1.5 text-rose-600 font-semibold hover:underline">
-                <ShieldAlert className="w-3.5 h-3.5" /> Ops Mission Control
-              </Link>
             </div>
           </div>
         </aside>

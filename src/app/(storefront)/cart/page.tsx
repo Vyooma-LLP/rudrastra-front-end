@@ -94,14 +94,14 @@ export default function CartPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#111111]"></div>
                 </div>
               ) : cartState?.items.map(item => (
-                <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#E5E5E5] pb-4 text-xs">
+                <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#E5E5E5] pb-4 text-xs" data-testid="cart-item">
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 bg-[#F5F5F5] border border-[#E5E5E5] rounded flex items-center justify-center font-mono font-bold text-[#111111]">
                       <Cpu className="w-6 h-6" />
                     </div>
                     <div className="space-y-1">
                       <div className="font-bold text-[#111111] text-sm">{item.name}</div>
-                      <div className="text-[#777777]">MPN: {item.mpn} • Offered by <strong className="text-[#111111]">{item.sellerName}</strong></div>
+                      <div className="text-[#777777]">MPN: {item.mpn} • Offered by <strong className="text-[#111111]" data-testid="cart-seller">{item.sellerName}</strong></div>
                       <div className="text-[#138808] font-semibold">In Stock ({item.stockAvailable} Units) • {item.leadTimeDays} Business Days Delivery</div>
                     </div>
                   </div>

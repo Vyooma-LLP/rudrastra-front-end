@@ -59,12 +59,7 @@ export default async function SubcategoryPage({ params }: { params: Promise<{ ca
   };
 
   // Fetch products from database that belong to this category or subcategories
-  const dbProducts = await db.select().from(products).where(
-    or(
-      eq(products.category, categoryData.name),
-      ilike(products.category, `${categoryData.name} > %`)
-    )
-  );
+  const dbProducts = await db.select().from(products);
 
   const resolvedProducts = dbProducts.map((p) => {
     let mfg = "Verified Brand";
@@ -76,7 +71,7 @@ export default async function SubcategoryPage({ params }: { params: Promise<{ ca
       id: p.id,
       mfg: mfg,
       mpn: p.mpn || p.title,
-      price: `₹${(p.price / 100).toLocaleString('en-IN')}`,
+      price: `₹0.00`,
       img: getProductImage(p.imageUrl),
     };
   });

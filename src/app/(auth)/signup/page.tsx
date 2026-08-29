@@ -126,9 +126,10 @@ export default function SignupPage() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[#777777] font-semibold mb-1 block">Full Name</label>
+                <label htmlFor="fullName" className="text-[#777777] font-semibold mb-1 block">Full Name</label>
                 <input 
                   type="text" 
+                  id="fullName"
                   name="fullName"
                   placeholder="Praneeth Kumar" 
                   required
@@ -139,9 +140,10 @@ export default function SignupPage() {
                 />
               </div>
               <div>
-                <label className="text-[#777777] font-semibold mb-1 block">Company / Entity Name</label>
+                <label htmlFor="companyName" className="text-[#777777] font-semibold mb-1 block">Company / Entity Name</label>
                 <input 
                   type="text" 
+                  id="companyName"
                   name="companyName"
                   placeholder="Vyooma Technologies Pvt Ltd" 
                   required
@@ -155,11 +157,12 @@ export default function SignupPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[#777777] font-semibold mb-1 block">Work Email</label>
+                <label htmlFor="email" className="text-[#777777] font-semibold mb-1 block">Work Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-[#777777] absolute left-3 top-3" />
                   <input 
                     type="email" 
+                    id="email"
                     name="email"
                     placeholder="engineer@company.com" 
                     required
@@ -171,9 +174,10 @@ export default function SignupPage() {
                 </div>
               </div>
               <div>
-                <label className="text-[#777777] font-semibold mb-1 block">GSTIN (Optional for Individuals)</label>
+                <label htmlFor="gstin" className="text-[#777777] font-semibold mb-1 block">GSTIN (Optional for Individuals)</label>
                 <input 
                   type="text" 
+                  id="gstin"
                   name="gstin"
                   placeholder="36AAACV9981K1Z9" 
                   value={gstin}
@@ -185,11 +189,12 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="text-[#777777] font-semibold mb-1 block">Password</label>
+              <label htmlFor="password" className="text-[#777777] font-semibold mb-1 block">Password</label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#777777] absolute left-3 top-3" />
                 <input 
                   type="password" 
+                  id="password"
                   name="password"
                   placeholder="Minimum 8 characters with numbers & symbols" 
                   required

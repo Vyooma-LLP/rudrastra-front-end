@@ -48,6 +48,9 @@ export default async function OpsLayout({ children }: { children: React.ReactNod
               <Link href="/ops/catalog/products" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] font-semibold transition-colors">
                 <Database className="w-4 h-4 text-indigo-600" /> Products Catalog
               </Link>
+              <Link href="/ops/catalog/manufacturers" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] font-semibold transition-colors">
+                <Building2 className="w-4 h-4 text-indigo-600" /> Manufacturers
+              </Link>
               <Link href="/ops/quotes" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5] font-semibold transition-colors">
                 <FileText className="w-4 h-4 text-indigo-600" /> Quote Inbox
               </Link>

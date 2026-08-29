@@ -50,7 +50,7 @@ export default function OpsQuoteInbox() {
             </thead>
             <tbody>
               {quotes.map(quote => (
-                <tr key={quote.id} className="border-b border-[#E5E5E5] hover:bg-[#F9F9F9]">
+                <tr key={quote.id} className="border-b border-[#E5E5E5] hover:bg-[#F9F9F9]" data-testid="quote-row">
                   <td className="p-4">
                     <div className="font-mono font-bold text-[#111111]">{quote.quoteNumber}</div>
                     <div className="text-[10px] text-[#777777] flex items-center gap-1 mt-1">

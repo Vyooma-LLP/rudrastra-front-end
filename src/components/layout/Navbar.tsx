@@ -32,16 +32,16 @@ export function Navbar() {
     console.log("Email change requested:", newEmail);
   };
 
-  const handleRoleChange = async (newRole: SessionRole) => {
+  const handleRoleChange = async (e: React.MouseEvent, newRole: SessionRole) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsSwitching(true);
     try {
       await switchRole(newRole);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsSwitching(false);
-      setIsProfileOpen(false);
-      setIsMobileMenuOpen(false);
     }
   };
 
@@ -190,22 +190,22 @@ export function Navbar() {
                         <div className="grid grid-cols-4 gap-1 text-center font-semibold text-[8px]">
                           <button 
                             disabled={isSwitching}
-                            onClick={() => handleRoleChange("owner")} 
+                            onClick={(e) => handleRoleChange(e, "owner")} 
                             className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "owner" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >Owner</button>
                           <button 
                             disabled={isSwitching}
-                            onClick={() => handleRoleChange("customer")} 
+                            onClick={(e) => handleRoleChange(e, "customer")} 
                             className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "customer" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >Customer</button>
                           <button 
                             disabled={isSwitching}
-                            onClick={() => handleRoleChange("seller")} 
+                            onClick={(e) => handleRoleChange(e, "seller")} 
                             className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "seller" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >Seller</button>
                           <button 
                             disabled={isSwitching}
-                            onClick={() => handleRoleChange("ops")} 
+                            onClick={(e) => handleRoleChange(e, "ops")} 
                             className={`py-1 rounded transition-all disabled:opacity-50 ${session?.role === "ops" ? "bg-amber-600 text-white font-bold" : "bg-white text-amber-900 border border-amber-200"}`}
                           >
                             Ops
@@ -215,7 +215,24 @@ export function Navbar() {
                     </div>
                   )}
 
-                  {sessionRole === "customer" && (
+                  {sessionRole === "owner" && (
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 px-2 py-1">Super Admin Portal</div>
+                      <Link
+                        href="/owner/dashboard"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-800 transition-colors w-full"
+                      >
+                        <ShieldCheck className="w-4 h-4 text-amber-600" />
+                        <div>
+                          <div className="font-semibold">Platform Dashboard</div>
+                          <div className="text-[10px] text-slate-500">System overview & metrics</div>
+                        </div>
+                      </Link>
+                    </div>
+                  )}
+
+                  {(sessionRole === "customer" || sessionRole === "owner") && (
                     <div className="space-y-1">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Customer Account</div>
                       <Link
@@ -274,7 +291,7 @@ export function Navbar() {
                     </div>
                   )}
 
-                  {sessionRole === "seller" && (
+                  {(sessionRole === "seller" || sessionRole === "owner") && (
                     <div className="space-y-1">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 px-2 py-1">Seller Merchant Hub</div>
                       <CapabilityGuard featureKey="coming.soon">
@@ -290,7 +307,7 @@ export function Navbar() {
                           </div>
                         </Link>
                       </CapabilityGuard>
-                      <CapabilityGuard featureKey="coming.soon">
+                      <CapabilityGuard featureKey="seller.offers">
                         <Link
                           href="/seller/offers"
                           onClick={() => setIsProfileOpen(false)}
@@ -303,7 +320,7 @@ export function Navbar() {
                           </div>
                         </Link>
                       </CapabilityGuard>
-                      <CapabilityGuard featureKey="coming.soon">
+                      <CapabilityGuard featureKey="seller.inventory">
                         <Link
                           href="/seller/inventory"
                           onClick={() => setIsProfileOpen(false)}
@@ -332,7 +349,7 @@ export function Navbar() {
                     </div>
                   )}
 
-                  {session?.isSystemAdmin && (
+                  {(sessionRole === "ops" || sessionRole === "owner") && (
                     <div className="space-y-1">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-rose-600 px-2 py-1">Ops Mission Control</div>
                       <Link

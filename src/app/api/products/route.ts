@@ -4,9 +4,11 @@ import { products } from "@/db/schema";
 import { eq, ilike, or, and, desc, asc } from "drizzle-orm";
 import { isFeatureEnabled } from "@/lib/features";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
-    if (!await isFeatureEnabled('catalog.products')) {
+    if (!isFeatureEnabled('storefrontSell')) {
       return NextResponse.json({ error: "FEATURE_DISABLED" }, { status: 403 });
     }
 
@@ -17,18 +19,14 @@ export async function GET(req: NextRequest) {
 
     let conditions = [];
     if (category) {
-      conditions.push(
-        or(
-          eq(products.category, category),
-          ilike(products.category, `${category} > %`)
-        )
-      );
+      // TODO: Implement category ID filtering
     }
     if (q) {
       conditions.push(
         or(
           ilike(products.title, `%${q}%`),
-          ilike(products.description, `%${q}%`)
+          ilike(products.description, `%${q}%`),
+          ilike(products.mpn, `%${q}%`)
         )
       );
     }
@@ -39,11 +37,10 @@ export async function GET(req: NextRequest) {
       query = query.where(and(...conditions)) as any;
     }
 
-    if (sort === 'price_asc') {
-      query = query.orderBy(asc(products.price)) as any;
-    } else if (sort === 'price_desc') {
-      query = query.orderBy(desc(products.price)) as any;
-    } else if (sort === 'newest') {
+    if (sort === 'newest') {
+      query = query.orderBy(desc(products.createdAt)) as any;
+    } else {
+      // Default to newest first
       query = query.orderBy(desc(products.createdAt)) as any;
     }
 
@@ -52,6 +49,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ products: allProducts });
   } catch (error: any) {
     console.error("Error fetching products:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR", message: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_ERROR", message: "Internal server error" }, { status: 500 });
   }
 }

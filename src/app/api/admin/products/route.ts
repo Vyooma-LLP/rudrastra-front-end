@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!await isFeatureEnabled('admin.catalog')) {
+    if (!isFeatureEnabled('opsProductEngine')) {
       return NextResponse.json({ error: "FEATURE_DISABLED" }, { status: 403 });
     }
 
@@ -36,14 +36,11 @@ export async function POST(req: NextRequest) {
     const [newProduct] = await db.insert(products).values({
       title: data.title,
       mpn: data.mpn,
-      sku: data.sku,
       description: data.description,
-      price: data.price,
-      currency: data.currency || "INR",
-      stockQty: data.stockQty || 0,
-      category: data.category,
+      categoryId: data.categoryId,
       imageUrl: data.imageUrl,
-      specifications: data.specifications,
+      performanceData: data.performanceData,
+      cadImages: data.cadImages,
       isActive: data.isActive !== undefined ? data.isActive : true,
     }).returning();
 

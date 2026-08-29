@@ -1,81 +1,69 @@
-import { db } from "@/db";
-import { featureFlags } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
-import { createClient } from '@/utils/supabase/server';
+// Centralized Feature Registry
+// Defines which features are active in the current deployment.
+// Any feature marked as 'false' must be hidden from navigation and guarded at the route level.
 
-export const DEVELOPER_EMAIL = "neethk2003@gmail.com";
+export const FEATURES = {
+  // Ops & Core Admin Features
+  opsProductEngine: true,
+  opsCategories: true,
+  opsManufacturers: true,
+  opsSpecs: true,
+  opsQuotes: true,
+  opsReconciliation: false,
+  opsAuditLogs: false,
+  opsTickets: false,
+  opsDisputes: false,
+  opsFulfillment: false,
+  opsControlCenter: false,
+  opsFinanceLedger: false,
+  opsFinanceInvoices: false,
+  opsFinancePayouts: false,
+  opsFinanceReports: false,
+  opsIncidents: false,
+  opsRma: false,
 
-// Central Feature Registry
-export const MVP_FEATURES = [
-    'auth.login', 'auth.signup', 'auth.session',
-    'catalog.products', 'catalog.categories', 'catalog.search',
-    'catalog.specifications',
-    'commerce.cart', 'commerce.checkout', 'commerce.orders',
-    'ops.control_center', 'ops.catalog'
-];
+  // Seller Features
+  sellerDashboard: true,
+  sellerCatalog: true,
+  sellerOffers: true,
+  sellerInventory: true,
+  sellerOrders: false,
+  sellerReturns: false,
+  sellerPayouts: false,
+  sellerAnalytics: false,
 
-export const PREVIEWABLE_FEATURES = [
-    'procurement.bom', 'procurement.rfq',
-    'engineering.compatibility', 'engineering.compare',
-    'seller.dashboard', 'seller.catalog', 'seller.offers',
-    'seller.inventory', 'seller.orders',
-    'organization.dashboard', 'organization.procurement',
-    'ops.finance', 'ops.audit'
-];
+  // Organization (B2B Procurement) Features
+  organizationProjects: false,
+  organizationDashboard: false,
+  organizationProcurement: false,
+  organizationSuppliers: false,
+  organizationHistory: false,
+  organizationApprovals: false,
+  organizationMembers: false,
 
-export async function isDeveloperPreviewUser(): Promise<boolean> {
-    try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        return user?.email === DEVELOPER_EMAIL;
-    } catch {
-        return false;
-    }
-}
+  // Customer Account Features
+  accountProfile: true,
+  accountQuotes: true,
+  accountOrders: false,
+  accountTickets: false,
+  accountWarranties: false,
+  accountRma: false,
 
-export async function isFeatureEnabled(featureKey: string, environment: string = 'production'): Promise<boolean> {
-    try {
-        const result = await db
-            .select({ enabled: featureFlags.enabled, reason: featureFlags.reason })
-            .from(featureFlags)
-            .where(
-                and(
-                    eq(featureFlags.featureKey, featureKey),
-                    eq(featureFlags.environment, environment)
-                )
-            )
-            .limit(1);
+  // Storefront Features
+  storefrontCart: true,
+  storefrontQuoteRequest: true,
+  storefrontCompatibilityEngine: false,
+  storefrontCompare: false,
+  storefrontBom: false,
+  storefrontEngineering: false,
+  storefrontArchitectures: false,
+  storefrontCalculator: false,
+  storefrontSell: true,
+  storefrontSupport: false,
+};
 
-        // 1. SECURITY DENY: If we somehow fail database resolution completely for a critical check.
-        // Handled by catch block below failing closed.
+export type FeatureKey = keyof typeof FEATURES;
 
-        const dbFlag = result[0];
-        
-        // 2. SYSTEM / EMERGENCY KILL SWITCH
-        // We use reason === 'EMERGENCY_KILL' along with enabled === false to represent a hard kill.
-        if (dbFlag && !dbFlag.enabled && dbFlag.reason === 'EMERGENCY_KILL') {
-            return false;
-        }
-
-        // 3. DEVELOPER PREVIEW
-        const isPreviewable = PREVIEWABLE_FEATURES.includes(featureKey) || MVP_FEATURES.includes(featureKey);
-        if (isPreviewable) {
-            const isDev = await isDeveloperPreviewUser();
-            if (isDev) return true;
-        }
-
-        // 4. NORMAL FEATURE FLAG
-        if (dbFlag) {
-            return dbFlag.enabled;
-        }
-
-        // 5. NORMAL USER (Fallback)
-        // If flag isn't in DB, fallback to MVP_FEATURES array for safety (or just false)
-        return MVP_FEATURES.includes(featureKey);
-
-    } catch (error) {
-        console.error(`[FeatureFlag] Error checking flag ${featureKey}:`, error);
-        // DB error -> Fail CLOSED
-        return false;
-    }
+export function isFeatureEnabled(key: FeatureKey): boolean {
+  return FEATURES[key] === true;
 }

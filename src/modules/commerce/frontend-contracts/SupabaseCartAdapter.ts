@@ -29,6 +29,7 @@ const mapCartItem = (data: any): CartItem => ({
   name: data.title,
   sellerId: data.sellerId,
   sellerName: data.sellerName,
+  offerId: data.offerId,
   unitPrice: { amountMinor: toMinor(parseFloat(data.price)), currency: 'INR' },
   quantity: data.quantity,
   stockAvailable: data.stockQty,
@@ -74,7 +75,7 @@ export class SupabaseAddToCartAdapter implements AddToCartCommand {
       const res = await fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ADD', payload: { mpn: input.mpn, sellerId: input.sellerId, productId: input.productId, quantity: input.quantity } })
+        body: JSON.stringify({ action: 'ADD', payload: { mpn: input.mpn, sellerId: input.sellerId, productId: input.productId, variantId: input.variantId, offerId: input.offerId, quantity: input.quantity } })
       });
       // NOTE: Our backend expects productId. For this MVP, if the frontend sends mpn as productId it might fail if they are UUIDs. 
       // If the cart add sends a product UUID, it works.

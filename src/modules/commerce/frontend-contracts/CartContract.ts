@@ -6,6 +6,7 @@ export interface CartItem {
   name: string;
   sellerId: string;
   sellerName: string;
+  offerId: string;
   unitPrice: Money;
   quantity: number;
   stockAvailable: number;
@@ -30,6 +31,8 @@ export interface AddToCartInput {
   mpn: string;
   sellerId: string | null;
   productId?: string;
+  variantId: string;
+  offerId: string;
   quantity: number;
 }
 

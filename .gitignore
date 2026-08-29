@@ -43,3 +43,5 @@ next-env.d.ts
 # scratch
 /scratch
 
+tests/e2e/.auth/
+!.env.example

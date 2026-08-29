@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!await isFeatureEnabled('admin.catalog')) {
+    if (!isFeatureEnabled('opsProductEngine')) {
       return NextResponse.json({ error: "FEATURE_DISABLED" }, { status: 403 });
     }
 
@@ -36,14 +36,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const [updatedProduct] = await db.update(products).set({
       title: data.title,
       mpn: data.mpn,
-      sku: data.sku,
       description: data.description,
-      price: data.price,
-      currency: data.currency || "INR",
-      stockQty: data.stockQty || 0,
-      category: data.category,
+      categoryId: data.categoryId,
       imageUrl: data.imageUrl,
-      specifications: data.specifications,
       isActive: data.isActive !== undefined ? data.isActive : true,
       updatedAt: new Date(),
     }).where(eq(products.id, id)).returning();

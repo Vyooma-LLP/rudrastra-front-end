@@ -170,7 +170,7 @@ function ProductsPageContent() {
           {/* Product Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {products.map((prod: any, i: number) => (
-              <Link key={i} href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative h-full">
+              <Link key={i} data-testid="product-card" href={`/products/${prod.id}`} className="group bg-white border border-[var(--border)] overflow-hidden flex flex-col hover:border-[#111111] transition-colors duration-fast relative h-full">
                 
                 {/* COMPARE CHECKBOX HOVER */}
                 <div className="absolute top-4 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-fast flex items-center gap-2 bg-white/90 backdrop-blur px-2 py-1 border border-[var(--border)] cursor-pointer hover:bg-black hover:text-white group/check">

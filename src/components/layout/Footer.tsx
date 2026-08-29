@@ -130,7 +130,6 @@ export function Footer({ hideValueProp }: { hideValueProp?: boolean }) {
             <li><Link href="/cart" className="hover:text-[#111111] transition-colors">Procurement Cart</Link></li>
             <li><Link href="/account" className="hover:text-[#111111] transition-colors">Account Dashboard</Link></li>
             <li><Link href="/quote-request" className="hover:text-[#111111] transition-colors">Request a Quote</Link></li>
-            <li><Link href="/ops" className="hover:text-rose-600 transition-colors">Ops Mission Control</Link></li>
             <li><span onClick={() => { if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("app-toast", { detail: "Orders & RMA — Coming Soon" })) }} className="cursor-pointer hover:text-[#111111] transition-colors">Orders & RMA</span></li>
           </ul>
         </div>

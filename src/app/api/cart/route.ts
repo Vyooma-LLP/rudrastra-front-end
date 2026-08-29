@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { db } from "@/db/index";
-import { cartItems, products, sellers, users } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { cartItems, productVariants, sellers, users, sellerOffers } from "@/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { isFeatureEnabled } from "@/lib/features";
 
@@ -25,7 +25,7 @@ function isValidQuantity(q: any): boolean {
 
 export async function GET(request: Request) {
     try {
-        if (!await isFeatureEnabled('commerce.cart')) {
+        if (!isFeatureEnabled('storefrontCart')) {
             return NextResponse.json({ error: "FEATURE_DISABLED" }, { status: 403 });
         }
 
@@ -35,18 +35,20 @@ export async function GET(request: Request) {
         const items = await db
             .select({
                 id: cartItems.id,
-                productId: products.id,
+                variantId: productVariants.id,
+                offerId: cartItems.offerId,
                 quantity: cartItems.quantity,
-                title: products.title,
-                mpn: products.mpn,
-                price: products.price,
-                stockQty: products.stockQty,
-                sellerId: sellers.id,
-                sellerName: sellers.storeName,
+                title: productVariants.name,
+                mpn: sql<string>`'N/A'`,
+                price: sql<number>`COALESCE(${sellerOffers.price}, 0)`,
+                stockQty: sql<number>`0`, // Temp fallback, actual stock requires inventory check
+                sellerId: sql<string>`COALESCE(${sellerOffers.sellerId}::text, 'N/A')`,
+                sellerName: sql<string>`COALESCE(${sellers.storeName}, 'N/A')`,
             })
             .from(cartItems)
-            .innerJoin(products, eq(cartItems.productId, products.id))
-            .leftJoin(sellers, eq(products.sellerId, sellers.id))
+            .innerJoin(productVariants, eq(cartItems.variantId, productVariants.id))
+            .leftJoin(sellerOffers, eq(cartItems.offerId, sellerOffers.id))
+            .leftJoin(sellers, eq(sellerOffers.sellerId, sellers.id))
             .where(eq(cartItems.userId, userId));
 
         // Server-side authoritative calculation
@@ -67,7 +69,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (!await isFeatureEnabled('commerce.cart')) {
+        if (!isFeatureEnabled('storefrontCart')) {
             return NextResponse.json({ error: "FEATURE_DISABLED" }, { status: 403 });
         }
 
@@ -78,47 +80,27 @@ export async function POST(request: Request) {
         const { action, payload } = body;
 
         if (action === "ADD") {
-            let { mpn, sellerId, productId, quantity } = payload;
+            let { variantId, offerId, quantity } = payload;
             
             if (!isValidQuantity(quantity)) {
                 return NextResponse.json({ error: "INVALID_QUANTITY" }, { status: 400 });
             }
             
-            let productRecord = null;
-            if (!productId && mpn && sellerId) {
-                 const [product] = await db.select().from(products).where(
-                     and(eq(products.mpn, mpn), eq(products.sellerId, sellerId))
-                 );
-                 if (product) {
-                     productId = product.id;
-                     productRecord = product;
-                 } else {
-                     return NextResponse.json({ error: "Product not found" }, { status: 404 });
-                 }
-            } else if (productId) {
-                 const [product] = await db.select().from(products).where(eq(products.id, productId));
-                 if (product) {
-                     productRecord = product;
-                 }
-            }
-
-            if (!productId) {
-                 return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
+            if (!variantId || !offerId) {
+                 return NextResponse.json({ error: "Variant ID and Offer ID are required" }, { status: 400 });
             }
             
-            if (!productRecord) {
-                 return NextResponse.json({ error: "Product not found" }, { status: 404 });
-            }
-            
-            // Check if item already exists in cart
+            // Check if item already exists in cart for the same variant AND offer
             const [existing] = await db.select().from(cartItems).where(
-                and(eq(cartItems.userId, userId), eq(cartItems.productId, productId))
+                and(
+                    eq(cartItems.userId, userId), 
+                    eq(cartItems.variantId, variantId),
+                    eq(cartItems.offerId, offerId)
+                )
             );
 
             const requestedTotalQty = existing ? existing.quantity + quantity : quantity;
-            if (requestedTotalQty > productRecord.stockQty) {
-                return NextResponse.json({ error: "Not enough stock" }, { status: 400 });
-            }
+            // Temporarily skip stock check during migration
 
             if (existing) {
                 await db.update(cartItems)
@@ -127,7 +109,8 @@ export async function POST(request: Request) {
             } else {
                 await db.insert(cartItems).values({
                     userId,
-                    productId,
+                    variantId,
+                    offerId,
                     quantity,
                 });
             }
@@ -140,11 +123,6 @@ export async function POST(request: Request) {
 
             const [existing] = await db.select().from(cartItems).where(and(eq(cartItems.id, itemId), eq(cartItems.userId, userId)));
             if (!existing) return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
-
-            const [product] = await db.select().from(products).where(eq(products.id, existing.productId));
-            if (product && quantity > product.stockQty) {
-                return NextResponse.json({ error: "Not enough stock" }, { status: 400 });
-            }
 
             await db.update(cartItems)
                 .set({ quantity, updatedAt: new Date() })
