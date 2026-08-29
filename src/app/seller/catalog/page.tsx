@@ -1,4 +1,5 @@
 import React from 'react';
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { db } from '@/db';
 import { products } from '@/db/schema';

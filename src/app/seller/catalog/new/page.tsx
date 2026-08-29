@@ -1,4 +1,5 @@
 import React from 'react';
+export const dynamic = 'force-dynamic';
 import { db } from '@/db';
 import { ProductFormEngine } from '@/components/catalog/ProductFormEngine';
 import { createFullProduct } from '@/app/ops/catalog/products/actions';

@@ -1,4 +1,5 @@
 import { db } from "@/db";
+export const dynamic = 'force-dynamic';
 import ManufacturersClient from "./ManufacturersClient";
 
 export default async function ManufacturersPageServer() {
