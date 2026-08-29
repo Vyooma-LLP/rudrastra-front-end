@@ -266,13 +266,13 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
       <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 relative pb-24">
         
         {/* TOP SECTION: Split Layout */}
-        <div className="w-full flex flex-col lg:flex-row gap-12 lg:gap-16 mb-16 pt-4">
+        <div className="w-full flex flex-col md:flex-row gap-8 md:gap-12 lg:gap-16 mb-16 pt-4">
           
           {/* Left Column: Media Gallery */}
-          <div className="w-full lg:w-[45%] xl:w-[40%] flex flex-col lg:flex-row gap-4 shrink-0">
+          <div className="w-full md:w-[45%] xl:w-[40%] flex flex-col md:flex-row gap-4 shrink-0">
             {/* Thumbnails Strip */}
             {product.images && product.images.length > 0 && (
-              <div className="flex lg:flex-col gap-3 order-2 lg:order-1 overflow-x-auto lg:overflow-visible">
+              <div className="flex md:flex-col gap-3 order-2 md:order-1 overflow-x-auto md:overflow-visible">
                 {product.images.map((imgUrl: string, idx: number) => (
                   <div 
                     key={idx} 
@@ -286,7 +286,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             )}
             
             {/* Main Image */}
-            <div className="flex-1 min-w-0 order-1 lg:order-2 bg-[#F3F3F3] aspect-square flex items-center justify-center relative p-8">
+            <div className="flex-1 min-w-0 order-1 md:order-2 bg-[#F3F3F3] aspect-square flex items-center justify-center relative p-8">
               <button className="absolute bottom-4 right-4 text-black">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
               </button>
@@ -306,7 +306,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             <span className="font-sans text-[11px] font-bold text-[#888888] tracking-widest uppercase mb-2">
               {product.mfg}
             </span>
-            <h1 className="font-heading font-extrabold text-[44px] md:text-[56px] leading-[1.1] tracking-[-0.03em] text-black mb-4 break-words break-all">
+            <h1 className="font-heading font-extrabold text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-[-0.03em] text-black mb-4 break-words break-all">
               {product.mpn}
             </h1>
             <p className="font-sans text-[14px] leading-relaxed text-[#666666] mb-6 max-w-[500px]">
@@ -324,7 +324,7 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
             </div>
 
             <div className="flex items-baseline gap-4 mb-8">
-              <div className="font-heading font-extrabold text-[36px] tracking-tight">{product.aggPrice}</div>
+              <div className="font-heading font-extrabold text-[clamp(1.75rem,4vw,2.25rem)] tracking-tight">{product.aggPrice}</div>
               <span className="font-sans text-[12px] text-[#888888]">Available from {product.sellers} sellers</span>
             </div>
 
