@@ -25,11 +25,23 @@ export class SupabaseStorageProvider implements MediaStorageProvider {
       if (!session) throw new Error("Authentication required for large uploads");
       
       return new Promise((resolve, reject) => {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+        let projectId = '';
+        try {
+          projectId = new URL(supabaseUrl).hostname.split('.')[0];
+        } catch (e) {
+          console.warn("Could not parse supabase URL");
+        }
+        const tusEndpoint = projectId 
+          ? `https://${projectId}.storage.supabase.co/storage/v1/upload/resumable`
+          : `${supabaseUrl}/storage/v1/upload/resumable`;
+
         const upload = new tus.Upload(file, {
-          endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable`,
+          endpoint: tusEndpoint,
           retryDelays: [0, 3000, 5000, 10000, 20000],
           headers: {
             authorization: `Bearer ${session.access_token}`,
+            'x-upsert': 'true',
           },
           uploadDataDuringCreation: true,
           removeFingerprintOnSuccess: true,
