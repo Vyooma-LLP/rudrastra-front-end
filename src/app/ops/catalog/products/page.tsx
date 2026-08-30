@@ -79,7 +79,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                     <td className="p-4 font-bold" data-testid="product-mpn">{p.mpn || '-'}</td>
                     <td className="p-4 font-sans">{p.title}</td>
                     <td className="p-4 font-sans font-medium text-sm">{p.category?.name || 'Uncategorized'}</td>
-                    <td className="p-4 font-sans text-center">{p.productVariants.length}</td>
+                    <td className="p-4 font-sans text-center">{p.productVariants?.length || 0}</td>
                     <td className="p-4 font-sans">
                       <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider ${p.isActive ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-amber-100 text-amber-700'}`}>
                         {p.isActive ? 'Active' : 'Inactive'}
