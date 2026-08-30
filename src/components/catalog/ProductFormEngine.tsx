@@ -223,8 +223,8 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
 
             <AssetUploaderBase 
               title="CAD / Engineering Files"
-              description="Upload 3D models and engineering drawings (STEP, STL, IGES)."
-              accept=".step,.stp,.stl,.iges,.igs"
+              description="Upload 3D models, engineering drawings, or images (STEP, STL, IGES, PNG, JPG)."
+              accept=".step,.stp,.stl,.iges,.igs,image/*,.png,.jpg,.jpeg,.webp"
               defaultMediaType="cad"
               defaultAssetRole="drawing"
               allowedAssetRoles={[
