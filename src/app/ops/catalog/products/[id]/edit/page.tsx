@@ -35,6 +35,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   // Map data to engine format
   const initialData = {
     id: product.id,
+    version: product.version,
     manufacturerId: product.manufacturerId || "",
     categoryId: product.categoryId,
     title: product.title,
