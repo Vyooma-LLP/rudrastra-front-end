@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MediaUploader, MediaItem } from "./MediaUploader";
+import { MediaItem } from "./MediaUploader";
+import { AssetUploaderBase } from "./AssetUploaderBase";
 
 export type ProductFormMode = "create" | "edit";
 
@@ -25,7 +26,18 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
   const [title, setTitle] = useState(initialData?.title || "");
   const [mpn, setMpn] = useState(initialData?.mpn || "");
   const [description, setDescription] = useState(initialData?.description || "");
-  const [media, setMedia] = useState<MediaItem[]>(initialData?.media || []);
+  const [images, setImages] = useState<MediaItem[]>(
+    initialData?.media?.filter((m: MediaItem) => m.mediaType === 'image' || m.mediaType === 'video') || []
+  );
+  const [specDocs, setSpecDocs] = useState<MediaItem[]>(
+    initialData?.media?.filter((m: MediaItem) => ['datasheet', 'manual', 'certification'].includes(m.assetRole!)) || []
+  );
+  const [perfData, setPerfData] = useState<MediaItem[]>(
+    initialData?.media?.filter((m: MediaItem) => ['performance_data', 'test_report'].includes(m.assetRole!)) || []
+  );
+  const [cads, setCads] = useState<MediaItem[]>(
+    initialData?.media?.filter((m: MediaItem) => m.mediaType === 'cad') || []
+  );
 
   const [variants, setVariants] = useState<any[]>(initialData?.variants || [{ id: "new", name: "Standard", sku: "", specs: [] }]);
 
@@ -39,6 +51,7 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
+      const combinedMedia = [...images, ...specDocs, ...perfData, ...cads].map((m, i) => ({ ...m, sortOrder: i }));
       await onSubmit({
         id: initialData?.id,
         version: initialData?.version,
@@ -47,7 +60,7 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
         title,
         mpn,
         description,
-        media,
+        media: combinedMedia,
         variants
       });
       router.push("/ops/catalog/products");
@@ -159,13 +172,72 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
       )}
 
       {step === 3 && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-xl p-6">
-          <h2 className="text-xl font-bold text-[#111111]">Engineering Assets & Media</h2>
-          <p className="text-sm text-[#777777] mb-4">Upload and classify product assets. The first item will be used as the primary image. Treat CAD, Datasheets, and Performance Data as engineering assets.</p>
-          <MediaUploader initialMedia={media} onChange={(updatedMedia) => setMedia(updatedMedia)} />
-          <div className="flex justify-between pt-4">
-            <button onClick={handlePrev} className="text-zinc-500 hover:text-black px-4 py-2">Back</button>
-            <button onClick={handleNext} className="bg-indigo-500 text-white px-4 py-2 rounded-lg">Next: Variants & Specs</button>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 bg-zinc-950 rounded-xl p-6 border border-white/5">
+          <div>
+            <h2 className="text-xl font-bold text-white mb-2">Engineering Assets & Media</h2>
+            <p className="text-sm text-zinc-400">
+              Upload and classify product assets. Organize by product images, specifications, performance data, and CAD models.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <AssetUploaderBase 
+              title="Product Images"
+              description="Upload primary and secondary product photos."
+              accept="image/*,video/*"
+              defaultMediaType="image"
+              defaultAssetRole="general"
+              allowedAssetRoles={[]}
+              initialMedia={images}
+              onChange={setImages}
+            />
+
+            <AssetUploaderBase 
+              title="Specifications & Manuals"
+              description="Upload datasheets, certifications, and product manuals (PDF)."
+              accept=".pdf,.doc,.docx"
+              defaultMediaType="document"
+              defaultAssetRole="datasheet"
+              allowedAssetRoles={[
+                { label: 'Datasheet', value: 'datasheet' },
+                { label: 'Manual', value: 'manual' },
+                { label: 'Certification', value: 'certification' }
+              ]}
+              initialMedia={specDocs}
+              onChange={setSpecDocs}
+            />
+
+            <AssetUploaderBase 
+              title="Performance Data"
+              description="Upload test reports and performance data spreadsheets (CSV, XLSX)."
+              accept=".csv,.xlsx,.xls,.json"
+              defaultMediaType="document"
+              defaultAssetRole="performance_data"
+              allowedAssetRoles={[
+                { label: 'Performance Data', value: 'performance_data' },
+                { label: 'Test Report', value: 'test_report' }
+              ]}
+              initialMedia={perfData}
+              onChange={setPerfData}
+            />
+
+            <AssetUploaderBase 
+              title="CAD / Engineering Files"
+              description="Upload 3D models and engineering drawings (STEP, STL, IGES)."
+              accept=".step,.stp,.stl,.iges,.igs"
+              defaultMediaType="cad"
+              defaultAssetRole="drawing"
+              allowedAssetRoles={[
+                { label: '3D Model', value: 'drawing' }
+              ]}
+              initialMedia={cads}
+              onChange={setCads}
+            />
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-white/10 mt-8">
+            <button onClick={handlePrev} className="text-zinc-400 hover:text-white px-4 py-2 transition-colors">Back</button>
+            <button onClick={handleNext} className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">Next: Variants & Specs</button>
           </div>
         </div>
       )}

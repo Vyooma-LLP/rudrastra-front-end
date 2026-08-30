@@ -1,37 +1,93 @@
 import { createClient } from '@/utils/supabase/clients';
 import { MediaStorageProvider, UploadedMedia } from './MediaStorageProvider';
+import * as tus from 'tus-js-client';
 
 export class SupabaseStorageProvider implements MediaStorageProvider {
   private getClient() {
     return createClient();
   }
 
-  async upload(file: File): Promise<UploadedMedia> {
+  async upload(file: File, onProgress?: (progress: number) => void): Promise<UploadedMedia> {
     const supabase = this.getClient();
     const fileExt = file.name.split('.').pop();
     const fileName = `${crypto.randomUUID()}_${Date.now()}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
+    const bucketName = 'product-media';
 
-    const { data, error } = await supabase.storage
-      .from('product-media')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
+    let defaultMediaType = 'image';
+    if (file.name.match(/\.(step|stp|stl|iges|igs)$/i)) defaultMediaType = 'cad';
+    else if (file.name.match(/\.(pdf|csv|xlsx|json|doc|docx)$/i)) defaultMediaType = 'document';
+    else if (file.type.startsWith('video/')) defaultMediaType = 'video';
+
+    // File size threshold for TUS (6MB)
+    if (file.size > 6 * 1024 * 1024) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Authentication required for large uploads");
+      
+      return new Promise((resolve, reject) => {
+        const upload = new tus.Upload(file, {
+          endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable`,
+          retryDelays: [0, 3000, 5000, 10000, 20000],
+          headers: {
+            authorization: `Bearer ${session.access_token}`,
+          },
+          uploadDataDuringCreation: true,
+          removeFingerprintOnSuccess: true,
+          metadata: {
+            bucketName: bucketName,
+            objectName: filePath,
+            contentType: file.type || 'application/octet-stream',
+            cacheControl: '3600',
+          },
+          chunkSize: 6 * 1024 * 1024, 
+          onError: function (error) {
+            console.error('Storage upload error (TUS):', error);
+            reject(new Error(`Failed to upload media: ${error.message || error}`));
+          },
+          onProgress: function (bytesUploaded, bytesTotal) {
+            if (onProgress) {
+              onProgress(Math.round((bytesUploaded / bytesTotal) * 100));
+            }
+          },
+          onSuccess: function () {
+            const { data: publicUrlData } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(filePath);
+
+            resolve({
+              url: publicUrlData.publicUrl,
+              mediaType: defaultMediaType,
+            });
+          },
+        });
+        
+        upload.start();
       });
+    } else {
+      // Standard upload
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-    if (error) {
-      console.error('Storage upload error:', error);
-      throw new Error(`Failed to upload media: ${error.message}`);
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw new Error(`Failed to upload media: ${error.message}`);
+      }
+      
+      if (onProgress) onProgress(100);
+
+      const { data: publicUrlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+
+      return {
+        url: publicUrlData.publicUrl,
+        mediaType: defaultMediaType,
+      };
     }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('product-media')
-      .getPublicUrl(filePath);
-
-    return {
-      url: publicUrlData.publicUrl,
-      mediaType: file.type.startsWith('video/') ? 'video' : 'image', // simplified for MVP
-    };
   }
 
   async delete(url: string): Promise<void> {

@@ -10,6 +10,7 @@ export type MediaItem = {
   id?: string;
   url: string;
   mediaType: string;
+  assetRole?: string;
   sortOrder: number;
   altText?: string;
 };

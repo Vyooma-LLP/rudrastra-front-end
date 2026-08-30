@@ -2,17 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Search, FileBox, FileText, Box, FileSpreadsheet, Film } from 'lucide-react';
-import { getExistingCads } from '@/app/ops/catalog/products/actions';
+import { getExistingAssets } from '@/app/ops/catalog/products/actions';
 import Image from 'next/image';
 
 interface ImportAssetModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (asset: {url: string; mediaType: string; altText: string}) => void;
+  onSelect: (asset: {url: string; mediaType: string; assetRole?: string; altText: string}) => void;
   category: string;
+  allowedMediaTypes?: string[];
 }
 
-export function ImportCadModal({ isOpen, onClose, onSelect, category }: ImportAssetModalProps) {
+export function ImportCadModal({ isOpen, onClose, onSelect, category, allowedMediaTypes }: ImportAssetModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [assets, setAssets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +21,7 @@ export function ImportCadModal({ isOpen, onClose, onSelect, category }: ImportAs
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      getExistingCads().then(data => {
+      getExistingAssets(allowedMediaTypes).then(data => {
         setAssets(data);
         setIsLoading(false);
       }).catch(err => {
@@ -90,7 +91,7 @@ export function ImportCadModal({ isOpen, onClose, onSelect, category }: ImportAs
                 <div 
                   key={asset.id}
                   onClick={() => {
-                    onSelect({ url: asset.url, mediaType: asset.mediaType, altText: asset.altText || 'Asset' });
+                    onSelect({ url: asset.url, mediaType: asset.mediaType, assetRole: asset.assetRole, altText: asset.altText || 'Asset' });
                     onClose();
                   }}
                   className="border border-[#E5E5E5] rounded-lg p-3 cursor-pointer hover:border-[#111111] hover:bg-[#FAFAFA] group transition-colors flex flex-col"

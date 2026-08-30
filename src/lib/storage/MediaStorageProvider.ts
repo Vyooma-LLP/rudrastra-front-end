@@ -4,8 +4,8 @@ export type UploadedMedia = {
 };
 
 export interface MediaStorageProvider {
-  upload(file: File): Promise<UploadedMedia>;
-  delete(url: string): Promise<void>;
+  upload: (file: File, onProgress?: (progress: number) => void) => Promise<UploadedMedia>;
+  delete: (url: string) => Promise<void>;
 }
 
 // Dummy local implementation for MVP since we don't have Supabase credentials yet

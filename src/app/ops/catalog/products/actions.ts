@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { products, productVariants, productSpecValues, productMedia, mediaCleanupJobs } from "@/db/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/utils/supabase/server";
@@ -29,13 +29,13 @@ async function validateMedia(mediaList: any[]) {
   if (!mediaList || mediaList.length === 0) return;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabase = await createClient(); // Authenticated server client
 
   for (const item of mediaList) {
     if (!validPhysicalMediaTypes.includes(item.mediaType)) {
       throw new Error(`Invalid media type: ${item.mediaType}`);
     }
     
-    // Assign a default asset role if none provided for documents/cads, otherwise use provided
     if (item.assetRole && !validAssetRoles.includes(item.assetRole)) {
       throw new Error(`Invalid asset role: ${item.assetRole}`);
     }
@@ -45,24 +45,46 @@ async function validateMedia(mediaList: any[]) {
     }
 
     try {
-      const headResponse = await fetch(item.url, { method: 'HEAD' });
-      if (!headResponse.ok) {
-        throw new Error(`Failed to fetch metadata for URL: ${item.url}`);
+      const urlParts = item.url.split(`/object/public/product-media/`);
+      if (urlParts.length !== 2) {
+        throw new Error(`Invalid storage URL format: ${item.url}`);
       }
-      const contentType = headResponse.headers.get('content-type') || '';
       
-      if (item.mediaType === 'image' && !contentType.startsWith('image/')) {
+      const filePath = urlParts[1];
+      const folder = filePath.substring(0, filePath.lastIndexOf('/')) || '';
+      const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+
+      // Verify existence via authenticated storage API instead of unauthenticated HTTP HEAD
+      const { data, error } = await supabase.storage
+        .from('product-media')
+        .list(folder || '', {
+          search: fileName,
+          limit: 1
+        });
+
+      if (error) {
+        throw new Error(`Failed to query storage for URL: ${item.url}. ${error.message}`);
+      }
+
+      if (!data || data.length === 0 || data[0].name !== fileName) {
+        throw new Error(`Asset not found in storage: ${item.url}`);
+      }
+      
+      // Optionally validate metadata (MIME type)
+      const metadata = (data[0].metadata as any) || {};
+      const contentType = metadata.mimetype || '';
+      
+      if (item.mediaType === 'image' && contentType && !contentType.startsWith('image/')) {
         throw new Error(`MIME type mismatch: Expected image, got ${contentType}`);
       }
-      if (item.mediaType === 'video' && !contentType.startsWith('video/')) {
+      if (item.mediaType === 'video' && contentType && !contentType.startsWith('video/')) {
         throw new Error(`MIME type mismatch: Expected video, got ${contentType}`);
       }
-      // Explicitly reject executable masquerading
       if (contentType.includes('executable') || contentType.includes('x-sh') || contentType.includes('msdownload') || contentType.includes('octet-stream')) {
         throw new Error(`MIME type mismatch: Malicious or unrecognized content type. Got ${contentType}`);
       }
     } catch (e: any) {
-      if (e.message.includes('MIME type mismatch') || e.message.includes('External URLs') || e.message.includes('Invalid media type') || e.message.includes('Invalid asset role')) {
+      if (e.message.includes('MIME type mismatch') || e.message.includes('External URLs') || e.message.includes('Invalid media type') || e.message.includes('Invalid asset role') || e.message.includes('Asset not found')) {
         throw e;
       }
       throw new Error(`Unable to validate media URL: ${item.url}. Error: ${e.message}`);
@@ -183,6 +205,8 @@ export async function updateFullProduct(data: any) {
     // 1. Pre-transaction Fail-Closed Media Validation
     await validateMedia(data.media);
 
+    let oldMediaUrls: string[] = [];
+
     await db.transaction(async (tx) => {
       // 2. Optimistic Concurrency Protection (Lost Update Prevention)
       const expectedVersion = data.version || 1;
@@ -202,7 +226,9 @@ export async function updateFullProduct(data: any) {
       }
 
       // Re-sync media (Delete and Reinsert)
-      // Safe because productMedia.id has no external foreign key dependencies
+      const oldMedia = await tx.select({ url: productMedia.url }).from(productMedia).where(eq(productMedia.productId, data.id));
+      oldMediaUrls = oldMedia.map(m => m.url);
+      
       await tx.delete(productMedia).where(eq(productMedia.productId, data.id));
       if (data.media && data.media.length > 0) {
         const mediaValues = data.media.map((item: any, index: number) => {
@@ -254,6 +280,32 @@ export async function updateFullProduct(data: any) {
       }
     });
 
+    // 3. Clean up obsolete storage objects after successful transaction
+    if (oldMediaUrls.length > 0) {
+      const newMediaUrls = data.media ? data.media.map((m: any) => m.url) : [];
+      const obsoleteUrls = oldMediaUrls.filter(url => !newMediaUrls.includes(url));
+      
+      for (const url of obsoleteUrls) {
+        try {
+          if (process.env.NEXT_PUBLIC_SUPABASE_URL && url.startsWith(process.env.NEXT_PUBLIC_SUPABASE_URL)) {
+             await storageProvider.delete(url);
+          }
+        } catch (e: any) {
+          console.error(`Failed to cleanup obsolete object: ${url}`, e);
+          try {
+            await db.insert(mediaCleanupJobs).values({
+              storagePath: url,
+              reason: "Obsolete object after update",
+              lastError: e.message || "Unknown storage error",
+              status: "pending"
+            });
+          } catch (dbErr) {
+            console.error("FATAL: Failed to insert media cleanup job", dbErr);
+          }
+        }
+      }
+    }
+
     try {
       revalidatePath("/ops/catalog/products");
       revalidatePath(`/products/${data.id}`);
@@ -281,31 +333,33 @@ export async function updateFullProduct(data: any) {
   }
 }
 
-export async function getExistingCads() {
+export async function getExistingAssets(mediaTypes?: string[]) {
   if (!await verifyAdmin()) {
       throw new Error("Unauthorized");
   }
 
   // Asset Authorization: Ensure we only expose canonical assets from active products
-  const cads = await db.select({
+  let condition = eq(products.isActive, true) as any;
+  if (mediaTypes && mediaTypes.length > 0) {
+     condition = and(condition, inArray(productMedia.mediaType, mediaTypes));
+  }
+
+  const assets = await db.select({
     id: productMedia.id,
     url: productMedia.url,
+    mediaType: productMedia.mediaType,
+    assetRole: productMedia.assetRole,
     altText: productMedia.altText,
     createdAt: productMedia.createdAt,
     productTitle: products.title,
   })
   .from(productMedia)
   .leftJoin(products, eq(productMedia.productId, products.id))
-  .where(
-    and(
-      eq(productMedia.mediaType, 'cad'),
-      eq(products.isActive, true)
-    )
-  )
+  .where(condition)
   .orderBy(desc(productMedia.createdAt))
   .limit(50);
   
-  return cads;
+  return assets;
 }
 
 export async function deleteProduct(id: string) {
