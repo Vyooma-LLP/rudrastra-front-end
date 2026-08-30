@@ -80,7 +80,7 @@ async function validateMedia(mediaList: any[]) {
       if (item.mediaType === 'video' && contentType && !contentType.startsWith('video/')) {
         throw new Error(`MIME type mismatch: Expected video, got ${contentType}`);
       }
-      if (contentType.includes('executable') || contentType.includes('x-sh') || contentType.includes('msdownload') || contentType.includes('octet-stream')) {
+      if (contentType.includes('executable') || contentType.includes('x-sh') || contentType.includes('msdownload')) {
         throw new Error(`MIME type mismatch: Malicious or unrecognized content type. Got ${contentType}`);
       }
     } catch (e: any) {
