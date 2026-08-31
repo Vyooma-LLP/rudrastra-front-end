@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { resolveProductAssets } from "@/lib/catalog/product-media";
 import Image from "next/image";
 import { useCartContext } from "@/components/commerce/CartContext";
 import { CapabilityGuard } from "@/components/layout/CapabilityGuard";
@@ -93,24 +94,13 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
       .then(res => res.json())
       .then(data => {
         if (data.product) {
-          let imagesList: string[] = [];
-          if (data.product.productMedia && data.product.productMedia.length > 0) {
-            imagesList = data.product.productMedia.map((m: any) => m.url);
-          } else if (data.product.imageUrl) {
-            try {
-              const url = data.product.imageUrl.trim();
-              if (url.startsWith('[') && url.endsWith(']')) {
-                imagesList = JSON.parse(url);
-              } else {
-                imagesList = [url];
-              }
-            } catch {
-              imagesList = [data.product.imageUrl];
-            }
+          let imagesList: string[] = resolveProductAssets(data.product, { mediaType: "image" });
+          if (imagesList.length === 0) {
+            imagesList = [resolveProductAssets(data.product)[0] || "/images/products/rudrastra_motor_1785921295587.png"];
           }
-          if (imagesList.length <= 1) {
-            const defaultImg = imagesList[0] || "/images/products/rudrastra_motor_1785921295587.png";
-            imagesList = [defaultImg, defaultImg, defaultImg, defaultImg];
+          if (imagesList.length === 1) {
+            // Pad array for gallery thumbnail view if only one image exists
+            imagesList = [imagesList[0], imagesList[0], imagesList[0], imagesList[0]];
           }
 
           let parsedSpecs = null;

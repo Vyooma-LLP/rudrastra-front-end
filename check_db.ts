@@ -1,23 +1,18 @@
 import postgres from 'postgres';
-const sql = postgres(process.env.DATABASE_URL || 'postgres://postgres.xurmlezgwfyxkrwhakxf:!Varanasi@1947@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require');
-
+const sql = postgres(process.env.DATABASE_URL || 'postgresql://postgres:Rudrastra%401947@db.tqolbhkqxsccsxsvhxgh.supabase.co:5432/postgres');
 async function main() {
     try {
-        const constraints = await sql`
-            SELECT conname, pg_get_constraintdef(c.oid)
-            FROM pg_constraint c
-            JOIN pg_class t ON c.conrelid = t.oid
-            WHERE t.relname = 'users';
+        const res = await sql`
+            SELECT tgname, relname, proname 
+            FROM pg_trigger 
+            JOIN pg_class ON pg_trigger.tgrelid = pg_class.oid 
+            JOIN pg_proc ON pg_trigger.tgfoid = pg_proc.oid 
+            WHERE pg_class.relname = 'users' AND pg_class.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth');
         `;
-        console.log("Constraints:", constraints);
+        console.log("Triggers on auth.users:", res);
         
-        const enums = await sql`
-            SELECT t.typname, e.enumlabel
-            FROM pg_type t 
-            JOIN pg_enum e ON t.oid = e.enumtypid  
-            JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace;
-        `;
-        console.log("Enums:", enums);
+        const res2 = await sql`SELECT routine_name FROM information_schema.routines WHERE routine_schema = 'public' AND routine_name = 'handle_new_user';`;
+        console.log("handle_new_user function:", res2);
     } catch(e) {
         console.error(e);
     } finally {

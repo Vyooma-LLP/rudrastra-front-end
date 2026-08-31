@@ -31,20 +31,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    let query = db.select().from(products);
-    
+    let queryOpts: any = {
+      with: { productMedia: true },
+      orderBy: [desc(products.createdAt)],
+    };
+
     if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
+      queryOpts.where = and(...conditions);
     }
 
-    if (sort === 'newest') {
-      query = query.orderBy(desc(products.createdAt)) as any;
-    } else {
-      // Default to newest first
-      query = query.orderBy(desc(products.createdAt)) as any;
-    }
-
-    const allProducts = await query;
+    const allProducts = await db.query.products.findMany(queryOpts);
 
     return NextResponse.json({ products: allProducts });
   } catch (error: any) {

@@ -307,6 +307,7 @@ export async function updateFullProduct(data: any) {
     }
 
     try {
+      revalidatePath("/", "layout");
       revalidatePath("/ops/catalog/products");
       revalidatePath(`/products/${data.id}`);
     } catch (e) {

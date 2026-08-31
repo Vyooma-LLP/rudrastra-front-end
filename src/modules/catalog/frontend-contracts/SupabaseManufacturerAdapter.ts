@@ -1,6 +1,6 @@
 import { GetManufacturerProductsQuery, GetManufacturerProductsInput, ManufacturerProduct } from './ManufacturerContract';
 
-import { getProductImage } from '../../../utils/image';
+import { resolvePrimaryImage } from '@/lib/catalog/product-media';
 
 export class SupabaseGetManufacturerProductsAdapter implements GetManufacturerProductsQuery {
   async execute(input: GetManufacturerProductsInput): Promise<ManufacturerProduct[]> {
@@ -18,7 +18,7 @@ export class SupabaseGetManufacturerProductsAdapter implements GetManufacturerPr
       mpn: p.mpn || p.title,
       category: p.category,
       price: (p.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
-      img: getProductImage(p.imageUrl, '/images/products/rudrastra_motor_1785921295587.png')
+      img: resolvePrimaryImage(p)
     }));
   }
 }

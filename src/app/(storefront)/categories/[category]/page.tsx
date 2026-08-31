@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { products } from "@/db/schema";
 import { eq, or, ilike } from "drizzle-orm";
 import { getProductImage } from "@/utils/image";
+import { resolvePrimaryImage } from "@/lib/catalog/product-media";
 
 const CATEGORY_SLUG_MAP: Record<string, { name: string; desc: string; subcategories: string[] }> = {
   "propulsion": {
@@ -59,7 +60,9 @@ export default async function SubcategoryPage({ params }: { params: Promise<{ ca
   };
 
   // Fetch products from database that belong to this category or subcategories
-  const dbProducts = await db.select().from(products);
+  const dbProducts = await db.query.products.findMany({
+    with: { productMedia: true }
+  });
 
   const resolvedProducts = dbProducts.map((p) => {
     let mfg = "Verified Brand";
@@ -72,7 +75,7 @@ export default async function SubcategoryPage({ params }: { params: Promise<{ ca
       mfg: mfg,
       mpn: p.mpn || p.title,
       price: `₹0.00`,
-      img: getProductImage(p.imageUrl),
+      img: resolvePrimaryImage(p),
     };
   });
 

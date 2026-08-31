@@ -1,0 +1,100 @@
+{
+  "tables": [
+    {
+      "table_name": "badges",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "cart_items",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "categories",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "feature_flag_audit",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "feature_flags",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "idempotency_keys",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "inventory_items",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "inventory_locations",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "manufacturer_badges",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "manufacturers",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "media_cleanup_jobs",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "order_items",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "orders",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "product_media",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "product_spec_values",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "product_variants",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "products",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "quote_request_items",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "quote_requests",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "seller_offers",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "seller_skus",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "sellers",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "spec_definitions",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "users",
+      "rls_enabled": true
+    }
+  ]
+}

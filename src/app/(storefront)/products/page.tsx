@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { getProductImage } from "@/utils/image";
+import { resolvePrimaryImage } from '@/lib/catalog/product-media';
 
 function ProductsPageContent() {
   const searchParams = useSearchParams();
@@ -181,7 +182,7 @@ function ProductsPageContent() {
                 {/* IMAGE */}
                 <div className="w-full h-[240px] bg-white flex items-center justify-center p-6 overflow-hidden relative border-b border-[var(--border)]">
                   <Image 
-                    src={getProductImage(prod.imageUrl)} 
+                    src={resolvePrimaryImage(prod)} 
                     alt={`${prod.title} ${prod.mpn || ''}`} 
                     width={200} 
                     height={200} 

@@ -1,0 +1,447 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: button-crawler.spec.ts >> Phase 11: Button Crawler Audit >> Crawl interactions on /products
+- Location: tests/e2e/button-crawler.spec.ts:13:9
+
+# Error details
+
+```
+Test timeout of 120000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: MADE IN INDIA
+      - generic [ref=e7]: BUILT FOR ENGINEERS
+      - generic [ref=e9]: INDIGENOUS COMPONENTS
+      - generic [ref=e11]: RUDRAASTRA
+      - generic [ref=e13]: INDIA'S DRONE HARDWARE MARKETPLACE
+      - generic [ref=e15]: ENGINEERING-FIRST PROCUREMENT
+    - generic [ref=e17]:
+      - generic [ref=e18]: MADE IN INDIA
+      - generic [ref=e20]: BUILT FOR ENGINEERS
+      - generic [ref=e22]: INDIGENOUS COMPONENTS
+      - generic [ref=e24]: RUDRAASTRA
+      - generic [ref=e26]: INDIA'S DRONE HARDWARE MARKETPLACE
+      - generic [ref=e28]: ENGINEERING-FIRST PROCUREMENT
+    - generic [ref=e30]:
+      - generic [ref=e31]: MADE IN INDIA
+      - generic [ref=e33]: BUILT FOR ENGINEERS
+      - generic [ref=e35]: INDIGENOUS COMPONENTS
+      - generic [ref=e37]: RUDRAASTRA
+      - generic [ref=e39]: INDIA'S DRONE HARDWARE MARKETPLACE
+      - generic [ref=e41]: ENGINEERING-FIRST PROCUREMENT
+    - generic [ref=e43]:
+      - generic [ref=e44]: MADE IN INDIA
+      - generic [ref=e46]: BUILT FOR ENGINEERS
+      - generic [ref=e48]: INDIGENOUS COMPONENTS
+      - generic [ref=e50]: RUDRAASTRA
+      - generic [ref=e52]: INDIA'S DRONE HARDWARE MARKETPLACE
+      - generic [ref=e54]: ENGINEERING-FIRST PROCUREMENT
+    - generic [ref=e56]:
+      - generic [ref=e57]: MADE IN INDIA
+      - generic [ref=e59]: BUILT FOR ENGINEERS
+      - generic [ref=e61]: INDIGENOUS COMPONENTS
+      - generic [ref=e63]: RUDRAASTRA
+      - generic [ref=e65]: INDIA'S DRONE HARDWARE MARKETPLACE
+      - generic [ref=e67]: ENGINEERING-FIRST PROCUREMENT
+    - generic [ref=e69]:
+      - generic [ref=e70]: MADE IN INDIA
+      - generic [ref=e72]: BUILT FOR ENGINEERS
+      - generic [ref=e74]: INDIGENOUS COMPONENTS
+      - generic [ref=e76]: RUDRAASTRA
+      - generic [ref=e78]: INDIA'S DRONE HARDWARE MARKETPLACE
+      - generic [ref=e80]: ENGINEERING-FIRST PROCUREMENT
+  - banner [ref=e82]:
+    - navigation [ref=e83]:
+      - link "RUDRAASTRA" [ref=e84] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e89]:
+        - link "Categories" [ref=e90] [cursor=pointer]:
+          - /url: /categories
+        - link "Products" [ref=e93] [cursor=pointer]:
+          - /url: /products
+        - link "Engineering" [ref=e96] [cursor=pointer]:
+          - /url: /engineering
+        - link "Manufacturers" [ref=e99] [cursor=pointer]:
+          - /url: /manufacturers
+      - generic [ref=e102]:
+        - link "0" [ref=e103] [cursor=pointer]:
+          - /url: /cart
+        - link "Request Quote" [ref=e109] [cursor=pointer]:
+          - /url: /quote-request
+        - generic [ref=e110]:
+          - link "Sign In" [ref=e111] [cursor=pointer]:
+            - /url: /login
+          - link "Create Account" [ref=e115] [cursor=pointer]:
+            - /url: /signup
+  - main [ref=e119]:
+    - generic [ref=e120]:
+      - generic [ref=e121]:
+        - generic [ref=e122]: Drone Hardware Catalog
+        - heading "Find the exact component." [level=1] [ref=e123]
+        - paragraph [ref=e124]: Search by manufacturer, MPN, specification, category or engineering requirement.
+        - generic [ref=e125]:
+          - textbox "Search MPN, manufacturer, KV, voltage, protocol..." [ref=e128]
+          - button "Search" [ref=e129]
+        - generic [ref=e132]:
+          - generic [ref=e133]: "Popular:"
+          - generic [ref=e134] [cursor=pointer]: MN4014
+          - generic [ref=e135]: ·
+          - generic [ref=e136] [cursor=pointer]: Pixhawk 6X
+          - generic [ref=e137]: ·
+          - generic [ref=e138] [cursor=pointer]: 45A ESC
+          - generic [ref=e139]: ·
+          - generic [ref=e140] [cursor=pointer]: M10 GNSS
+          - generic [ref=e141]: ·
+          - generic [ref=e142] [cursor=pointer]: 6S LiPo
+      - generic [ref=e143]:
+        - complementary [ref=e144]:
+          - heading "Filters" [level=2] [ref=e145]
+          - generic [ref=e146]:
+            - heading "Category" [level=3] [ref=e147]
+            - generic [ref=e148]:
+              - link "Propulsion" [ref=e149] [cursor=pointer]:
+                - /url: /products?category=Propulsion
+              - link "Flight Control" [ref=e151] [cursor=pointer]:
+                - /url: /products?category=Flight%20Control
+              - link "Power" [ref=e153] [cursor=pointer]:
+                - /url: /products?category=Power
+              - link "Compute & AI" [ref=e155] [cursor=pointer]:
+                - /url: /products?category=Compute%20%26%20AI
+              - link "Communication" [ref=e157] [cursor=pointer]:
+                - /url: /products?category=Communication
+              - link "Navigation" [ref=e159] [cursor=pointer]:
+                - /url: /products?category=Navigation
+              - link "Airframe" [ref=e161] [cursor=pointer]:
+                - /url: /products?category=Airframe
+              - link "Payload" [ref=e163] [cursor=pointer]:
+                - /url: /products?category=Payload
+          - generic [ref=e165]:
+            - heading "Electrical" [level=3] [ref=e166]
+            - generic [ref=e167]:
+              - generic [ref=e168] [cursor=pointer]: Voltage
+              - generic [ref=e170] [cursor=pointer]: Current
+              - generic [ref=e172] [cursor=pointer]: KV
+              - generic [ref=e174] [cursor=pointer]: Power
+              - generic [ref=e176] [cursor=pointer]: Capacity
+          - generic [ref=e178]:
+            - heading "Interface" [level=3] [ref=e179]
+            - generic [ref=e180]:
+              - generic [ref=e181] [cursor=pointer]: CAN
+              - generic [ref=e183] [cursor=pointer]: UART
+              - generic [ref=e185] [cursor=pointer]: I2C
+              - generic [ref=e187] [cursor=pointer]: SPI
+              - generic [ref=e189] [cursor=pointer]: PWM
+              - generic [ref=e191] [cursor=pointer]: Ethernet
+          - generic [ref=e193]:
+            - heading "Commercial" [level=3] [ref=e194]
+            - generic [ref=e195]:
+              - generic [ref=e196] [cursor=pointer]: Price
+              - generic [ref=e198] [cursor=pointer]: MOQ
+              - generic [ref=e200] [cursor=pointer]: Lead time
+              - generic [ref=e202] [cursor=pointer]: Stock
+        - generic [ref=e204]:
+          - generic [ref=e205]:
+            - generic [ref=e206]: 1,284 COMPONENTS
+            - generic [ref=e207]:
+              - generic [ref=e208]: "Sort:"
+              - combobox [ref=e209] [cursor=pointer]:
+                - option "Relevance" [selected]
+                - 'option "Price: Low to High"'
+                - 'option "Price: High to Low"'
+                - 'option "KV: High to Low"'
+          - generic [ref=e210]:
+            - link "Compare Reality Gate Motor RG-TEST-1788015180664-7411 RGM-RG-TEST-1788015180664-7411 RGM-RG-TEST-1788015180664-7411 Reality Gate test product ₹NaN 3 verified sellers In Stock" [ref=e211] [cursor=pointer]:
+              - /url: /products/2f6ed154-f0c4-459d-bd65-78ad74fb328f
+              - generic [ref=e212]: Compare
+              - img "Reality Gate Motor RG-TEST-1788015180664-7411 RGM-RG-TEST-1788015180664-7411" [ref=e216]
+              - generic [ref=e217]:
+                - heading "RGM-RG-TEST-1788015180664-7411" [level=3] [ref=e220]
+                - paragraph [ref=e223]: Reality Gate test product
+                - generic [ref=e224]:
+                  - generic [ref=e225]:
+                    - generic [ref=e226]: ₹NaN
+                    - generic [ref=e227]: 3 verified sellers
+                  - generic [ref=e228]: In Stock
+            - link "Compare Reality Gate Motor RUN-1788002707741 RGM-RUN-1788002707741 RGM-RUN-1788002707741 Reality Gate test product created by automated E2E run RUN-1788002707741 ₹NaN 3 verified sellers In Stock" [ref=e230] [cursor=pointer]:
+              - /url: /products/4fea9618-b45c-4194-8191-05082de8b4d4
+              - generic [ref=e231]: Compare
+              - img "Reality Gate Motor RUN-1788002707741 RGM-RUN-1788002707741" [ref=e235]
+              - generic [ref=e236]:
+                - heading "RGM-RUN-1788002707741" [level=3] [ref=e239]
+                - paragraph [ref=e242]: Reality Gate test product created by automated E2E run RUN-1788002707741
+                - generic [ref=e243]:
+                  - generic [ref=e244]:
+                    - generic [ref=e245]: ₹NaN
+                    - generic [ref=e246]: 3 verified sellers
+                  - generic [ref=e247]: In Stock
+            - link "Compare Reality Gate Motor RUN-1788001698438 RGM-RUN-1788001698438 RGM-RUN-1788001698438 Reality Gate test product created by automated E2E run RUN-1788001698438 ₹NaN 3 verified sellers In Stock" [ref=e249] [cursor=pointer]:
+              - /url: /products/8bf37797-ea1a-457a-ab14-e467e1ea3fdb
+              - generic [ref=e250]: Compare
+              - img "Reality Gate Motor RUN-1788001698438 RGM-RUN-1788001698438" [ref=e254]
+              - generic [ref=e255]:
+                - heading "RGM-RUN-1788001698438" [level=3] [ref=e258]
+                - paragraph [ref=e261]: Reality Gate test product created by automated E2E run RUN-1788001698438
+                - generic [ref=e262]:
+                  - generic [ref=e263]:
+                    - generic [ref=e264]: ₹NaN
+                    - generic [ref=e265]: 3 verified sellers
+                  - generic [ref=e266]: In Stock
+            - link "Compare Reality Gate Motor RUN-1788001390877 RGM-RUN-1788001390877 RGM-RUN-1788001390877 Reality Gate test product created by automated E2E run RUN-1788001390877 ₹NaN 3 verified sellers In Stock" [ref=e268] [cursor=pointer]:
+              - /url: /products/0bf0f50a-799d-46a3-9dd9-914395f43e66
+              - generic [ref=e269]: Compare
+              - img "Reality Gate Motor RUN-1788001390877 RGM-RUN-1788001390877" [ref=e273]
+              - generic [ref=e274]:
+                - heading "RGM-RUN-1788001390877" [level=3] [ref=e277]
+                - paragraph [ref=e280]: Reality Gate test product created by automated E2E run RUN-1788001390877
+                - generic [ref=e281]:
+                  - generic [ref=e282]:
+                    - generic [ref=e283]: ₹NaN
+                    - generic [ref=e284]: 3 verified sellers
+                  - generic [ref=e285]: In Stock
+            - link "Compare Reality Gate Motor RUN-1788001189704 RGM-RUN-1788001189704 RGM-RUN-1788001189704 Reality Gate test product created by automated E2E run RUN-1788001189704 ₹NaN 3 verified sellers In Stock" [ref=e287] [cursor=pointer]:
+              - /url: /products/c48edaab-09e5-48e1-8b96-84ee10ce4a14
+              - generic [ref=e288]: Compare
+              - img "Reality Gate Motor RUN-1788001189704 RGM-RUN-1788001189704" [ref=e292]
+              - generic [ref=e293]:
+                - heading "RGM-RUN-1788001189704" [level=3] [ref=e296]
+                - paragraph [ref=e299]: Reality Gate test product created by automated E2E run RUN-1788001189704
+                - generic [ref=e300]:
+                  - generic [ref=e301]:
+                    - generic [ref=e302]: ₹NaN
+                    - generic [ref=e303]: 3 verified sellers
+                  - generic [ref=e304]: In Stock
+            - link "Compare Reality Gate Motor RUN-1788000650356 RGM-RUN-1788000650356 RGM-RUN-1788000650356 Reality Gate test product created by automated E2E run RUN-1788000650356 ₹NaN 3 verified sellers In Stock" [ref=e306] [cursor=pointer]:
+              - /url: /products/e50b9c2e-4736-4738-9ddc-f74d9309fff0
+              - generic [ref=e307]: Compare
+              - img "Reality Gate Motor RUN-1788000650356 RGM-RUN-1788000650356" [ref=e311]
+              - generic [ref=e312]:
+                - heading "RGM-RUN-1788000650356" [level=3] [ref=e315]
+                - paragraph [ref=e318]: Reality Gate test product created by automated E2E run RUN-1788000650356
+                - generic [ref=e319]:
+                  - generic [ref=e320]:
+                    - generic [ref=e321]: ₹NaN
+                    - generic [ref=e322]: 3 verified sellers
+                  - generic [ref=e323]: In Stock
+            - link "Compare Reality Gate Motor RUN-1788000497243 RGM-RUN-1788000497243 RGM-RUN-1788000497243 Reality Gate test product created by automated E2E run RUN-1788000497243 ₹NaN 3 verified sellers In Stock" [ref=e325] [cursor=pointer]:
+              - /url: /products/60736452-6445-4c19-98dd-01a6e82d415f
+              - generic [ref=e326]: Compare
+              - img "Reality Gate Motor RUN-1788000497243 RGM-RUN-1788000497243" [ref=e330]
+              - generic [ref=e331]:
+                - heading "RGM-RUN-1788000497243" [level=3] [ref=e334]
+                - paragraph [ref=e337]: Reality Gate test product created by automated E2E run RUN-1788000497243
+                - generic [ref=e338]:
+                  - generic [ref=e339]:
+                    - generic [ref=e340]: ₹NaN
+                    - generic [ref=e341]: 3 verified sellers
+                  - generic [ref=e342]: In Stock
+            - link "Compare Reality Gate Motor RUN-1788000249499 RGM-RUN-1788000249499 RGM-RUN-1788000249499 Reality Gate test product created by automated E2E run RUN-1788000249499 ₹NaN 3 verified sellers In Stock" [ref=e344] [cursor=pointer]:
+              - /url: /products/b15da6da-7940-49a2-b21c-71571d4df741
+              - generic [ref=e345]: Compare
+              - img "Reality Gate Motor RUN-1788000249499 RGM-RUN-1788000249499" [ref=e349]
+              - generic [ref=e350]:
+                - heading "RGM-RUN-1788000249499" [level=3] [ref=e353]
+                - paragraph [ref=e356]: Reality Gate test product created by automated E2E run RUN-1788000249499
+                - generic [ref=e357]:
+                  - generic [ref=e358]:
+                    - generic [ref=e359]: ₹NaN
+                    - generic [ref=e360]: 3 verified sellers
+                  - generic [ref=e361]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787999946897 RGM-RUN-1787999946897 RGM-RUN-1787999946897 Reality Gate test product created by automated E2E run RUN-1787999946897 ₹NaN 3 verified sellers In Stock" [ref=e363] [cursor=pointer]:
+              - /url: /products/40b1f96d-c8cd-4230-b150-f8ec77a31bf7
+              - generic [ref=e364]: Compare
+              - img "Reality Gate Motor RUN-1787999946897 RGM-RUN-1787999946897" [ref=e368]
+              - generic [ref=e369]:
+                - heading "RGM-RUN-1787999946897" [level=3] [ref=e372]
+                - paragraph [ref=e375]: Reality Gate test product created by automated E2E run RUN-1787999946897
+                - generic [ref=e376]:
+                  - generic [ref=e377]:
+                    - generic [ref=e378]: ₹NaN
+                    - generic [ref=e379]: 3 verified sellers
+                  - generic [ref=e380]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787999567882 RGM-RUN-1787999567882 RGM-RUN-1787999567882 Reality Gate test product created by automated E2E run RUN-1787999567882 ₹NaN 3 verified sellers In Stock" [ref=e382] [cursor=pointer]:
+              - /url: /products/f6ed2c68-ecb3-43b3-8dd0-409eeeebfbd0
+              - generic [ref=e383]: Compare
+              - img "Reality Gate Motor RUN-1787999567882 RGM-RUN-1787999567882" [ref=e387]
+              - generic [ref=e388]:
+                - heading "RGM-RUN-1787999567882" [level=3] [ref=e391]
+                - paragraph [ref=e394]: Reality Gate test product created by automated E2E run RUN-1787999567882
+                - generic [ref=e395]:
+                  - generic [ref=e396]:
+                    - generic [ref=e397]: ₹NaN
+                    - generic [ref=e398]: 3 verified sellers
+                  - generic [ref=e399]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787999374012 RGM-RUN-1787999374012 RGM-RUN-1787999374012 Reality Gate test product created by automated E2E run RUN-1787999374012 ₹NaN 3 verified sellers In Stock" [ref=e401] [cursor=pointer]:
+              - /url: /products/acf43fa6-22c6-4241-bb48-c24b2c933198
+              - generic [ref=e402]: Compare
+              - img "Reality Gate Motor RUN-1787999374012 RGM-RUN-1787999374012" [ref=e406]
+              - generic [ref=e407]:
+                - heading "RGM-RUN-1787999374012" [level=3] [ref=e410]
+                - paragraph [ref=e413]: Reality Gate test product created by automated E2E run RUN-1787999374012
+                - generic [ref=e414]:
+                  - generic [ref=e415]:
+                    - generic [ref=e416]: ₹NaN
+                    - generic [ref=e417]: 3 verified sellers
+                  - generic [ref=e418]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787999198445 RGM-RUN-1787999198445 RGM-RUN-1787999198445 Reality Gate test product created by automated E2E run RUN-1787999198445 ₹NaN 3 verified sellers In Stock" [ref=e420] [cursor=pointer]:
+              - /url: /products/86fbeccb-175d-4fde-a934-9d2f17828293
+              - generic [ref=e421]: Compare
+              - img "Reality Gate Motor RUN-1787999198445 RGM-RUN-1787999198445" [ref=e425]
+              - generic [ref=e426]:
+                - heading "RGM-RUN-1787999198445" [level=3] [ref=e429]
+                - paragraph [ref=e432]: Reality Gate test product created by automated E2E run RUN-1787999198445
+                - generic [ref=e433]:
+                  - generic [ref=e434]:
+                    - generic [ref=e435]: ₹NaN
+                    - generic [ref=e436]: 3 verified sellers
+                  - generic [ref=e437]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787998781865 RGM-RUN-1787998781865 RGM-RUN-1787998781865 Reality Gate test product created by automated E2E run RUN-1787998781865 ₹NaN 3 verified sellers In Stock" [ref=e439] [cursor=pointer]:
+              - /url: /products/69cab7c7-e003-46ab-bb98-95e4603e29c5
+              - generic [ref=e440]: Compare
+              - img "Reality Gate Motor RUN-1787998781865 RGM-RUN-1787998781865" [ref=e444]
+              - generic [ref=e445]:
+                - heading "RGM-RUN-1787998781865" [level=3] [ref=e448]
+                - paragraph [ref=e451]: Reality Gate test product created by automated E2E run RUN-1787998781865
+                - generic [ref=e452]:
+                  - generic [ref=e453]:
+                    - generic [ref=e454]: ₹NaN
+                    - generic [ref=e455]: 3 verified sellers
+                  - generic [ref=e456]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787998577492 RGM-RUN-1787998577492 RGM-RUN-1787998577492 Reality Gate test product created by automated E2E run RUN-1787998577492 ₹NaN 3 verified sellers In Stock" [ref=e458] [cursor=pointer]:
+              - /url: /products/c18edb16-97e6-4e3b-a1a7-96beedbaf0b9
+              - generic [ref=e459]: Compare
+              - img "Reality Gate Motor RUN-1787998577492 RGM-RUN-1787998577492" [ref=e463]
+              - generic [ref=e464]:
+                - heading "RGM-RUN-1787998577492" [level=3] [ref=e467]
+                - paragraph [ref=e470]: Reality Gate test product created by automated E2E run RUN-1787998577492
+                - generic [ref=e471]:
+                  - generic [ref=e472]:
+                    - generic [ref=e473]: ₹NaN
+                    - generic [ref=e474]: 3 verified sellers
+                  - generic [ref=e475]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787998411317 RGM-RUN-1787998411317 RGM-RUN-1787998411317 Reality Gate test product created by automated E2E run RUN-1787998411317 ₹NaN 3 verified sellers In Stock" [ref=e477] [cursor=pointer]:
+              - /url: /products/fc86c8c2-a4ec-4f79-8635-a0a8ca4ea902
+              - generic [ref=e478]: Compare
+              - img "Reality Gate Motor RUN-1787998411317 RGM-RUN-1787998411317" [ref=e482]
+              - generic [ref=e483]:
+                - heading "RGM-RUN-1787998411317" [level=3] [ref=e486]
+                - paragraph [ref=e489]: Reality Gate test product created by automated E2E run RUN-1787998411317
+                - generic [ref=e490]:
+                  - generic [ref=e491]:
+                    - generic [ref=e492]: ₹NaN
+                    - generic [ref=e493]: 3 verified sellers
+                  - generic [ref=e494]: In Stock
+            - link "Compare Reality Gate Motor RUN-1787998366104 RGM-RUN-1787998366104 RGM-RUN-1787998366104 Reality Gate test product created by automated E2E run RUN-1787998366104 ₹NaN 3 verified sellers In Stock" [ref=e496] [cursor=pointer]:
+              - /url: /products/c03dcb40-1117-410d-9541-6ef9e79bf4df
+              - generic [ref=e497]: Compare
+              - img "Reality Gate Motor RUN-1787998366104 RGM-RUN-1787998366104" [ref=e501]
+              - generic [ref=e502]:
+                - heading "RGM-RUN-1787998366104" [level=3] [ref=e505]
+                - paragraph [ref=e508]: Reality Gate test product created by automated E2E run RUN-1787998366104
+                - generic [ref=e509]:
+                  - generic [ref=e510]:
+                    - generic [ref=e511]: ₹NaN
+                    - generic [ref=e512]: 3 verified sellers
+                  - generic [ref=e513]: In Stock
+            - link "Compare cfc dz dz df ₹NaN 3 verified sellers In Stock" [ref=e515] [cursor=pointer]:
+              - /url: /products/6f351da8-f531-4f54-be64-756dc3d3c22a
+              - generic [ref=e516]: Compare
+              - img "cfc dz" [ref=e520]
+              - generic [ref=e521]:
+                - heading "dz" [level=3] [ref=e524]
+                - paragraph [ref=e527]: df
+                - generic [ref=e528]:
+                  - generic [ref=e529]:
+                    - generic [ref=e530]: ₹NaN
+                    - generic [ref=e531]: 3 verified sellers
+                  - generic [ref=e532]: In Stock
+          - generic [ref=e535]:
+            - button [disabled] [ref=e536]
+            - button "1" [ref=e539]
+            - button "2" [ref=e540]
+            - button "3" [ref=e541]
+            - generic [ref=e542]: ...
+            - button [ref=e543]
+  - contentinfo [ref=e546]:
+    - generic [ref=e548]:
+      - generic [ref=e554]:
+        - generic [ref=e555]: Canonical MPN Identity
+        - generic [ref=e556]: Strict PIM validation prevents counterfeit listings
+      - generic [ref=e561]:
+        - generic [ref=e562]: Technical RMA Diagnostics
+        - generic [ref=e563]: Serial verification & electrical evidence logs
+      - generic [ref=e571]:
+        - generic [ref=e572]: Insured Express Logistics
+        - generic [ref=e573]: ESD-safe transit with granular FSM tracking
+      - generic [ref=e578]:
+        - generic [ref=e579]: SLA-Guaranteed Support
+        - generic [ref=e580]: Direct L2/L3 technical engineer assignment
+    - generic [ref=e581]:
+      - generic [ref=e582]:
+        - link "RUDRAASTRA" [ref=e583] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e588]: India's canonical Technical B2B Marketplace & Engineering Discovery Engine for Drone Hardware. Made in India. Built for the people who build India.
+        - generic [ref=e589]: "Operations & Ledger Status: 100% Operational"
+      - generic [ref=e592]:
+        - heading "Directory" [level=4] [ref=e593]
+        - list [ref=e594]:
+          - listitem [ref=e595]:
+            - link "Categories" [ref=e596] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=e597]:
+            - link "Component Catalog" [ref=e598] [cursor=pointer]:
+              - /url: /products
+          - listitem [ref=e599]:
+            - link "Manufacturers" [ref=e600] [cursor=pointer]:
+              - /url: /manufacturers
+          - listitem [ref=e601]: BOM Procurement
+      - generic [ref=e602]:
+        - heading "Engineering" [level=4] [ref=e603]
+        - list [ref=e604]:
+          - listitem [ref=e605]: System Calculators
+          - listitem [ref=e606]: Compatibility Matrix
+          - listitem [ref=e607]: CAD Library
+          - listitem [ref=e608]: Developer API
+      - generic [ref=e609]:
+        - heading "Company" [level=4] [ref=e610]
+        - list [ref=e611]:
+          - listitem [ref=e612]: About Us
+          - listitem [ref=e613]: Become a Seller
+          - listitem [ref=e614]: Defense & Govt
+          - listitem [ref=e615]:
+            - link "Contact Support" [ref=e616] [cursor=pointer]:
+              - /url: /account/support
+      - generic [ref=e617]:
+        - heading "Account & Portals" [level=4] [ref=e618]
+        - list [ref=e619]:
+          - listitem [ref=e620]:
+            - link "Procurement Cart" [ref=e621] [cursor=pointer]:
+              - /url: /cart
+          - listitem [ref=e622]:
+            - link "Account Dashboard" [ref=e623] [cursor=pointer]:
+              - /url: /account
+          - listitem [ref=e624]:
+            - link "Request a Quote" [ref=e625] [cursor=pointer]:
+              - /url: /quote-request
+          - listitem [ref=e626]: Orders & RMA
+    - generic [ref=e627]:
+      - paragraph [ref=e628]: © 2026 Rudraastra Marketplace. Architecture v1.0 Frozen.
+      - generic [ref=e629]:
+        - link "Privacy Policy" [ref=e630] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms of Service" [ref=e631] [cursor=pointer]:
+          - /url: /terms
+        - generic "Coming Soon" [ref=e632]: Audit Logs
+  - alert [ref=e633]
+```
