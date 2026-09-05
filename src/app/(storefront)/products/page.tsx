@@ -182,7 +182,7 @@ function ProductsPageContent() {
                 {/* IMAGE */}
                 <div className="w-full h-[240px] bg-white flex items-center justify-center p-6 overflow-hidden relative border-b border-[var(--border)]">
                   <Image 
-                    src={resolvePrimaryImage(prod)} 
+                    src={resolvePrimaryImage(prod)?.url || "/images/products/rudrastra_motor_1785921295587.png"} 
                     alt={`${prod.title} ${prod.mpn || ''}`} 
                     width={200} 
                     height={200} 

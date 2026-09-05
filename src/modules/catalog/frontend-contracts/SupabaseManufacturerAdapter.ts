@@ -18,7 +18,7 @@ export class SupabaseGetManufacturerProductsAdapter implements GetManufacturerPr
       mpn: p.mpn || p.title,
       category: p.category,
       price: (p.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
-      img: resolvePrimaryImage(p)
+      img: resolvePrimaryImage(p)?.url || "/images/products/rudrastra_motor_1785921295587.png"
     }));
   }
 }

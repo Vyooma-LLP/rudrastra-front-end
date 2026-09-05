@@ -94,9 +94,11 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
       .then(res => res.json())
       .then(data => {
         if (data.product) {
-          let imagesList: string[] = resolveProductAssets(data.product, { mediaType: "image" });
+          // For the main gallery, we just need the URLs
+          let imagesList = resolveProductAssets(data.product, { assetRole: "general" }).map(a => a.url);
           if (imagesList.length === 0) {
-            imagesList = [resolveProductAssets(data.product)[0] || "/images/products/rudrastra_motor_1785921295587.png"];
+            const allAssets = resolveProductAssets(data.product);
+            imagesList = [allAssets.length > 0 ? allAssets[0].url : "/images/products/rudrastra_motor_1785921295587.png"];
           }
           if (imagesList.length === 1) {
             // Pad array for gallery thumbnail view if only one image exists
@@ -162,7 +164,8 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
               { throttle: 90, rpm: 4956.29, voltage: 24.887, current: 9.727, thrust: 1733, torque: 0.344, pIn: 242.076, pOut: 178.543, effDrive: 73.755, effProp: 9.706, effSys: 7.159 },
               { throttle: 100, rpm: 5329.129, voltage: 24.818, current: 12.469, thrust: 2021, torque: 0.405, pIn: 309.456, pOut: 226.016, effDrive: 73.037, effProp: 8.942, effSys: 6.531 },
             ],
-            cadImages: data.product.cadImages || [],
+            // Keep CAD images as objects to retain mediaType
+            cadImages: resolveProductAssets(data.product, { assetRole: "drawing" }),
             compatibility: [
               { type: "ESC", status: "match", text: "Hobbywing X8 ESC" },
               { type: "ESC", status: "match", text: "80A ESC" },
@@ -452,14 +455,28 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
 
           {/* CAD & DRAWINGS */}
           <div id="cad" className="scroll-mt-40">
-            <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-8">CAD 4006</h3>
+            <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-8">CAD & Drawings</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {product.cadImages && product.cadImages.length > 0 ? (
-                product.cadImages.map((img: string, i: number) => (
-                  <div key={i} className="flex justify-center p-4">
-                    <Image src={img} alt="CAD Drawing" width={300} height={300} className="object-contain" />
-                  </div>
-                ))
+                product.cadImages.map((asset: any, i: number) => {
+                  const isImage = asset.mediaType === "image";
+                  return (
+                    <div key={i} className="flex justify-center p-4">
+                      {isImage ? (
+                        <Image src={asset.url} alt="CAD Drawing" width={300} height={300} className="object-contain" />
+                      ) : (
+                        <a href={asset.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center gap-4 w-full h-full p-6 border-2 border-dashed border-[#CCCCCC] hover:border-[#2266DD] transition-colors rounded-xl group">
+                          <svg className="w-12 h-12 text-[#999999] group-hover:text-[#2266DD] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                          </svg>
+                          <span className="font-sans font-bold text-[13px] text-center text-[#444] group-hover:text-[#2266DD]">
+                            Download 3D Model
+                          </span>
+                        </a>
+                      )}
+                    </div>
+                  );
+                })
               ) : (
                 <>
                   <div className="flex flex-col items-center gap-4">

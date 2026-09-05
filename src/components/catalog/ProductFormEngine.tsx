@@ -36,7 +36,7 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
     initialData?.media?.filter((m: MediaItem) => ['performance_data', 'test_report'].includes(m.assetRole!)) || []
   );
   const [cads, setCads] = useState<MediaItem[]>(
-    initialData?.media?.filter((m: MediaItem) => m.mediaType === 'cad') || []
+    initialData?.media?.filter((m: MediaItem) => m.assetRole === 'drawing' || m.mediaType === 'cad') || []
   );
 
   const [variants, setVariants] = useState<any[]>(initialData?.variants || [{ id: "new", name: "Standard", sku: "", specs: [] }]);
@@ -227,6 +227,7 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
               accept=".step,.stp,.stl,.iges,.igs,image/*,.png,.jpg,.jpeg,.webp"
               defaultMediaType="cad"
               defaultAssetRole="drawing"
+              allowedImportMediaTypes={["cad", "image"]}
               allowedAssetRoles={[
                 { label: '3D Model', value: 'drawing' }
               ]}

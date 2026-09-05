@@ -14,6 +14,7 @@ interface AssetUploaderBaseProps {
   defaultMediaType: string;
   defaultAssetRole: string;
   allowedAssetRoles: { label: string, value: string }[];
+  allowedImportMediaTypes?: string[];
   initialMedia?: MediaItem[];
   onChange: (media: MediaItem[]) => void;
   storageProvider?: MediaStorageProvider;
@@ -28,6 +29,7 @@ export function AssetUploaderBase({
   defaultMediaType, 
   defaultAssetRole,
   allowedAssetRoles,
+  allowedImportMediaTypes,
   initialMedia = [], 
   onChange,
   storageProvider = defaultStorageProvider
@@ -196,12 +198,12 @@ export function AssetUploaderBase({
       <ImportCadModal 
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        allowedMediaTypes={[defaultMediaType]}
+        allowedMediaTypes={allowedImportMediaTypes || [defaultMediaType]}
         onSelect={(asset) => {
           setMediaItems(prev => [...prev, {
             url: asset.url,
             mediaType: asset.mediaType,
-            assetRole: asset.assetRole || defaultAssetRole,
+            assetRole: defaultAssetRole, // Force the imported asset to adopt the role of this section
             sortOrder: prev.length,
             altText: asset.altText
           }]);

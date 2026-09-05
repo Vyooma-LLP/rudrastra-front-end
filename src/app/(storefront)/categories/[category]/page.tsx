@@ -75,7 +75,7 @@ export default async function SubcategoryPage({ params }: { params: Promise<{ ca
       mfg: mfg,
       mpn: p.mpn || p.title,
       price: `₹0.00`,
-      img: resolvePrimaryImage(p),
+      img: resolvePrimaryImage(p)?.url || "/images/products/rudrastra_motor_1785921295587.png",
     };
   });
 
