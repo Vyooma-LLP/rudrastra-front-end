@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MediaItem } from "./MediaUploader";
 import { AssetUploaderBase } from "./AssetUploaderBase";
+import { CadMetadataEditor } from "./CadMetadataEditor";
 
 export type ProductFormMode = "create" | "edit";
 
@@ -233,6 +234,9 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
               ]}
               initialMedia={cads}
               onChange={setCads}
+              metadataEditor={(asset, onChange) => (
+                <CadMetadataEditor asset={asset} onChange={onChange} />
+              )}
             />
           </div>
 

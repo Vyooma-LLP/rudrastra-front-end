@@ -18,6 +18,7 @@ interface AssetUploaderBaseProps {
   initialMedia?: MediaItem[];
   onChange: (media: MediaItem[]) => void;
   storageProvider?: MediaStorageProvider;
+  metadataEditor?: (asset: MediaItem, onChange: (updated: MediaItem) => void) => React.ReactNode;
 }
 
 const defaultStorageProvider = new SupabaseStorageProvider();
@@ -32,7 +33,8 @@ export function AssetUploaderBase({
   allowedImportMediaTypes,
   initialMedia = [], 
   onChange,
-  storageProvider = defaultStorageProvider
+  storageProvider = defaultStorageProvider,
+  metadataEditor
 }: AssetUploaderBaseProps) {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>(initialMedia);
   const [isUploading, setIsUploading] = useState(false);
@@ -254,6 +256,17 @@ export function AssetUploaderBase({
                           Primary
                         </span>
                       )}
+                    </div>
+                  )}
+                  {metadataEditor && (
+                    <div className="mt-3 bg-zinc-900/50 p-3 rounded border border-zinc-800">
+                      {metadataEditor(media, (updated: MediaItem) => {
+                        setMediaItems(prev => {
+                          const newItems = [...prev];
+                          newItems[idx] = updated;
+                          return newItems;
+                        });
+                      })}
                     </div>
                   )}
                 </div>

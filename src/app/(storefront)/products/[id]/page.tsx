@@ -456,28 +456,87 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
           {/* CAD & DRAWINGS */}
           <div id="cad" className="scroll-mt-40">
             <h3 className="font-heading font-extrabold text-[24px] tracking-tight mb-8">CAD & Drawings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {product.cadImages && product.cadImages.length > 0 ? (
-                product.cadImages.map((asset: any, i: number) => {
-                  const isImage = asset.mediaType === "image";
+            {product.cadImages && product.cadImages.length > 0 ? (
+              <div className="space-y-12">
+                {/* 1. Single Presentation */}
+                {(() => {
+                  const singles = product.cadImages.filter((a: any) => a.metadata?.presentation === "single");
+                  if (singles.length === 0) return null;
                   return (
-                    <div key={i} className="flex justify-center p-4">
-                      {isImage ? (
-                        <Image src={asset.url} alt="CAD Drawing" width={300} height={300} className="object-contain" />
-                      ) : (
-                        <a href={asset.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center gap-4 w-full h-full p-6 border-2 border-dashed border-[#CCCCCC] hover:border-[#2266DD] transition-colors rounded-xl group">
-                          <svg className="w-12 h-12 text-[#999999] group-hover:text-[#2266DD] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                          </svg>
-                          <span className="font-sans font-bold text-[13px] text-center text-[#444] group-hover:text-[#2266DD]">
-                            Download 3D Model
-                          </span>
-                        </a>
-                      )}
+                    <div className="flex flex-col gap-8">
+                      {singles.map((asset: any, i: number) => (
+                        <div key={i} className="w-full flex justify-center bg-white border border-[#E5E5E5] p-4 relative group">
+                          {asset.mediaType === "image" ? (
+                            <Image src={asset.url} alt="Composite CAD Drawing" width={1000} height={1000} className="w-full max-w-4xl object-contain" />
+                          ) : (
+                            <a href={asset.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#2266DD] hover:underline font-bold">
+                              View Composite Drawing Document
+                            </a>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   );
-                })
-              ) : (
+                })()}
+
+                {/* 2. Multi-view Presentation */}
+                {(() => {
+                  const multi = product.cadImages.filter((a: any) => a.metadata?.presentation === "multi_view");
+                  if (multi.length === 0) return null;
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {multi.map((asset: any, i: number) => (
+                        <div key={i} className="flex flex-col items-center gap-4">
+                          <div className="w-full aspect-square border border-[#E5E5E5] flex items-center justify-center p-4 bg-white relative">
+                            {asset.mediaType === "image" ? (
+                              <Image src={asset.url} alt={`${asset.metadata?.view || 'View'}`} width={400} height={400} className="object-contain w-full h-full" />
+                            ) : (
+                              <a href={asset.url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#2266DD] hover:underline font-semibold">
+                                Download {asset.metadata?.view} View
+                              </a>
+                            )}
+                          </div>
+                          {asset.metadata?.view && (
+                            <span className="font-mono text-xs text-[#666] uppercase tracking-wider">
+                              [{asset.metadata.view} view]
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* 3. Document / Model Presentation */}
+                {(() => {
+                  const others = product.cadImages.filter((a: any) => ["document", "model"].includes(a.metadata?.presentation) || !a.metadata?.presentation);
+                  if (others.length === 0) return null;
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {others.map((asset: any, i: number) => (
+                        <div key={i} className="flex justify-center h-48">
+                          {asset.mediaType === "image" ? (
+                             <div className="w-full h-full border border-[#E5E5E5] p-2 bg-white flex items-center justify-center">
+                               <Image src={asset.url} alt="CAD Preview" width={300} height={300} className="object-contain w-full h-full" />
+                             </div>
+                          ) : (
+                             <a href={asset.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center gap-4 w-full h-full p-6 border-2 border-dashed border-[#CCCCCC] hover:border-[#2266DD] transition-colors rounded-xl group bg-white">
+                                <svg className="w-12 h-12 text-[#999999] group-hover:text-[#2266DD] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <span className="font-sans font-bold text-[13px] text-center text-[#444] group-hover:text-[#2266DD]">
+                                  {asset.metadata?.presentation === 'document' ? 'Download Document' : 'Download 3D Model'}
+                                </span>
+                             </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <>
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-48 h-48 border-2 border-dashed border-[#CCCCCC] rounded-full flex items-center justify-center text-[#999999] text-xs font-mono relative">
@@ -500,8 +559,8 @@ export default function ProductDetailPage({ params }: { params: React.Usable<{ i
                     </div>
                   </div>
                 </>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* COMPATIBILITY */}

@@ -122,6 +122,7 @@ export async function createFullProduct(data: any) {
             assetRole: item.assetRole || 'general',
             sortOrder: index, // Server-derived ordering (ignoring client sort)
             altText: item.altText,
+            metadata: item.metadata || {},
           };
         });
         await tx.insert(productMedia).values(mediaValues);
@@ -239,6 +240,7 @@ export async function updateFullProduct(data: any) {
             assetRole: item.assetRole || 'general',
             sortOrder: index, // Server-derived ordering
             altText: item.altText,
+            metadata: item.metadata || {},
           };
         });
         await tx.insert(productMedia).values(mediaValues);

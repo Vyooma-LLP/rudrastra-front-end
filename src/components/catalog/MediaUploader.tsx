@@ -6,6 +6,8 @@ import { MediaStorageProvider } from '@/lib/storage/MediaStorageProvider';
 import { SupabaseStorageProvider } from '@/lib/storage/SupabaseStorageProvider';
 import { ImportCadModal } from './ImportCadModal';
 
+import type { ProductMediaMetadata } from '@/db/schema';
+
 export type MediaItem = {
   id?: string;
   url: string;
@@ -13,6 +15,7 @@ export type MediaItem = {
   assetRole?: string;
   sortOrder: number;
   altText?: string;
+  metadata?: ProductMediaMetadata;
 };
 
 interface MediaUploaderProps {

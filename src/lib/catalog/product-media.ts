@@ -4,10 +4,29 @@
  * with legacy `imageUrl` preserved only as an ultimate fallback for un-migrated products.
  */
 
+import type { ProductMediaMetadata } from "@/db/schema";
+
 export interface ResolvedProductAsset {
   url: string;
   mediaType: string;
   assetRole: string;
+  metadata?: ProductMediaMetadata;
+}
+
+export function normalizeMediaMetadata(asset: any): ProductMediaMetadata {
+  if (asset.metadata && asset.metadata.presentation) {
+    return asset.metadata;
+  }
+  
+  // Legacy compatibility layer for assets uploaded before metadata schema
+  if (asset.assetRole === "drawing") {
+    return {
+      presentation: asset.mediaType === "image" ? "single" : asset.mediaType === "cad" ? "model" : "document",
+      displayMode: "primary"
+    };
+  }
+  
+  return asset.metadata || {};
 }
 
 const DEFAULT_FALLBACK_IMAGE = "/images/products/rudrastra_motor_1785921295587.png";
@@ -29,7 +48,8 @@ export function resolvePrimaryImage(product: any): ResolvedProductAsset | null {
       return {
         url: images[0].url.trim(),
         mediaType: images[0].mediaType || "image",
-        assetRole: images[0].assetRole || "general"
+        assetRole: images[0].assetRole || "general",
+        metadata: normalizeMediaMetadata(images[0])
       };
     }
   }
@@ -79,7 +99,8 @@ export function resolveProductAssets(product: any, filter?: { mediaType?: string
         .map((m: any) => ({
           url: m.url.trim(),
           mediaType: m.mediaType,
-          assetRole: m.assetRole
+          assetRole: m.assetRole,
+          metadata: normalizeMediaMetadata(m)
         }));
     }
   }

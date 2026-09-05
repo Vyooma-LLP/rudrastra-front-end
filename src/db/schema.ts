@@ -1,6 +1,17 @@
 import { pgTable, uuid, text, timestamp, integer, boolean, unique, jsonb, check, foreignKey, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
+export type CadPresentation = "single" | "multi_view" | "document" | "model";
+export type CadView = "top" | "bottom" | "side" | "front" | "rear" | "isometric" | "custom";
+export type DisplayMode = "primary" | "preview" | "gallery" | "download";
+
+export interface ProductMediaMetadata {
+  presentation?: CadPresentation;
+  view?: CadView;
+  displayMode?: DisplayMode;
+  label?: string;
+}
+
 // 1. Users Table
 export const users = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -112,6 +123,7 @@ export const productMedia = pgTable("product_media", {
     assetRole: text("asset_role").default('general').notNull(), // 'datasheet', 'performance_data', 'test_report', 'certification', 'manual', 'drawing', 'general'
     sortOrder: integer("sort_order").notNull(),
     altText: text("alt_text"),
+    metadata: jsonb("metadata").$type<ProductMediaMetadata>().notNull().default({}),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => {
     return {
