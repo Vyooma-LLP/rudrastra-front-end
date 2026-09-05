@@ -59,7 +59,6 @@ export function resolvePrimaryImage(product: any): ResolvedProductAsset | null {
  * Resolves all assets of a specific role/type from a product.
  * Used for galleries, spec downloads, CAD models, etc.
  */
- */
 export function resolveProductAssets(product: any, filter?: { mediaType?: string; assetRole?: string }): ResolvedProductAsset[] {
   if (!product) return [];
 
