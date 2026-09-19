@@ -182,7 +182,7 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
           </div>
 
           <div className="space-y-6">
-            <AssetUploaderBase 
+            <AssetUploaderBase
               title="Product Images"
               description="Upload primary and secondary product photos."
               accept="image/*,video/*"
@@ -191,9 +191,10 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
               allowedAssetRoles={[]}
               initialMedia={images}
               onChange={setImages}
+              productId={initialData?.id}
             />
 
-            <AssetUploaderBase 
+            <AssetUploaderBase
               title="Specifications & Manuals"
               description="Upload datasheets, certifications, and product manuals (PDF)."
               accept=".pdf,.doc,.docx"
@@ -206,9 +207,10 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
               ]}
               initialMedia={specDocs}
               onChange={setSpecDocs}
+              productId={initialData?.id}
             />
 
-            <AssetUploaderBase 
+            <AssetUploaderBase
               title="Performance Data"
               description="Upload test reports and performance data spreadsheets (CSV, XLSX)."
               accept=".csv,.xlsx,.xls,.json"
@@ -220,9 +222,10 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
               ]}
               initialMedia={perfData}
               onChange={setPerfData}
+              productId={initialData?.id}
             />
 
-            <AssetUploaderBase 
+            <AssetUploaderBase
               title="CAD / Engineering Files"
               description="Upload 3D models, engineering drawings, or images (STEP, STL, IGES, PNG, JPG)."
               accept=".step,.stp,.stl,.iges,.igs,image/*,.png,.jpg,.jpeg,.webp"
@@ -234,6 +237,7 @@ export function ProductFormEngine({ mode, manufacturers, categories, initialData
               ]}
               initialMedia={cads}
               onChange={setCads}
+              productId={initialData?.id}
               metadataEditor={(asset, onChange) => (
                 <CadMetadataEditor asset={asset} onChange={onChange} />
               )}

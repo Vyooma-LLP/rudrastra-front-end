@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { UploadCloud, X, GripVertical, FileText, Box, FileSpreadsheet, Film, Search } from 'lucide-react';
 import { MediaStorageProvider } from '@/lib/storage/MediaStorageProvider';
-import { SupabaseStorageProvider } from '@/lib/storage/SupabaseStorageProvider';
+import { SignedUploadProvider } from '@/lib/storage/SignedUploadProvider';
 import { ImportCadModal } from './ImportCadModal';
 import type { MediaItem } from './MediaUploader';
 
@@ -17,25 +17,34 @@ interface AssetUploaderBaseProps {
   allowedImportMediaTypes?: string[];
   initialMedia?: MediaItem[];
   onChange: (media: MediaItem[]) => void;
+  productId?: string;
+  variantId?: string;
   storageProvider?: MediaStorageProvider;
   metadataEditor?: (asset: MediaItem, onChange: (updated: MediaItem) => void) => React.ReactNode;
 }
 
-const defaultStorageProvider = new SupabaseStorageProvider();
-
-export function AssetUploaderBase({ 
-  title, 
-  description, 
-  accept, 
-  defaultMediaType, 
+export function AssetUploaderBase({
+  title,
+  description,
+  accept,
+  defaultMediaType,
   defaultAssetRole,
   allowedAssetRoles,
   allowedImportMediaTypes,
-  initialMedia = [], 
+  initialMedia = [],
   onChange,
-  storageProvider = defaultStorageProvider,
+  productId,
+  variantId,
+  storageProvider,
   metadataEditor
 }: AssetUploaderBaseProps) {
+  // Signed upload URLs so the storage RLS can stay ADMIN/OPS-only: the server action
+  // authorizes the caller (role + seller ownership) before minting a short-lived
+  // upload capability, rather than relaxing the bucket policy to `authenticated`.
+  const resolvedStorageProvider = useMemo(
+    () => storageProvider ?? new SignedUploadProvider({ productId, variantId }),
+    [storageProvider, productId, variantId]
+  );
   const [mediaItems, setMediaItems] = useState<MediaItem[]>(initialMedia);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -58,7 +67,7 @@ export function AssetUploaderBase({
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const uploaded = await storageProvider.upload(file, (progress) => {
+        const uploaded = await resolvedStorageProvider.upload(file, (progress) => {
            setUploadProgress(progress);
         });
         
