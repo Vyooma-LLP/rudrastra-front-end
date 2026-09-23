@@ -35,6 +35,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ orders: ordersWithItems });
   } catch (error: unknown) {
     console.error("Error fetching orders:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR", message: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
   }
 }

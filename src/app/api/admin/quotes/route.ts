@@ -24,6 +24,7 @@ export async function GET() {
         const quotes = await db.select().from(quoteRequests).orderBy(desc(quoteRequests.createdAt));
         return NextResponse.json({ quotes }, { status: 200 });
     } catch (error: unknown) {
-        return NextResponse.json({ error: "INTERNAL_ERROR", message: (error as Error).message }, { status: 500 });
+        console.error("Error fetching quotes:", error);
+        return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
     }
 }

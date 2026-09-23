@@ -63,7 +63,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ items, summary: { subtotal, tax, total } }, { status: 200 });
     } catch (err: unknown) {
-        return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+        console.error("Error fetching cart:", err);
+        return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
     }
 }
 
@@ -137,6 +138,7 @@ export async function POST(request: Request) {
         // Return updated items
         return GET(request);
     } catch (err: unknown) {
-        return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+        console.error("Error updating cart:", err);
+        return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
     }
 }

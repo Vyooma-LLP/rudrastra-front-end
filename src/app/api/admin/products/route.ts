@@ -47,6 +47,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ product: newProduct });
   } catch (error: unknown) {
     console.error("Error creating product:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR", message: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
   }
 }

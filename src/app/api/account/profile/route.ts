@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ profile: userProfile });
   } catch (error: unknown) {
     console.error("Error fetching profile:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR", message: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
   }
 }
 
@@ -58,6 +58,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ profile: updatedUser });
   } catch (error: unknown) {
     console.error("Error updating profile:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR", message: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
   }
 }

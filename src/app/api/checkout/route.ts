@@ -6,6 +6,21 @@ import { NextResponse } from "next/server";
 import { isFeatureEnabled } from "@/lib/features";
 import crypto from "crypto";
 
+// Errors deliberately thrown inside the checkout transaction as user-facing
+// validation messages. Anything else (DB/connection failures, etc.) must not
+// have its raw message returned to the client or persisted to the
+// idempotency-key response that gets replayed on retry.
+const SAFE_CHECKOUT_ERRORS = new Set([
+    "Missing required shipping address fields",
+]);
+
+function safeCheckoutErrorMessage(error: unknown): string {
+    if (error instanceof Error && SAFE_CHECKOUT_ERRORS.has(error.message)) {
+        return error.message;
+    }
+    return "Checkout failed";
+}
+
 async function getUserId() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -163,10 +178,14 @@ export async function POST(request: Request) {
             return NextResponse.json(result, { status: 200 });
 
         } catch (error: unknown) {
+            console.error("Checkout transaction failed:", error);
+
             // If the transaction threw due to idempotency conflict, we handle it
-            if ((error as any).code === '23505' || (error as Error).message.includes('unique constraint')) {
+            if ((error as any).code === '23505' || (error instanceof Error && error.message.includes('unique constraint'))) {
                 return NextResponse.json({ error: "Request is already processing or completed" }, { status: 409 });
             }
+
+            const safeMessage = safeCheckoutErrorMessage(error);
 
             // For business errors (e.g., Insufficient stock), we must manually save the FAILED key
             // since the main transaction rolled back.
@@ -180,15 +199,16 @@ export async function POST(request: Request) {
                     requestHash,
                     status: 'FAILED',
                     expiresAt,
-                    response: JSON.stringify({ error: (error as Error).message })
+                    response: JSON.stringify({ error: safeMessage })
                 }).onConflictDoNothing();
             } catch(e) {
                 // Ignore conflict here
             }
-            
-            return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+
+            return NextResponse.json({ error: safeMessage }, { status: 400 });
         }
     } catch (err: unknown) {
+        console.error("Checkout failed:", err);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

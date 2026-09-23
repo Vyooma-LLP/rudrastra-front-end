@@ -32,7 +32,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
         return NextResponse.json({ quote, items }, { status: 200 });
     } catch (error: unknown) {
-        return NextResponse.json({ error: "INTERNAL_ERROR", message: (error as Error).message }, { status: 500 });
+        console.error("Error fetching quote:", error);
+        return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
     }
 }
 
@@ -61,6 +62,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
         return NextResponse.json({ quote: updatedQuote }, { status: 200 });
     } catch (error: unknown) {
-        return NextResponse.json({ error: "INTERNAL_ERROR", message: (error as Error).message }, { status: 500 });
+        console.error("Error updating quote:", error);
+        return NextResponse.json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred" }, { status: 500 });
     }
 }

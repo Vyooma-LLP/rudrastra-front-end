@@ -6,6 +6,21 @@ import { NextResponse } from "next/server";
 import { isFeatureEnabled } from "@/lib/features";
 import crypto from "crypto";
 
+// Errors deliberately thrown as user-facing validation messages. Anything
+// else (DB/connection failures, etc.) must not have its raw message returned
+// to the client or persisted to the idempotency-key response replayed on retry.
+const SAFE_QUOTE_ERRORS = new Set([
+    "Missing required customer fields",
+    "Missing required shipping address fields",
+]);
+
+function safeQuoteErrorMessage(error: unknown): string {
+    if (error instanceof Error && SAFE_QUOTE_ERRORS.has(error.message)) {
+        return error.message;
+    }
+    return "Quote request failed";
+}
+
 async function getUserId(request: Request) {
     const supabase = await createClient();
     
@@ -155,9 +170,13 @@ export async function POST(request: Request) {
             return NextResponse.json(result, { status: 200 });
 
         } catch (error: unknown) {
-            if ((error as any).code === '23505' || (error as Error).message.includes('unique constraint')) {
+            console.error("Quote request transaction failed:", error);
+
+            if ((error as any).code === '23505' || (error instanceof Error && error.message.includes('unique constraint'))) {
                 return NextResponse.json({ error: "Request is already processing or completed" }, { status: 409 });
             }
+
+            const safeMessage = safeQuoteErrorMessage(error);
 
             try {
                 const expiresAt = new Date();
@@ -169,13 +188,14 @@ export async function POST(request: Request) {
                     requestHash,
                     status: 'FAILED',
                     expiresAt,
-                    response: JSON.stringify({ error: (error as Error).message })
+                    response: JSON.stringify({ error: safeMessage })
                 }).onConflictDoNothing();
             } catch(e) {}
-            
-            return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+
+            return NextResponse.json({ error: safeMessage }, { status: 400 });
         }
     } catch (err: unknown) {
+        console.error("Quote request failed:", err);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
