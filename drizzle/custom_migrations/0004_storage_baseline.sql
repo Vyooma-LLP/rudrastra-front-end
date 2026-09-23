@@ -23,6 +23,15 @@ DROP POLICY IF EXISTS "Authenticated users can upload product media" ON storage.
 DROP POLICY IF EXISTS "Authenticated users can update product media" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can delete product media" ON storage.objects;
 
+-- Actual legacy policy names found on rudraastra-staging (2026-09-23 forensic check):
+-- these check only `auth.role() = 'authenticated'`, i.e. ANY logged-in user of ANY
+-- role can currently write/delete product-media objects directly. Must be dropped
+-- explicitly, since IF EXISTS above only matched guessed names that don't exist there.
+DROP POLICY IF EXISTS "Admin upload to product-media" ON storage.objects;
+DROP POLICY IF EXISTS "Admin update to product-media" ON storage.objects;
+DROP POLICY IF EXISTS "Admin delete from product-media" ON storage.objects;
+DROP POLICY IF EXISTS "Public access to product-media" ON storage.objects;
+
 -- Recreate Production Canonical Policies
 CREATE POLICY "Public read access for product media" ON storage.objects
   FOR SELECT
