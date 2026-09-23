@@ -10,6 +10,7 @@ export async function POST() {
         cookieStore.delete('dev_role_override');
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        console.error("Logout failed", err);
+        return NextResponse.json({ error: "Logout failed" }, { status: 500 });
     }
 }

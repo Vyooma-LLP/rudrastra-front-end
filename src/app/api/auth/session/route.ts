@@ -42,6 +42,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ session: sessionContext }, { status: 200 });
     } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        console.error("Session lookup failed", err);
+        return NextResponse.json({ error: "Failed to load session" }, { status: 500 });
     }
 }

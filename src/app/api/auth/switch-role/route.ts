@@ -44,6 +44,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ session: sessionContext }, { status: 200 });
     } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        console.error("Switch role failed", err);
+        return NextResponse.json({ error: "Failed to switch role" }, { status: 500 });
     }
 }
